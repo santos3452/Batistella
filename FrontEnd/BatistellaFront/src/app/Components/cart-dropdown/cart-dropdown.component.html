@@ -1,0 +1,86 @@
+<div class="flex flex-col h-full">
+  <!-- Carrito vacío -->
+  <div *ngIf="totalItems === 0" class="flex flex-col items-center justify-center space-y-4 py-12">
+    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400">
+      <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <path d="M16 10a4 4 0 0 1-8 0"></path>
+    </svg>
+    <h3 class="text-xl font-medium">Tu carrito está vacío</h3>
+    <p class="text-gray-500 text-sm text-center">
+      Agrega algunos productos para empezar a comprar
+    </p>
+  </div>
+
+  <!-- Carrito con productos -->
+  <ng-container *ngIf="totalItems > 0">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-lg font-semibold">Mi Carrito ({{totalItems}})</h3>
+    </div>
+
+    <div class="flex-1 overflow-y-auto">
+      <div *ngFor="let item of items" class="mb-4">
+        <div class="flex items-start space-x-4">
+          <div class="w-20 h-20 rounded-md overflow-hidden flex-shrink-0 bg-gray-100">
+            <img
+              [src]="item.image"
+              [alt]="item.name"
+              class="w-full h-full object-cover"
+            />
+          </div>
+          <div class="flex-1 min-w-0">
+            <h4 class="text-sm font-medium">{{item.name}}</h4>
+            <div class="flex justify-between items-center mt-1">
+              <span class="text-sm font-semibold">
+                {{utils.formatCurrency(item.price)}}
+              </span>
+              <div class="flex items-center space-x-2">
+                <button
+                  class="h-6 w-6 flex items-center justify-center border border-gray-300 rounded hover:bg-gray-100"
+                  (click)="decrementQuantity(item)"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                </button>
+                <span class="text-sm w-6 text-center">{{item.quantity}}</span>
+                <button
+                  class="h-6 w-6 flex items-center justify-center border border-gray-300 rounded hover:bg-gray-100"
+                  (click)="incrementQuantity(item)"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <button
+              class="h-6 px-2 text-xs text-red-600 hover:text-red-800 mt-1 flex items-center"
+              (click)="removeItem(item.id)"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                <line x1="10" y1="11" x2="10" y2="17"></line>
+                <line x1="14" y1="11" x2="14" y2="17"></line>
+              </svg>
+              Eliminar
+            </button>
+          </div>
+        </div>
+        <div class="border-t border-gray-200 my-4"></div>
+      </div>
+    </div>
+
+    <div class="mt-auto pt-4 space-y-4">
+      <div class="flex items-center justify-between text-sm">
+        <span class="font-medium">Subtotal</span>
+        <span>{{utils.formatCurrency(totalPrice)}}</span>
+      </div>
+      <button class="w-full bg-teal-600 hover:bg-teal-700 text-white py-2 px-4 rounded-md font-medium">
+        Finalizar Compra
+      </button>
+    </div>
+  </ng-container>
+</div>

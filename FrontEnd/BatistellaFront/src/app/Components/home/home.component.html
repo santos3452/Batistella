@@ -1,0 +1,18 @@
+<!-- Encabezado de productos -->
+<div class="mb-6">
+  <h1 class="text-2xl font-bold text-gray-800">
+    {{ categoryTitle }}
+  </h1>
+  <p class="text-gray-500 mt-1">
+    Encuentra todo lo que necesitas para tus mascotas
+  </p>
+</div>
+
+<!-- Grid de productos -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+  <app-product-card 
+    *ngFor="let product of products; let i = index" 
+    [product]="product"
+    [index]="i"
+  ></app-product-card>
+</div>
