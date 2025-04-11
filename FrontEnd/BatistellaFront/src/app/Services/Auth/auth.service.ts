@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, tap, catchError, of, throwError } from 'rxjs';
+import { BehaviorSubject, Observable, tap, catchError, of, throwError, switchMap } from 'rxjs';
 import { UserService, UserDto } from './user.service';
 import { Router } from '@angular/router';
 
@@ -59,66 +59,42 @@ export class AuthService {
         console.log('Respuesta de login recibida:', response);
         
         let token: string;
-        let user: UserInfo;
         
         // Extraer el token de la respuesta
         if (typeof response === 'string') {
-          // Si la respuesta es un string, asumimos que es el token
           token = response;
         } else if (response.token) {
-          // Si hay un campo token explícito
           token = response.token;
         } else if (response.data && response.data.token) {
-          // Si el token está dentro de data
           token = response.data.token;
         } else {
           console.error('No se pudo extraer el token de la respuesta:', response);
           throw new Error('Token no encontrado en la respuesta');
         }
         
-        // Extraer y preparar los datos del usuario
-        if (response.user) {
-          // Si hay un objeto user explícito
-          user = response.user;
-        } else if (response.nombre || response.apellido || response.email) {
-          // Si los datos del usuario están en el nivel raíz
-          user = {
-            nombre: response.nombre || '',
-            apellido: response.apellido || '',
-            email: response.email || email,
-            rol: response.rol || 'ROLE_CLIENTE',
-            tipoUsuario: response.tipoUsuario || 'FINAL'
-          };
-        } else if (response.data && (response.data.nombre || response.data.email)) {
-          // Si los datos vienen dentro de un objeto 'data'
-          user = {
-            nombre: response.data.nombre || '',
-            apellido: response.data.apellido || '',
-            email: response.data.email || email,
-            rol: response.data.rol || 'ROLE_CLIENTE',
-            tipoUsuario: response.data.tipoUsuario || 'FINAL'
-          };
-        } else {
-          // Fallback: Si no podemos encontrar datos de usuario, usamos un objeto genérico
-          console.warn('No se pudieron extraer datos del usuario de la respuesta:', response);
-          user = {
-            nombre: email.split('@')[0], // Usar parte del email como nombre
-            apellido: '',
-            email: email,
-            rol: 'ROLE_CLIENTE',
-            tipoUsuario: 'FINAL'
-          };
-        }
-        
-        console.log('Datos de usuario extraídos:', user);
-        
-        // Guardar datos en localStorage
+        // Guardar el token en localStorage
         localStorage.setItem('token', token);
-        localStorage.setItem('currentUser', JSON.stringify(user));
         
-        // Actualizar los subjects
-        this.currentUserSubject.next(user);
-        this.isAuthenticatedSubject.next(true);
+        // Si tenemos datos del usuario, usarlos directamente
+        if (response.userData) {
+          const user: UserInfo = {
+            id: response.userData.id,
+            nombre: response.userData.nombre || '',
+            apellido: response.userData.apellido || '',
+            email: response.userData.email || email,
+            rol: response.userData.rol || 'ROLE_CLIENTE',
+            tipoUsuario: response.userData.tipoUsuario || 'FINAL'
+          };
+          
+          // Guardar los datos del usuario
+          localStorage.setItem('currentUser', JSON.stringify(user));
+          
+          // Actualizar los subjects
+          this.currentUserSubject.next(user);
+          this.isAuthenticatedSubject.next(true);
+          
+          console.log('Información de usuario actualizada:', user);
+        }
       }),
       catchError(error => {
         console.error('Error en login:', error);
@@ -128,10 +104,48 @@ export class AuthService {
   }
   
   /**
+   * Extrae información básica del usuario de la respuesta de login
+   */
+  private extractBasicUserInfo(response: any, email: string): UserInfo {
+    if (response.user) {
+      // Si hay un objeto user explícito
+      return response.user;
+    } else if (response.nombre || response.apellido || response.email) {
+      // Si los datos del usuario están en el nivel raíz
+      return {
+        nombre: response.nombre || '',
+        apellido: response.apellido || '',
+        email: response.email || email,
+        rol: response.rol || 'ROLE_CLIENTE',
+        tipoUsuario: response.tipoUsuario || 'FINAL'
+      };
+    } else if (response.data && (response.data.nombre || response.data.email)) {
+      // Si los datos vienen dentro de un objeto 'data'
+      return {
+        nombre: response.data.nombre || '',
+        apellido: response.data.apellido || '',
+        email: response.data.email || email,
+        rol: response.data.rol || 'ROLE_CLIENTE',
+        tipoUsuario: response.data.tipoUsuario || 'FINAL'
+      };
+    } else {
+      // Fallback: Si no podemos encontrar datos de usuario, usamos un objeto genérico
+      console.warn('No se pudieron extraer datos del usuario de la respuesta:', response);
+      return {
+        nombre: email.split('@')[0], // Usar parte del email como nombre
+        apellido: '',
+        email: email,
+        rol: 'ROLE_CLIENTE',
+        tipoUsuario: 'FINAL'
+      };
+    }
+  }
+  
+  /**
    * Registra un nuevo usuario y maneja respuestas text/plain
    */
   register(user: UserDto): Observable<any> {
-    return this.userService.registerUser(user).pipe(
+    return this.userService.register(user).pipe(
       // Transformar la respuesta para manejar el caso de respuesta de texto
       tap(response => {
         console.log('Respuesta de registro recibida:', response);
@@ -158,6 +172,49 @@ export class AuthService {
   updateUserInfo(userInfo: UserInfo): void {
     console.log('Actualizando información de usuario:', userInfo);
     this.currentUserSubject.next(userInfo);
+  }
+
+  /**
+   * Refresca la información del usuario desde la API
+   * @returns Observable con la información actualizada
+   */
+  refreshUserInfo(): Observable<UserInfo> {
+    const email = this.currentUser?.email || localStorage.getItem('userEmail');
+    
+    if (!email) {
+      console.error('No se puede refrescar la información del usuario: email no disponible');
+      return throwError(() => new Error('Email no disponible'));
+    }
+    
+    return this.userService.getUserByEmail(email).pipe(
+      tap((userData: any) => {
+        console.log('Información actualizada del usuario obtenida:', userData);
+        
+        // Crear objeto de usuario con los datos completos
+        const user: UserInfo = {
+          id: userData.id || undefined,
+          nombre: userData.nombre || '',
+          apellido: userData.apellido || '',
+          email: userData.email || email,
+          rol: userData.rol || 'ROLE_CLIENTE',
+          tipoUsuario: userData.tipoUsuario || 'FINAL'
+        };
+        
+        // Guardar los datos actualizados en localStorage
+        localStorage.setItem('currentUser', JSON.stringify(user));
+        
+        // Actualizar los subjects
+        this.currentUserSubject.next(user);
+        
+        console.log('Información de usuario actualizada con datos frescos:', user);
+        
+        return user;
+      }),
+      catchError(error => {
+        console.error('Error al obtener información actualizada del usuario:', error);
+        return throwError(() => error);
+      })
+    );
   }
 
   logout(): void {
@@ -197,7 +254,7 @@ export class AuthService {
    * @returns Observable con la respuesta del servidor
    */
   loginWithGoogle(): Observable<any> {
-    return this.userService.loginWithGoogle().pipe(
+    return this.userService.loginWithGoogle('').pipe(
       tap((response: any) => {
         console.log('Respuesta de login con Google:', response);
         // Si la respuesta contiene un token y datos de usuario

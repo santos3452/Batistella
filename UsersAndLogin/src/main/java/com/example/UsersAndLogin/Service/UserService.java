@@ -3,6 +3,8 @@ package com.example.UsersAndLogin.Service;
 import com.example.UsersAndLogin.Dto.UserDto;
 import com.example.UsersAndLogin.Entity.UserEntity;
 
+import java.util.Optional;
+
 public interface UserService {
     
     /**
@@ -13,4 +15,10 @@ public interface UserService {
      */
     UserEntity createUser(UserDto userDto);
     
+    /**
+     * Busca un usuario por su email
+     * @param email Email del usuario a buscar
+     * @return Usuario encontrado o vacío si no existe
+     */
+    Optional<UserEntity> findByEmail(String email);
 } 

@@ -17,3 +17,8 @@
 .max-w-md {
   animation: fadeIn 0.6s ease-out forwards;
 }
+
+/* Animación para el mensaje de error */
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out forwards;
+}

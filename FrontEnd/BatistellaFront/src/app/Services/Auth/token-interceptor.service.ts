@@ -11,7 +11,7 @@ export class TokenInterceptorService implements HttpInterceptor {
 
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     // Obtener el token desde el servicio de autenticación
-    const token = this.authService.userToken;
+    const token = localStorage.getItem('token');
     
     if (token) {
       // Clonar la petición y añadir el token en el header

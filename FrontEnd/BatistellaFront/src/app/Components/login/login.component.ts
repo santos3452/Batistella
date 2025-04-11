@@ -37,16 +37,13 @@ export class LoginComponent {
       next: (response) => {
         console.log('✅ Inicio de sesión exitoso (detallado):', JSON.stringify(response, null, 2));
         
-        // Verificar que la respuesta contenga un token
-        if (!response.token) {
-          console.warn('La respuesta no contiene un token:', response);
-          this.errorMessage = 'Error en la respuesta del servidor. No se recibió un token válido.';
+        // Verificar que la respuesta sea válida
+        if (!response) {
+          console.warn('La respuesta es vacía o nula:', response);
+          this.errorMessage = 'Error en la respuesta del servidor. Respuesta vacía.';
           this.isLoading = false;
           return;
         }
-        
-        // Ya no necesitamos verificar manualmente el nombre ya que el servicio
-        // se encarga de obtener los datos completos del usuario
         
         // Calcular cuánto tiempo ha pasado desde el inicio
         const elapsedTime = Date.now() - startTime;
@@ -76,6 +73,10 @@ export class LoginComponent {
             this.errorMessage = 'Credenciales incorrectas. Por favor, verifica tu email y contraseña.';
           } else if (error.status === 400) {
             this.errorMessage = 'Datos inválidos. Por favor, verifica la información ingresada.';
+          } else if (error.message && error.message.includes('Token no encontrado')) {
+            this.errorMessage = 'Error en la autenticación. No se pudo obtener el token.';
+          } else if (error.message && error.message.includes('Email no disponible')) {
+            this.errorMessage = 'No se pudo obtener la información del usuario. Por favor, intenta nuevamente.';
           } else {
             this.errorMessage = error.error?.message || 'Ocurrió un error al iniciar sesión. Por favor, intenta nuevamente.';
           }

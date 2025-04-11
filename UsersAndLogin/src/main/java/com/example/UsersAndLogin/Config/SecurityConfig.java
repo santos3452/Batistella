@@ -57,6 +57,7 @@ public class SecurityConfig {
                                 new AntPathRequestMatcher("/swagger-ui.html")
                         ).permitAll()
                         .requestMatchers(new AntPathRequestMatcher("/api/users", HttpMethod.POST.name())).permitAll()
+                        .requestMatchers(new AntPathRequestMatcher("/api/users/email/**", HttpMethod.GET.name())).permitAll()
                         .requestMatchers(new AntPathRequestMatcher("/api/auth/register", HttpMethod.POST.name())).permitAll()
                         .anyRequest().authenticated()
                 )

@@ -43,30 +43,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.subscription.add(
       this.authService.isAuthenticated$.subscribe(isAuthenticated => {
         this.isLoggedIn = isAuthenticated;
-        if (isAuthenticated) {
-          const user = this.authService.currentUser;
-          if (user) {
-            // Verificar que tengamos un nombre válido
-            if (user.nombre && user.nombre.trim() !== '' && user.nombre !== 'Usuario') {
-              // Si tenemos nombre, lo usamos con el apellido (si existe)
-              this.userName = user.apellido ? 
-                `${user.nombre} ${user.apellido}` : 
-                user.nombre;
-              console.log('Usando nombre de usuario:', this.userName);
-            } else {
-              // Usar email como fallback
-              this.userName = user.email ? user.email.split('@')[0] : 'Usuario';
-              console.log('Usando email como nombre de usuario:', this.userName);
-            }
-          } else {
-            this.userName = this.authService.userFullName || 'Usuario';
-            console.log('Usando userFullName del servicio:', this.userName);
-          }
-          console.log('Usuario autenticado:', this.userName);
-        } else {
-          this.userName = '';
-          console.log('Usuario no autenticado');
-        }
+        this.updateUserNameFromCurrentUser();
       })
     );
     
@@ -74,22 +51,40 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.subscription.add(
       this.authService.currentUser$.subscribe(user => {
         if (user) {
-          // Verificar que el nombre sea válido
-          if (user.nombre && user.nombre.trim() !== '' && user.nombre !== 'Usuario') {
-            this.userName = user.apellido ? 
-              `${user.nombre} ${user.apellido}` : 
-              user.nombre;
-            console.log('Actualizando nombre de usuario:', this.userName);
-          } else {
-            // Usar email como fallback
-            this.userName = user.email ? user.email.split('@')[0] : 'Usuario';
-            console.log('Actualizando nombre de usuario a email:', this.userName);
-          }
           this.isLoggedIn = true;
-          console.log('Datos de usuario actualizados:', this.userName);
+          this.updateUserNameFromUser(user);
         }
       })
     );
+  }
+  
+  private updateUserNameFromCurrentUser(): void {
+    if (this.isLoggedIn) {
+      const user = this.authService.currentUser;
+      if (user) {
+        this.updateUserNameFromUser(user);
+      } else {
+        this.userName = 'Usuario';
+        console.log('No se pudo obtener el usuario actual');
+      }
+    } else {
+      this.userName = '';
+    }
+  }
+  
+  private updateUserNameFromUser(user: any): void {
+    // Verificar que tengamos un nombre válido
+    if (user.nombre && user.nombre.trim() !== '' && user.nombre !== 'Usuario') {
+      // Si tenemos nombre, lo usamos con el apellido (si existe)
+      this.userName = user.apellido ? 
+        `${user.nombre} ${user.apellido}` : 
+        user.nombre;
+      console.log('Nombre de usuario actualizado:', this.userName);
+    } else {
+      // Usar email como fallback
+      this.userName = user.email ? user.email.split('@')[0] : 'Usuario';
+      console.log('Usando email como nombre de usuario:', this.userName);
+    }
   }
   
   private checkAuthenticationStatus(): void {
@@ -101,24 +96,10 @@ export class NavbarComponent implements OnInit, OnDestroy {
       try {
         const user = JSON.parse(userData);
         this.isLoggedIn = true;
-        
-        // Verificar que tengamos un nombre válido
-        console.log('Datos de usuario en localStorage:', user);
-        if (user.nombre && user.nombre.trim() !== '' && user.nombre !== 'Usuario') {
-          // Si tenemos nombre, lo usamos con el apellido (si existe)
-          this.userName = user.apellido ? 
-            `${user.nombre} ${user.apellido}` : 
-            user.nombre;
-          console.log('Usando nombre de localStorage:', this.userName);
-        } else {
-          // Usar email como fallback
-          this.userName = user.email ? user.email.split('@')[0] : 'Usuario';
-          console.log('Usando email desde localStorage:', this.userName);
-        }
-        
-        console.log('Usuario cargado desde localStorage:', this.userName);
+        this.updateUserNameFromUser(user);
       } catch (error) {
         console.error('Error al parsear datos de usuario:', error);
+        this.userName = 'Usuario';
       }
     }
   }

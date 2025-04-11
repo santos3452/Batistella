@@ -1,0 +1,135 @@
+<div class="container mx-auto px-4 py-8">
+  <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-md overflow-hidden">
+    <!-- Estado de carga -->
+    <div *ngIf="isLoading" class="flex items-center justify-center p-8">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600"></div>
+      <span class="ml-3 text-gray-600">Cargando información...</span>
+    </div>
+    
+    <!-- Contenido del perfil -->
+    <div *ngIf="!isLoading">
+      <!-- Cabecera del perfil -->
+      <div class="bg-teal-600 px-6 py-12 text-white">
+        <div class="flex flex-col md:flex-row items-center">
+          <!-- Avatar con inicial -->
+          <div class="w-24 h-24 bg-white text-teal-600 rounded-full flex items-center justify-center text-4xl font-bold mb-4 md:mb-0 md:mr-6">
+            {{ userInitial }}
+          </div>
+          <div class="text-center md:text-left">
+            <h1 class="text-3xl font-bold">{{ user?.nombre }} {{ user?.apellido }}</h1>
+            <p class="text-teal-100 mt-1">{{ user?.email }}</p>
+            <p class="text-teal-100 mt-1">{{ user?.tipoUsuario === 'EMPRESA' ? 'Cuenta Empresarial' : 'Cuenta Personal' }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Alertas de éxito o error -->
+      <div *ngIf="errorMessage" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mt-4 mx-6" role="alert">
+        <p>{{ errorMessage }}</p>
+      </div>
+      <div *ngIf="successMessage" class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mt-4 mx-6" role="alert">
+        <p>{{ successMessage }}</p>
+      </div>
+
+      <!-- Información del perfil -->
+      <div class="p-6">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-2xl font-bold text-gray-800">Información Personal</h2>
+          <button 
+            *ngIf="!isEditing" 
+            (click)="toggleEdit()"
+            class="px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 transition-colors"
+          >
+            Editar Perfil
+          </button>
+        </div>
+
+        <!-- Modo visualización -->
+        <div *ngIf="!isEditing" class="space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h3 class="text-sm font-medium text-gray-500">Nombre</h3>
+              <p class="mt-1 text-gray-900">{{ user?.nombre || 'No especificado' }}</p>
+            </div>
+            <div>
+              <h3 class="text-sm font-medium text-gray-500">Apellido</h3>
+              <p class="mt-1 text-gray-900">{{ user?.apellido || 'No especificado' }}</p>
+            </div>
+            <div>
+              <h3 class="text-sm font-medium text-gray-500">Email</h3>
+              <p class="mt-1 text-gray-900">{{ user?.email }}</p>
+            </div>
+            <div>
+              <h3 class="text-sm font-medium text-gray-500">Tipo de Usuario</h3>
+              <p class="mt-1 text-gray-900">{{ user?.tipoUsuario === 'EMPRESA' ? 'Empresarial' : 'Personal' }}</p>
+            </div>
+            <div>
+              <h3 class="text-sm font-medium text-gray-500">Rol</h3>
+              <p class="mt-1 text-gray-900">{{ user?.rol === 'ROLE_ADMIN' ? 'Administrador' : (user?.rol === 'ROLE_EMPRESA' ? 'Empresa' : 'Cliente') }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modo edición -->
+        <div *ngIf="isEditing && editableUser" class="space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label for="nombre" class="block text-sm font-medium text-gray-700">Nombre</label>
+              <input 
+                type="text" 
+                id="nombre" 
+                name="nombre" 
+                [(ngModel)]="editableUser.nombre"
+                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-teal-500 focus:border-teal-500"
+              >
+            </div>
+            <div>
+              <label for="apellido" class="block text-sm font-medium text-gray-700">Apellido</label>
+              <input 
+                type="text" 
+                id="apellido" 
+                name="apellido" 
+                [(ngModel)]="editableUser.apellido"
+                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-teal-500 focus:border-teal-500"
+              >
+            </div>
+            <div>
+              <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+              <input 
+                type="email" 
+                id="email" 
+                name="email" 
+                [(ngModel)]="editableUser.email"
+                disabled
+                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 bg-gray-100"
+              >
+              <p class="mt-1 text-sm text-gray-500">El email no se puede cambiar</p>
+            </div>
+          </div>
+
+          <div class="flex justify-end space-x-3 mt-6">
+            <button 
+              (click)="cancelEdit()"
+              class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50"
+            >
+              Cancelar
+            </button>
+            <button 
+              (click)="saveChanges()"
+              [disabled]="isLoading"
+              class="px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+            >
+              <span *ngIf="isLoading" class="mr-2">
+                <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              </span>
+              {{ isLoading ? 'Guardando...' : 'Guardar Cambios' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div> 
