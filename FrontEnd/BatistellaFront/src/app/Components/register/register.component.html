@@ -1,0 +1,175 @@
+<div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-md w-full bg-white rounded-lg shadow-lg p-8 space-y-6 transform transition-all duration-300 hover:shadow-xl">
+    <div class="text-center">
+      <div class="flex justify-center">
+        <!-- Logo de Batistella -->
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+        </svg>
+      </div>
+      <h2 class="mt-4 text-3xl font-extrabold text-gray-900">
+        Crear Cuenta
+      </h2>
+      <p class="mt-2 text-sm text-gray-600">
+        Regístrate para comenzar a comprar en Batistella
+      </p>
+    </div>
+    
+    <!-- Estado de error general -->
+    <div *ngIf="errorMessage" class="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md mb-4">
+      {{ errorMessage }}
+    </div>
+
+    <!-- Mensaje de éxito -->
+    <div *ngIf="successMessage" class="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-md mb-4">
+      {{ successMessage }}
+    </div>
+
+    <form class="mt-8 space-y-6" (ngSubmit)="onSubmit()" #registerForm="ngForm">
+      <div class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label for="nombre" class="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
+            <input 
+              id="nombre" 
+              name="nombre" 
+              type="text" 
+              required 
+              [(ngModel)]="user.nombre"
+              class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm" 
+              placeholder="Tu nombre"
+            >
+            <div *ngIf="formSubmitted && !user.nombre" class="text-red-500 text-xs mt-1">
+              El nombre es obligatorio
+            </div>
+          </div>
+          <div>
+            <label for="apellido" class="block text-sm font-medium text-gray-700 mb-1">Apellido</label>
+            <input 
+              id="apellido" 
+              name="apellido" 
+              type="text" 
+              required 
+              [(ngModel)]="user.apellido"
+              class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm" 
+              placeholder="Tu apellido"
+            >
+            <div *ngIf="formSubmitted && !user.apellido" class="text-red-500 text-xs mt-1">
+              El apellido es obligatorio
+            </div>
+          </div>
+        </div>
+        
+        <div>
+          <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Correo electrónico</label>
+          <input 
+            id="email" 
+            name="email" 
+            type="email" 
+            autocomplete="email" 
+            required 
+            [(ngModel)]="user.email"
+            email
+            #email="ngModel"
+            class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm" 
+            placeholder="nombre@ejemplo.com"
+          >
+          <div *ngIf="formSubmitted && (email.invalid || !user.email)" class="text-red-500 text-xs mt-1">
+            Por favor ingresa un correo electrónico válido
+          </div>
+        </div>
+        
+        <div>
+          <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
+          <input 
+            id="password" 
+            name="password" 
+            type="password" 
+            required 
+            [(ngModel)]="user.password"
+            minlength="6"
+            #password="ngModel"
+            class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm" 
+            placeholder="••••••••"
+          >
+          <div *ngIf="formSubmitted && password.invalid" class="text-red-500 text-xs mt-1">
+            La contraseña debe tener al menos 6 caracteres
+          </div>
+        </div>
+        
+        <div>
+          <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-1">Confirmar contraseña</label>
+          <input 
+            id="confirmPassword" 
+            name="confirmPassword" 
+            type="password" 
+            required 
+            [(ngModel)]="user.confirmPassword"
+            class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm" 
+            placeholder="••••••••"
+          >
+          <div *ngIf="passwordError" class="text-red-500 text-xs mt-1">
+            {{ passwordError }}
+          </div>
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de usuario</label>
+          <div class="flex space-x-4">
+            <div class="flex items-center">
+              <input 
+                id="tipoFinal" 
+                name="tipoUsuario" 
+                type="radio" 
+                [(ngModel)]="user.tipoUsuario" 
+                value="FINAL"
+                class="h-4 w-4 text-teal-600 focus:ring-teal-500 border-gray-300"
+              >
+              <label for="tipoFinal" class="ml-2 block text-sm text-gray-900">
+                Cliente final
+              </label>
+            </div>
+            <div class="flex items-center">
+              <input 
+                id="tipoEmpresa" 
+                name="tipoUsuario" 
+                type="radio" 
+                [(ngModel)]="user.tipoUsuario" 
+                value="EMPRESA"
+                class="h-4 w-4 text-teal-600 focus:ring-teal-500 border-gray-300"
+              >
+              <label for="tipoEmpresa" class="ml-2 block text-sm text-gray-900">
+                Empresa
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button 
+        type="submit" 
+        [disabled]="isLoading"
+        class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-colors duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
+      >
+        <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+          <!-- Icono de usuario o spinner de carga -->
+          <svg *ngIf="!isLoading" class="h-5 w-5 text-teal-500 group-hover:text-teal-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6z" />
+          </svg>
+          <!-- Spinner de carga -->
+          <svg *ngIf="isLoading" class="animate-spin h-5 w-5 text-teal-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+        </span>
+        {{ isLoading ? 'Registrando...' : 'Crear cuenta' }}
+      </button>
+      
+      <div class="text-center mt-4">
+        <a routerLink="/login" class="text-sm text-gray-600 hover:text-teal-500">
+          ¿Ya tienes una cuenta? Inicia sesión
+        </a>
+      </div>
+    </form>
+  </div>
+</div>

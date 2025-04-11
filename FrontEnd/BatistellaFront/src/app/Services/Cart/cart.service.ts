@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { Product } from '../Models/product';
+import { Product } from '../Product/product.service';
 
-export interface CartItem extends Product {
+export interface CartItem {
+  product: Product;
   quantity: number;
 }
 
@@ -22,7 +23,7 @@ export class CartService {
    */
   addToCart(product: Product): void {
     const currentItems = this.itemsSubject.getValue();
-    const existingItemIndex = currentItems.findIndex(item => item.id === product.id);
+    const existingItemIndex = currentItems.findIndex(item => item.product.id === product.id);
     
     if (existingItemIndex > -1) {
       // El producto ya existe, incrementa la cantidad
@@ -31,7 +32,7 @@ export class CartService {
       this.itemsSubject.next(updatedItems);
     } else {
       // El producto no existe, añádelo con cantidad 1
-      this.itemsSubject.next([...currentItems, { ...product, quantity: 1 }]);
+      this.itemsSubject.next([...currentItems, { product, quantity: 1 }]);
     }
   }
 
@@ -41,7 +42,7 @@ export class CartService {
    */
   removeFromCart(productId: number): void {
     const currentItems = this.itemsSubject.getValue();
-    this.itemsSubject.next(currentItems.filter(item => item.id !== productId));
+    this.itemsSubject.next(currentItems.filter(item => item.product.id !== productId));
   }
 
   /**
@@ -53,7 +54,7 @@ export class CartService {
     const currentItems = this.itemsSubject.getValue();
     this.itemsSubject.next(
       currentItems.map(item => 
-        item.id === productId ? { ...item, quantity } : item
+        item.product.id === productId ? { ...item, quantity } : item
       )
     );
   }
@@ -72,7 +73,7 @@ export class CartService {
    */
   get totalPrice$(): Observable<number> {
     return this.items$.pipe(
-      map(items => items.reduce((total, item) => total + (item.price * item.quantity), 0))
+      map(items => items.reduce((total, item) => total + (item.product.price * item.quantity), 0))
     );
   }
 }

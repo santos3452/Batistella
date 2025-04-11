@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { CartService, CartItem } from '../../Services/cart.service';
-import { UtilsService } from '../../Services/utils.service';
+import { CartService, CartItem } from '../../Services/Cart/cart.service';
+import { UtilsService } from '../../Services/Utils/utils.service';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -59,12 +59,12 @@ export class CartDropdownComponent implements OnInit, OnDestroy {
   }
 
   incrementQuantity(item: CartItem): void {
-    this.updateQuantity(item.id, item.quantity + 1);
+    this.updateQuantity(item.product.id, item.quantity + 1);
   }
 
   decrementQuantity(item: CartItem): void {
     if (item.quantity > 1) {
-      this.updateQuantity(item.id, item.quantity - 1);
+      this.updateQuantity(item.product.id, item.quantity - 1);
     }
   }
 }

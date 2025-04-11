@@ -2,8 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, ParamMap } from '@angular/router';
 import { ProductCardComponent } from '../product-card/product-card.component';
-import { ProductService } from '../../Services/product.service';
-import { Product } from '../../Models/product';
+import { ProductService, Product } from '../../Services/Product/product.service';
 import { Subscription } from 'rxjs';
 
 @Component({

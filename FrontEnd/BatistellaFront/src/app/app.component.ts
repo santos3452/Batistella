@@ -16,19 +16,23 @@ import { filter } from 'rxjs/operators';
 export class AppComponent implements OnInit {
   sidebarOpen = false;
   isLoginRoute = false;
+  isAuthRoute = false;
 
   constructor(private router: Router) {}
 
   ngOnInit() {
-    // Detectar cuando estamos en la ruta de login
+    // Detectar cuando estamos en rutas de autenticación
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe((event: any) => {
       this.isLoginRoute = event.url === '/login';
+      this.isAuthRoute = event.url === '/login' || event.url === '/register';
     });
 
     // Verificar la ruta inicial
-    this.isLoginRoute = this.router.url === '/login';
+    const currentUrl = this.router.url;
+    this.isLoginRoute = currentUrl === '/login';
+    this.isAuthRoute = currentUrl === '/login' || currentUrl === '/register';
   }
 
   toggleSidebar() {
