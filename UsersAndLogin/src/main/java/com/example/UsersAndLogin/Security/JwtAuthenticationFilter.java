@@ -36,6 +36,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         // No autenticamos para rutas públicas específicas (mejora de rendimiento)
         String requestURI = request.getRequestURI();
+        
         if (isPublicEndpoint(requestURI)) {
             filterChain.doFilter(request, response);
             return;
@@ -68,18 +69,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         } catch (ExpiredJwtException | MalformedJwtException | UnsupportedJwtException | SignatureException e) {
             // No establecemos autenticación - simplemente continuamos con el filtro
-            logger.error("Error de autenticación JWT: " + e.getMessage());
         }
 
         filterChain.doFilter(request, response);
     }
 
     private boolean isPublicEndpoint(String requestURI) {
+        // Verificar si la URI coincide exactamente con /api/users/updateUser
+        if (requestURI.equals("/api/users/updateUser")) {
+            return true;
+        }
+        
         return requestURI.startsWith("/api/auth/") || 
                requestURI.startsWith("/h2-console/") || 
                requestURI.equals("/api/users") ||
                requestURI.startsWith("/v3/api-docs/") ||
                requestURI.startsWith("/swagger-ui/") ||
-               requestURI.equals("/swagger-ui.html");
+               requestURI.equals("/swagger-ui.html") ||
+               requestURI.equals("/error");
     }
 }

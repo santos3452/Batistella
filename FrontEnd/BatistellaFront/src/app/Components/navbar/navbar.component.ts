@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Output, OnInit, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, CurrencyPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { CartService } from '../../Services/Cart/cart.service';
 import { CartDropdownComponent } from '../cart-dropdown/cart-dropdown.component';
@@ -11,12 +11,13 @@ import { AuthService } from '../../Services/Auth/auth.service';
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.css',
   standalone: true,
-  imports: [CommonModule, RouterLink, CartDropdownComponent]
+  imports: [CommonModule, RouterLink, CartDropdownComponent, CurrencyPipe]
 })
 export class NavbarComponent implements OnInit, OnDestroy {
   @Output() toggleSidebar = new EventEmitter<void>();
   
   totalItems = 0;
+  cartTotal = 0;
   showCart = false;
   isLoggedIn = false;
   showUserMenu = false;
@@ -36,6 +37,13 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.subscription.add(
       this.cartService.totalItems$.subscribe(total => {
         this.totalItems = total;
+      })
+    );
+    
+    // Suscripción al total del carrito
+    this.subscription.add(
+      this.cartService.totalPrice$.subscribe(total => {
+        this.cartTotal = total;
       })
     );
     

@@ -47,9 +47,65 @@
           </span>
         </button>
         
-        <!-- Dropdown del carrito -->
-        <div *ngIf="showCart" class="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg z-50 max-h-[500px] overflow-hidden">
-          <app-cart-dropdown></app-cart-dropdown>
+        <!-- Drawer del carrito -->
+        <div class="fixed inset-0 z-50 pointer-events-none"
+             [class.invisible]="!showCart">
+          <!-- Overlay con fondo oscuro -->
+          <div class="fixed inset-0 bg-black transition-opacity duration-300 ease-in-out"
+               [class.opacity-0]="!showCart"
+               [class.opacity-30]="showCart"
+               [class.pointer-events-none]="!showCart"
+               [class.pointer-events-auto]="showCart"
+               (click)="toggleCart()">
+          </div>
+          
+          <!-- Panel del carrito -->
+          <div class="fixed right-0 top-0 h-full w-96 bg-white shadow-xl transform transition-transform duration-300 ease-in-out"
+               [class.translate-x-0]="showCart"
+               [class.translate-x-full]="!showCart"
+               [class.pointer-events-none]="!showCart"
+               [class.pointer-events-auto]="showCart">
+            <!-- Encabezado del carrito -->
+            <div class="flex items-center justify-between p-4 border-b border-gray-200">
+              <div class="flex items-center space-x-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                  <line x1="3" y1="6" x2="21" y2="6"></line>
+                  <path d="M16 10a4 4 0 0 1-8 0"></path>
+                </svg>
+                <h2 class="text-lg font-semibold">Carrito de Compras</h2>
+              </div>
+              <button 
+                (click)="toggleCart()" 
+                class="p-2 hover:bg-gray-100 rounded-full"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+            
+            <!-- Contenido del carrito -->
+            <div class="h-full flex flex-col">
+              <div class="flex-1 overflow-y-auto p-4">
+                <app-cart-dropdown></app-cart-dropdown>
+              </div>
+              
+              <!-- Footer con total y botón de pago -->
+              <div class="border-t border-gray-200 p-4 bg-white">
+                <div class="flex justify-between mb-4">
+                  <span class="text-gray-600">Total</span>
+                  <span class="font-semibold">{{cartTotal | currency:'EUR'}}</span>
+                </div>
+                <button 
+                  class="w-full bg-teal-600 text-white py-3 px-4 rounded-md hover:bg-teal-700 transition duration-150 font-medium"
+                >
+                  Proceder al Pago
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 

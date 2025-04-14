@@ -1,5 +1,6 @@
 package com.example.UsersAndLogin.Controller;
 
+import com.example.UsersAndLogin.Dto.UpdateUserDto;
 import com.example.UsersAndLogin.Dto.UserDto;
 import com.example.UsersAndLogin.Dto.UserResponseDto;
 import com.example.UsersAndLogin.Entity.UserEntity;
@@ -47,6 +48,24 @@ public class UserController {
             return ResponseEntity
                     .status(HttpStatus.NOT_FOUND)
                     .body("No se encontró usuario con el email: " + email);
+        }
+
+    }
+
+    @PostMapping("/updateUser")
+    public ResponseEntity<?> updateUser(@RequestParam String mail, 
+                                      @RequestParam(required = false) String password, 
+                                      @RequestParam String nombre, 
+                                      @RequestParam String apellido) {
+        try {
+            UpdateUserDto updatedUser = userService.UpdateUser(mail, password, nombre, apellido);
+            return ResponseEntity
+                    .status(HttpStatus.OK)
+                    .body("Usuario actualizado exitosamente");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(e.getMessage());
         }
     }
 } 
