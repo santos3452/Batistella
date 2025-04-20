@@ -1,7 +1,5 @@
 package com.example.UsersAndLogin.Dto;
 
-import com.example.UsersAndLogin.Entity.enums.Role;
-import com.example.UsersAndLogin.Entity.enums.UserType;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
