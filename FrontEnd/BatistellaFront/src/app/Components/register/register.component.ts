@@ -96,44 +96,21 @@ export class RegisterComponent {
         }, remainingTime);
       },
       error: (error) => {
-        // Si el error es 201 (Created), entonces el registro fue exitoso pero hubo un error al procesar la respuesta
-        if (error.status === 201) {
-          console.log('✅ Registro exitoso pero con error en respuesta:', error);
-          
-          // Calcular cuánto tiempo ha pasado desde el inicio
-          const elapsedTime = Date.now() - startTime;
-          const remainingTime = Math.max(0, 2000 - elapsedTime);
-          
-          // Esperar al menos 2 segundos en total antes de continuar
-          setTimeout(() => {
-            this.isLoading = false;
-            this.successMessage = '¡Registro exitoso! Iniciando sesión automáticamente...';
-            
-            // Iniciar sesión automáticamente
-            this.loginAfterRegistration(userDto.email, userDto.password);
-          }, remainingTime);
-          return;
-        }
+        console.error('Error en el registro:', error);
         
-        console.error('❌ Error al registrar:', error);
-        
-        // Calcular cuánto tiempo ha pasado desde el inicio
         const elapsedTime = Date.now() - startTime;
         const remainingTime = Math.max(0, 2000 - elapsedTime);
         
-        // Esperar al menos 2 segundos en total antes de mostrar el error
         setTimeout(() => {
           this.isLoading = false;
           
-          // Información más detallada sobre el error
-          if (error.status === 404) {
-            this.errorMessage = 'No se pudo conectar con el servidor de registro. Por favor verifica que la API esté en ejecución.';
-          } else if (error.status === 400) {
-            this.errorMessage = 'Datos inválidos. Por favor, verifica la información ingresada.';
-          } else if (error.status === 409) {
-            this.errorMessage = 'El email ya está en uso. Por favor, utiliza otro email.';
+          // El error ahora debería ser directamente el ErrorDto
+          if (error && error.message) {
+            this.errorMessage = error.message;
+          } else if (error && error.status === 404) {
+            this.errorMessage = 'No se pudo conectar con el servidor. Por favor verifica que la API esté en ejecución.';
           } else {
-            this.errorMessage = error.error?.message || 'Ocurrió un error al registrar. Por favor, intenta nuevamente.';
+            this.errorMessage = 'Ocurrió un error al registrar el usuario. Por favor, intenta nuevamente.';
           }
         }, remainingTime);
       }

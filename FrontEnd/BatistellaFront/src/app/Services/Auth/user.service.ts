@@ -35,22 +35,18 @@ export class UserService {
 
   register(user: UserDto): Observable<any> {
     const headers = new HttpHeaders().set('Content-Type', 'application/json');
-    return this.http.post(`${this.apiUrl}/register`, user, { 
-      headers,
-      observe: 'response',
-      responseType: 'text'
-    }).pipe(
+    return this.http.post(`${this.apiUrl}/register`, user, { headers }).pipe(
       map(response => {
-        if (response.status === 201) {
-          return { success: true, message: 'Usuario registrado exitosamente' };
-        }
-        try {
-          return JSON.parse(response.body || '{}');
-        } catch {
-          return { success: true, message: response.body || 'Usuario registrado exitosamente' };
-        }
+        return { success: true, message: 'Usuario registrado exitosamente' };
       }),
-      catchError(this.handleError)
+      catchError((error: any) => {
+        console.log('Error en el registro:', error);
+        // Si el error tiene un cuerpo de respuesta, lo devolvemos
+        if (error.error) {
+          return throwError(() => error.error);
+        }
+        return throwError(() => error);
+      })
     );
   }
 
@@ -86,7 +82,14 @@ export class UserService {
             })
           );
         }),
-        catchError(this.handleError)
+        catchError((error: any) => {
+          console.log('Error en el servicio:', error);
+          // Si el error tiene un cuerpo de respuesta, lo devolvemos
+          if (error.error) {
+            return throwError(() => error.error);
+          }
+          return throwError(() => error);
+        })
       );
   }
 

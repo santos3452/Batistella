@@ -56,7 +56,8 @@ export class LoginComponent {
         }, remainingTime);
       },
       error: (error) => {
-        console.error('❌ Error al iniciar sesión (detallado):', JSON.stringify(error, null, 2));
+        // Log del error completo para debug
+        console.error('Error recibido:', error);
         
         // Calcular cuánto tiempo ha pasado desde el inicio
         const elapsedTime = Date.now() - startTime;
@@ -66,19 +67,13 @@ export class LoginComponent {
         setTimeout(() => {
           this.isLoading = false;
           
-          // Información más detallada sobre el error
-          if (error.status === 404) {
+          // El error ahora debería ser directamente el ErrorDto
+          if (error && error.message) {
+            this.errorMessage = error.message;
+          } else if (error && error.status === 404) {
             this.errorMessage = 'No se pudo conectar con el servidor. Por favor verifica que la API esté en ejecución.';
-          } else if (error.status === 401) {
-            this.errorMessage = 'Credenciales incorrectas. Por favor, verifica tu email y contraseña.';
-          } else if (error.status === 400) {
-            this.errorMessage = 'Datos inválidos. Por favor, verifica la información ingresada.';
-          } else if (error.message && error.message.includes('Token no encontrado')) {
-            this.errorMessage = 'Error en la autenticación. No se pudo obtener el token.';
-          } else if (error.message && error.message.includes('Email no disponible')) {
-            this.errorMessage = 'No se pudo obtener la información del usuario. Por favor, intenta nuevamente.';
           } else {
-            this.errorMessage = error.error?.message || 'Ocurrió un error al iniciar sesión. Por favor, intenta nuevamente.';
+            this.errorMessage = 'Ocurrió un error al iniciar sesión. Por favor, intenta nuevamente.';
           }
         }, remainingTime);
       }

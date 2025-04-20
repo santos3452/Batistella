@@ -1,7 +1,7 @@
 package com.example.UsersAndLogin.Controller;
 
+import com.example.UsersAndLogin.Dto.Error.ErrorDto;
 import com.example.UsersAndLogin.Dto.UpdateUserDto;
-import com.example.UsersAndLogin.Dto.UserDto;
 import com.example.UsersAndLogin.Dto.UserResponseDto;
 import com.example.UsersAndLogin.Entity.UserEntity;
 import com.example.UsersAndLogin.Service.UserService;
@@ -21,35 +21,23 @@ public class UserController {
     public UserController(UserService userService) {
         this.userService = userService;
     }
-
-    @PostMapping
-    public ResponseEntity<?> createUser(@RequestBody UserDto userDto) {
-        try {
-            userService.createUser(userDto);
-            return ResponseEntity
-                    .status(HttpStatus.CREATED)
-                    .body("Usuario creado exitosamente");
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity
-                    .status(HttpStatus.BAD_REQUEST)
-                    .body(e.getMessage());
-        }
-    }
     
     @GetMapping("/email/{email}")
     public ResponseEntity<?> getUserByEmail(@PathVariable String email) {
         Optional<UserEntity> userOpt = userService.findByEmail(email);
         
         if (userOpt.isPresent()) {
-            // Convertir a DTO de respuesta para no exponer la contraseña
             UserResponseDto responseDto = UserResponseDto.fromEntity(userOpt.get());
             return ResponseEntity.ok(responseDto);
         } else {
             return ResponseEntity
                     .status(HttpStatus.NOT_FOUND)
-                    .body("No se encontró usuario con el email: " + email);
+                    .body(ErrorDto.of(
+                            HttpStatus.NOT_FOUND.value(),
+                            "Usuario No Encontrado",
+                            "No se encontró usuario con el email: " + email
+                    ));
         }
-
     }
 
     @PostMapping("/updateUser")
@@ -65,7 +53,11 @@ public class UserController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
-                    .body(e.getMessage());
+                    .body(ErrorDto.of(
+                            HttpStatus.BAD_REQUEST.value(),
+                            "Error de Validación",
+                            e.getMessage()
+                    ));
         }
     }
 } 

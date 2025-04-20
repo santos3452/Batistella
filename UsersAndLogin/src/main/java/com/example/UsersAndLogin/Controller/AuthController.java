@@ -2,6 +2,7 @@ package com.example.UsersAndLogin.Controller;
 
 import com.example.UsersAndLogin.Dto.AuthRequest;
 import com.example.UsersAndLogin.Dto.AuthResponse;
+import com.example.UsersAndLogin.Dto.Error.ErrorDto;
 import com.example.UsersAndLogin.Dto.UserDto;
 import com.example.UsersAndLogin.Security.CustomUserDetailsService;
 import com.example.UsersAndLogin.Security.JwtUtils;
@@ -43,7 +44,13 @@ public class AuthController {
 
             return ResponseEntity.ok(new AuthResponse(token));
         } catch (AuthenticationException ex) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Credenciales inválidas");
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body(ErrorDto.of(
+                            HttpStatus.UNAUTHORIZED.value(),
+                            "Error de Autenticación",
+                            "Credenciales inválidas"
+                    ));
         }
     }
     
@@ -53,9 +60,21 @@ public class AuthController {
             userService.createUser(userDto);
             return ResponseEntity.status(HttpStatus.CREATED).body("Usuario registrado exitosamente");
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(ErrorDto.of(
+                            HttpStatus.BAD_REQUEST.value(),
+                            "Error de Validación",
+                            e.getMessage()
+                    ));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al registrar usuario: " + e.getMessage());
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ErrorDto.of(
+                            HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                            "Error Interno del Servidor",
+                            "Error al registrar usuario: " + e.getMessage()
+                    ));
         }
     }
 }
