@@ -11,7 +11,7 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class UserResponseDto {
-    private Long id;
+
     private String nombre;
     private String apellido;
     private String email;
@@ -21,7 +21,7 @@ public class UserResponseDto {
     // Constructor para convertir desde la entidad
     public static UserResponseDto fromEntity(UserEntity entity) {
         return UserResponseDto.builder()
-                .id(entity.getId())
+
                 .nombre(entity.getNombre())
                 .apellido(entity.getApellido())
                 .email(entity.getEmail())

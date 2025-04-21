@@ -34,4 +34,27 @@ public interface UserService {
      */
     UpdateUserDto UpdateUser(String email, String password, String nombre, String apellido);
 
+    /**
+     * Cambia la contraseña de un usuario existente
+     * @param email Email del usuario
+     * @param oldPassword Contraseña actual
+     * @param newPassword Nueva contraseña
+     * @throws IllegalArgumentException si la contraseña actual es incorrecta o si hay otros errores de validación
+     */
+    void changePassword(String email, String oldPassword, String newPassword);
+
+    /**
+     * Realiza la baja lógica de un usuario
+     * @param email Email del usuario a dar de baja
+     * @throws IllegalArgumentException si el usuario no existe o ya está dado de baja
+     */
+    void deleteUser(String email);
+
+    /**
+     * Reactiva una cuenta de usuario previamente dada de baja
+     * @param email Email del usuario a reactivar
+     * @throws IllegalArgumentException si el usuario no existe o ya está activo
+     */
+    void reactivateUser(String email);
+
 } 

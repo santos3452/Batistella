@@ -29,7 +29,12 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserEntity createUser(UserDto userDto) {
         // Verificar si ya existe un usuario con ese email
-        if (userRepository.findByEmail(userDto.getEmail()).isPresent()) {
+        Optional<UserEntity> existingUser = userRepository.findByEmail(userDto.getEmail());
+        
+        if (existingUser.isPresent()) {
+            if (!existingUser.get().getActivo()) {
+                throw new IllegalArgumentException("Esta cuenta está dada de baja. Por favor, reactive su cuenta para continuar.");
+            }
             throw new IllegalArgumentException("Ya existe un usuario con ese email: " + userDto.getEmail());
         }
 
@@ -78,5 +83,55 @@ public class UserServiceImpl implements UserService {
         } catch (Exception e) {
             throw new IllegalArgumentException("Error al actualizar el usuario: " + e.getMessage());
         }
+    }
+
+    @Override
+    @Transactional
+    public void changePassword(String email, String oldPassword, String newPassword) {
+        // Validar que la nueva contraseña no esté vacía
+        if (newPassword == null || newPassword.trim().isEmpty()) {
+            throw new IllegalArgumentException("La nueva contraseña no puede estar vacía");
+        }
+
+        // Buscar el usuario
+        UserEntity user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+
+        // Verificar que la contraseña actual sea correcta
+        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+            throw new IllegalArgumentException("La contraseña actual es incorrecta");
+        }
+
+        // Actualizar la contraseña
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
+
+    @Override
+    @Transactional
+    public void deleteUser(String email) {
+        UserEntity user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+
+        if (!user.getActivo()) {
+            throw new IllegalArgumentException("El usuario ya está dado de baja");
+        }
+
+        user.setActivo(false);
+        userRepository.save(user);
+    }
+
+    @Override
+    @Transactional
+    public void reactivateUser(String email) {
+        UserEntity user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+
+        if (user.getActivo()) {
+            throw new IllegalArgumentException("La cuenta ya está activa");
+        }
+
+        user.setActivo(true);
+        userRepository.save(user);
     }
 } 

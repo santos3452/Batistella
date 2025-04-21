@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
-import { UserType, Role, UserDto } from '../../Services/Auth/user.service';
+import { UserType, Role, UserDto, UserService } from '../../Services/Auth/user.service';
 import { AuthService } from '../../Services/Auth/auth.service';
 
 export interface RegisterUser {
@@ -18,7 +18,7 @@ export interface RegisterUser {
 @Component({
   selector: 'app-register',
   templateUrl: './register.component.html',
-  styleUrl: './register.component.css',
+  styleUrls: ['./register.component.css'],
   standalone: true,
   imports: [CommonModule, FormsModule, RouterLink]
 })
@@ -38,10 +38,13 @@ export class RegisterComponent {
   isLoading: boolean = false;
   errorMessage: string = '';
   successMessage: string = '';
+  showReactivateModal = false;
+  deactivatedEmail = '';
 
   constructor(
     private router: Router,
-    private authService: AuthService
+    private authService: AuthService,
+    private userService: UserService
   ) {}
 
   onSubmit() {
@@ -77,7 +80,7 @@ export class RegisterComponent {
     this.isLoading = true;
     const startTime = Date.now();
     
-    // Llamada a la API
+    // Llamada a la API usando AuthService
     this.authService.register(userDto).subscribe({
       next: (response) => {
         console.log('✅ Registro exitoso:', response);
@@ -116,7 +119,7 @@ export class RegisterComponent {
       }
     });
   }
-  
+
   /**
    * Inicia sesión automáticamente después del registro
    */
@@ -152,4 +155,14 @@ export class RegisterComponent {
       }
     });
   }
+
+  private resetForm(): void {
+    this.user.email = '';
+    this.user.password = '';
+    this.user.confirmPassword = '';
+    this.user.nombre = '';
+    this.user.apellido = '';
+    this.user.tipoUsuario = 'FINAL';
+  }
 }
+

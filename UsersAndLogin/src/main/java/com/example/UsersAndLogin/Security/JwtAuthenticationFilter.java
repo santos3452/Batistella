@@ -34,29 +34,36 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
-        // No autenticamos para rutas públicas específicas (mejora de rendimiento)
         String requestURI = request.getRequestURI();
+        System.out.println("URI solicitada: " + requestURI);
         
         if (isPublicEndpoint(requestURI)) {
+            System.out.println("Endpoint público detectado: " + requestURI);
             filterChain.doFilter(request, response);
             return;
         }
 
         final String authHeader = request.getHeader("Authorization");
+        System.out.println("Auth Header recibido: " + authHeader);
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            System.out.println("No se encontró token Bearer válido");
             filterChain.doFilter(request, response);
             return;
         }
 
         try {
-            final String jwt = authHeader.substring(7);
+            String jwt = authHeader.replace("Bearer", "").trim();
+            System.out.println("Token procesado: " + jwt);
+            
             final String username = jwtUtils.extractEmail(jwt);
+            System.out.println("Username extraído: " + username);
     
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
     
                 if (jwtUtils.validateToken(jwt, userDetails)) {
+                    System.out.println("Token válido para el usuario: " + username);
                     UsernamePasswordAuthenticationToken authToken =
                             new UsernamePasswordAuthenticationToken(
                                     userDetails, null, userDetails.getAuthorities());
@@ -65,21 +72,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                             new WebAuthenticationDetailsSource().buildDetails(request));
     
                     SecurityContextHolder.getContext().setAuthentication(authToken);
+                } else {
+                    System.out.println("Token inválido para el usuario: " + username);
                 }
             }
-        } catch (ExpiredJwtException | MalformedJwtException | UnsupportedJwtException | SignatureException e) {
-            // No establecemos autenticación - simplemente continuamos con el filtro
+        } catch (Exception e) {
+            System.out.println("Error procesando token: " + e.getMessage());
+            e.printStackTrace();
         }
 
         filterChain.doFilter(request, response);
     }
 
     private boolean isPublicEndpoint(String requestURI) {
-        // Verificar si la URI coincide exactamente con /api/users/updateUser
-        if (requestURI.equals("/api/users/updateUser")) {
-            return true;
-        }
-        
         return requestURI.startsWith("/api/auth/") || 
                requestURI.startsWith("/h2-console/") || 
                requestURI.equals("/api/users") ||

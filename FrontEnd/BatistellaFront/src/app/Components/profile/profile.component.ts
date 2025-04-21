@@ -18,6 +18,8 @@ export class ProfileComponent implements OnInit {
   isEditing = false;
   isLoading = false;
   errorMessage = '';
+  successMessage = '';
+  showDeleteModal = false;
   
   // Campos para el cambio de contraseña
   currentPassword = '';
@@ -59,19 +61,58 @@ export class ProfileComponent implements OnInit {
   toggleEdit(): void {
     this.isEditing = !this.isEditing;
     this.errorMessage = '';
+    this.successMessage = '';
     this.showPasswordFields = false;
     
     if (this.isEditing && this.user) {
-      // Si entramos en modo edición, crear una copia de los datos para editar
       this.editableUser = {...this.user};
     }
   }
 
   togglePasswordFields(): void {
     this.showPasswordFields = !this.showPasswordFields;
+    this.isEditing = false;
+    this.errorMessage = '';
+    this.successMessage = '';
     this.currentPassword = '';
     this.newPassword = '';
     this.confirmNewPassword = '';
+  }
+
+  cancelPasswordChange(): void {
+    this.showPasswordFields = false;
+    this.errorMessage = '';
+    this.successMessage = '';
+    this.currentPassword = '';
+    this.newPassword = '';
+    this.confirmNewPassword = '';
+  }
+
+  savePasswordChange() {
+    if (this.currentPassword && this.newPassword && this.confirmNewPassword) {
+      if (this.newPassword !== this.confirmNewPassword) {
+        this.errorMessage = 'Las contraseñas no coinciden';
+        return;
+      }
+
+      this.userService.changePassword(this.currentPassword, this.newPassword).subscribe({
+        next: (response) => {
+          this.successMessage = 'Contraseña actualizada exitosamente';
+          this.errorMessage = '';
+          this.currentPassword = '';
+          this.newPassword = '';
+          this.confirmNewPassword = '';
+          this.showPasswordFields = false;
+        },
+        error: (error) => {
+          console.error('Error en cambio de contraseña:', error);
+          this.errorMessage = error.message || 'Error al cambiar la contraseña';
+          this.successMessage = '';
+        }
+      });
+    } else {
+      this.errorMessage = 'Por favor complete todos los campos';
+    }
   }
 
   async saveChanges(): Promise<void> {
@@ -79,56 +120,27 @@ export class ProfileComponent implements OnInit {
     
     this.isLoading = true;
     this.errorMessage = '';
+    this.successMessage = '';
 
     try {
-      // Si se está intentando cambiar la contraseña
-      if (this.showPasswordFields) {
-        if (!this.currentPassword || !this.newPassword || !this.confirmNewPassword) {
-          throw new Error('Por favor complete todos los campos de contraseña');
-        }
-
-        if (this.newPassword !== this.confirmNewPassword) {
-          throw new Error('Las contraseñas nuevas no coinciden');
-        }
-
-        // Verificar la contraseña actual
-        const isPasswordValid = await firstValueFrom(
-          this.userService.verifyCurrentPassword(
-            this.editableUser.email,
-            this.currentPassword
-          )
-        );
-
-        if (!isPasswordValid) {
-          throw new Error('La contraseña actual es incorrecta');
-        }
-      }
-
-      // Preparar los datos para la actualización
       const updateData: any = {
         nombre: this.editableUser.nombre,
         apellido: this.editableUser.apellido
       };
 
-      // Si hay una nueva contraseña, incluirla en la actualización
-      if (this.showPasswordFields && this.newPassword) {
-        updateData.password = this.newPassword;
-      }
-
-      // Realizar la actualización
       await firstValueFrom(
         this.userService.updateUser(this.editableUser.email, updateData)
       );
 
-      // Esperar 1 segundo y recargar
+      // Si la actualización fue exitosa, solo recargamos
       setTimeout(() => {
         window.location.reload();
       }, 1000);
 
     } catch (error: any) {
-      console.error('Error completo:', error);
+      console.error('Error al actualizar perfil:', error);
+      this.isLoading = false;
       
-      // Manejar diferentes tipos de errores
       if (error.error?.message) {
         this.errorMessage = error.error.message;
       } else if (error.status === 403) {
@@ -138,28 +150,15 @@ export class ProfileComponent implements OnInit {
       } else {
         this.errorMessage = error.message || 'Error al actualizar el perfil';
       }
-
-      // Si la actualización fue exitosa a pesar del error, solo recargar
-      if (error.status === 200 || error.status === 201) {
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000);
-      } else {
-        this.isLoading = false;
-      }
     }
   }
 
   cancelEdit(): void {
     this.isEditing = false;
     this.errorMessage = '';
-    this.showPasswordFields = false;
-    this.currentPassword = '';
-    this.newPassword = '';
-    this.confirmNewPassword = '';
+    this.successMessage = '';
     
     if (this.user) {
-      // Descartar cambios y restaurar los datos originales
       this.editableUser = {...this.user};
     }
   }
@@ -169,5 +168,30 @@ export class ProfileComponent implements OnInit {
       return this.user.nombre.charAt(0).toUpperCase();
     }
     return 'U';
+  }
+
+  deleteAccount(): void {
+    this.showDeleteModal = true;
+  }
+
+  confirmDelete(): void {
+    this.showDeleteModal = false;
+    this.isLoading = true;
+    this.errorMessage = '';
+    
+    this.userService.deleteUser().subscribe({
+      next: () => {
+        this.authService.logout();
+        window.location.href = '/login';
+      },
+      error: (error) => {
+        this.isLoading = false;
+        this.errorMessage = error.message || 'Error al eliminar la cuenta';
+      }
+    });
+  }
+
+  cancelDelete(): void {
+    this.showDeleteModal = false;
   }
 } 

@@ -3,7 +3,7 @@
     <div class="text-center">
       <div class="flex justify-center">
         <!-- Logo de Batistella -->
-        <img src="assets/Images/Logo.png" alt="Batistella Logo" class="h-24">
+        <img src="assets/Images/BatistellaLogo.jpg" alt="Batistella Logo" class="h-16">
       </div>
       <h2 class="mt-4 text-3xl font-extrabold text-gray-900">
         Iniciar Sesión
@@ -13,7 +13,7 @@
       </p>
       <p class="mt-2 text-sm">
         ¿No tienes una cuenta? 
-        <a routerLink="/register" class="font-medium text-teal-600 hover:text-teal-800 transition-colors duration-200 border-b border-transparent hover:border-teal-600">
+        <a (click)="goToRegister()" class="font-medium text-teal-600 hover:text-teal-800 transition-colors duration-200 border-b border-transparent hover:border-teal-600 cursor-pointer">
           Regístrate
         </a>
       </p>
@@ -114,15 +114,15 @@
         </span>
         {{ isLoading ? 'Conectando...' : 'Iniciar con Google' }}
       </button>
-      
-      <div class="text-center mt-4">
-        <a routerLink="/" class="text-sm text-gray-600 hover:text-teal-700 hover:underline transition-all duration-200 ease-in-out inline-flex items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
-          Volver a la página principal
-        </a>
-      </div>
     </form>
+
+    <div class="text-center mt-4">
+      <a (click)="goToHome()" class="text-sm text-gray-600 hover:text-teal-700 hover:underline transition-all duration-200 ease-in-out inline-flex items-center cursor-pointer">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        Volver a la página principal
+      </a>
+    </div>
   </div>
 </div>

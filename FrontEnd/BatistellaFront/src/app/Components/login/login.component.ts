@@ -1,26 +1,37 @@
 import { Component } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { RouterLink, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import { AuthService } from '../../Services/Auth/auth.service';
+import { UserService } from '../../Services/Auth/user.service';
 
 @Component({
   selector: 'app-login',
-  imports: [FormsModule, RouterLink, CommonModule],
   templateUrl: './login.component.html',
-  styleUrl: './login.component.css',
-  standalone: true
+  styleUrls: ['./login.component.css'],
+  standalone: true,
+  imports: [CommonModule, FormsModule, RouterModule]
 })
 export class LoginComponent {
   email: string = '';
   password: string = '';
-  isLoading: boolean = false;
   errorMessage: string = '';
+  isLoading: boolean = false;
 
   constructor(
+    private userService: UserService,
     private router: Router,
     private authService: AuthService
   ) {}
+
+  goToHome() {
+    this.router.navigate(['/']);
+  }
+
+  goToRegister() {
+    this.router.navigate(['/register']);
+  }
 
   onSubmit() {
     this.errorMessage = '';

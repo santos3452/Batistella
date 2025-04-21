@@ -30,4 +30,7 @@ public class UserEntity {
 
     @Enumerated(EnumType.STRING)
     private UserType tipoUsuario;
+
+    @Column(nullable = false)
+    private Boolean activo = true;
 }

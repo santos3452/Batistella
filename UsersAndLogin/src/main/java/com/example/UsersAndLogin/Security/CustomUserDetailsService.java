@@ -24,13 +24,13 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) {
-
         UserEntity user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
-        // 🟡 Agregamos los prints acá
-        System.out.println("Email: " + user.getEmail());
-        System.out.println("Password from DB: " + user.getPassword());
-        System.out.println("Password matches: " + new BCryptPasswordEncoder().matches("1234", user.getPassword()));
+
+        // Verificar si el usuario está activo
+        if (!user.getActivo()) {
+            throw new UsernameNotFoundException("La cuenta de usuario está desactivada");
+        }
 
         return new org.springframework.security.core.userdetails.User(
                 user.getEmail(),

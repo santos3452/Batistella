@@ -28,21 +28,35 @@
         <p>{{ errorMessage }}</p>
       </div>
 
+      <!-- Mensaje de éxito -->
+      <div *ngIf="successMessage" class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mt-4 mx-6" role="alert">
+        <p>{{ successMessage }}</p>
+      </div>
+
       <!-- Información del perfil -->
       <div class="p-6">
         <div class="flex justify-between items-center mb-6">
           <h2 class="text-2xl font-bold text-gray-800">Información Personal</h2>
-          <button 
-            *ngIf="!isEditing" 
-            (click)="toggleEdit()"
-            class="px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 transition-colors"
-          >
-            Editar Perfil
-          </button>
+          <div class="space-x-3">
+            <button 
+              *ngIf="!isEditing && !showPasswordFields" 
+              (click)="toggleEdit()"
+              class="px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 transition-colors"
+            >
+              Editar Perfil
+            </button>
+            <button 
+              *ngIf="!isEditing && !showPasswordFields"
+              (click)="togglePasswordFields()"
+              class="px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 transition-colors"
+            >
+              Cambiar Contraseña
+            </button>
+          </div>
         </div>
 
         <!-- Modo visualización -->
-        <div *ngIf="!isEditing" class="space-y-4">
+        <div *ngIf="!isEditing && !showPasswordFields" class="space-y-4">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <h3 class="text-sm font-medium text-gray-500">Nombre</h3>
@@ -67,8 +81,8 @@
           </div>
         </div>
 
-        <!-- Modo edición -->
-        <div *ngIf="isEditing && editableUser" class="space-y-6">
+        <!-- Modo edición de perfil -->
+        <div *ngIf="isEditing && !showPasswordFields && editableUser" class="space-y-6">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label for="nombre" class="block text-sm font-medium text-gray-700">Nombre</label>
@@ -90,65 +104,9 @@
                 class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-teal-500 focus:border-teal-500"
               >
             </div>
-            <div>
-              <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
-              <input 
-                type="email" 
-                id="email" 
-                name="email" 
-                [(ngModel)]="editableUser.email"
-                disabled
-                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 bg-gray-100"
-              >
-              <p class="mt-1 text-sm text-gray-500">El email no se puede cambiar</p>
-            </div>
           </div>
 
-          <!-- Campos de contraseña -->
-          <div class="mt-6">
-            <button 
-              type="button"
-              (click)="togglePasswordFields()"
-              class="text-teal-600 hover:text-teal-700 font-medium"
-            >
-              {{ showPasswordFields ? 'Ocultar cambio de contraseña' : 'Cambiar contraseña' }}
-            </button>
-
-            <div *ngIf="showPasswordFields" class="mt-4 space-y-4">
-              <div>
-                <label for="currentPassword" class="block text-sm font-medium text-gray-700">Contraseña actual</label>
-                <input 
-                  type="password" 
-                  id="currentPassword" 
-                  name="currentPassword" 
-                  [(ngModel)]="currentPassword"
-                  class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-teal-500 focus:border-teal-500"
-                >
-              </div>
-              <div>
-                <label for="newPassword" class="block text-sm font-medium text-gray-700">Nueva contraseña</label>
-                <input 
-                  type="password" 
-                  id="newPassword" 
-                  name="newPassword" 
-                  [(ngModel)]="newPassword"
-                  class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-teal-500 focus:border-teal-500"
-                >
-              </div>
-              <div>
-                <label for="confirmNewPassword" class="block text-sm font-medium text-gray-700">Confirmar nueva contraseña</label>
-                <input 
-                  type="password" 
-                  id="confirmNewPassword" 
-                  name="confirmNewPassword" 
-                  [(ngModel)]="confirmNewPassword"
-                  class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-teal-500 focus:border-teal-500"
-                >
-              </div>
-            </div>
-          </div>
-
-          <!-- Botones de acción -->
+          <!-- Botones de acción para edición de perfil -->
           <div class="mt-6 flex justify-end space-x-3">
             <button 
               type="button"
@@ -171,6 +129,124 @@
               <span>{{ isLoading ? 'Guardando...' : 'Guardar cambios' }}</span>
             </button>
           </div>
+        </div>
+
+        <!-- Formulario de cambio de contraseña -->
+        <div *ngIf="showPasswordFields && !isEditing" class="space-y-6">
+          <div class="space-y-4">
+            <div>
+              <label for="currentPassword" class="block text-sm font-medium text-gray-700">Contraseña actual</label>
+              <input 
+                type="password" 
+                id="currentPassword" 
+                name="currentPassword" 
+                [(ngModel)]="currentPassword"
+                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-teal-500 focus:border-teal-500"
+              >
+            </div>
+            <div>
+              <label for="newPassword" class="block text-sm font-medium text-gray-700">Nueva contraseña</label>
+              <input 
+                type="password" 
+                id="newPassword" 
+                name="newPassword" 
+                [(ngModel)]="newPassword"
+                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-teal-500 focus:border-teal-500"
+              >
+            </div>
+            <div>
+              <label for="confirmNewPassword" class="block text-sm font-medium text-gray-700">Confirmar nueva contraseña</label>
+              <input 
+                type="password" 
+                id="confirmNewPassword" 
+                name="confirmNewPassword" 
+                [(ngModel)]="confirmNewPassword"
+                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-teal-500 focus:border-teal-500"
+              >
+            </div>
+          </div>
+
+          <!-- Botones de acción para cambio de contraseña -->
+          <div class="mt-6 flex justify-end space-x-3">
+            <button 
+              type="button"
+              (click)="cancelPasswordChange()"
+              [disabled]="isLoading"
+              class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+            >
+              Cancelar
+            </button>
+            <button 
+              type="button"
+              (click)="savePasswordChange()"
+              [disabled]="isLoading"
+              class="px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 transition-colors disabled:opacity-50 flex items-center space-x-2"
+            >
+              <svg *ngIf="isLoading" class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span>{{ isLoading ? 'Guardando...' : 'Cambiar contraseña' }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Separador -->
+    <div class="border-t border-gray-200 my-6"></div>
+
+    <!-- Botón de eliminar cuenta -->
+    <div class="px-6 pb-6">
+      <button 
+        class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors flex items-center space-x-2 disabled:opacity-50"
+        (click)="deleteAccount()"
+        [disabled]="isLoading">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+        </svg>
+        <span>Eliminar cuenta</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Modal de confirmación -->
+  <div *ngIf="showDeleteModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center">
+    <div class="relative bg-white rounded-lg shadow-xl max-w-md mx-4 w-full">
+      <div class="p-6">
+        <div class="flex items-start">
+          <div class="flex-shrink-0">
+            <svg class="h-6 w-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <div class="ml-4">
+            <h3 class="text-lg font-medium text-gray-900">Eliminar cuenta</h3>
+            <p class="mt-2 text-sm text-gray-500">
+              ¿Estás seguro de que deseas eliminar tu cuenta? Esta acción no se puede deshacer y perderás todo el acceso a tus datos.
+            </p>
+          </div>
+        </div>
+        <div class="mt-6 flex justify-end space-x-3">
+          <button
+            type="button"
+            (click)="cancelDelete()"
+            class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            (click)="confirmDelete()"
+            class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors flex items-center space-x-2"
+            [disabled]="isLoading"
+          >
+            <svg *ngIf="isLoading" class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span>{{ isLoading ? 'Eliminando...' : 'Sí, eliminar cuenta' }}</span>
+          </button>
         </div>
       </div>
     </div>

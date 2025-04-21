@@ -41,7 +41,11 @@ export class UserService {
       }),
       catchError((error: any) => {
         console.log('Error en el registro:', error);
-        // Si el error tiene un cuerpo de respuesta, lo devolvemos
+        // Si el error contiene el texto de éxito, significa que el registro fue exitoso
+        if (error.error?.text === 'Usuario registrado exitosamente') {
+          return of({ success: true, message: 'Usuario registrado exitosamente' });
+        }
+        // Si hay otro tipo de error
         if (error.error) {
           return throwError(() => error.error);
         }
@@ -120,16 +124,43 @@ export class UserService {
     if (userData.password) url += `&password=${encodeURIComponent(userData.password)}`;
 
     console.log('URL de actualización:', url);
-    console.log('Headers:', headers);
 
-    return this.http.post(url, {}, { headers }).pipe(
+    return this.http.post(url, {}, { 
+      headers,
+      responseType: 'text'
+    }).pipe(
       map(response => {
         console.log('Respuesta de actualización:', response);
-        return response;
+        return { success: true, message: response };
       }),
       catchError(error => {
         console.error('Error en la actualización:', error);
-        return throwError(() => error);
+        
+        // Si el error es de autorización
+        if (error.status === 403) {
+          return throwError(() => ({ 
+            success: false, 
+            message: error.error?.mensaje || 'No tienes permiso para actualizar los datos de otro usuario'
+          }));
+        }
+        
+        // Si el error es de validación
+        if (error.status === 400) {
+          return throwError(() => ({ 
+            success: false, 
+            message: error.error?.mensaje || 'Error en la validación de los datos'
+          }));
+        }
+
+        // Si el error contiene el texto de éxito (por si acaso)
+        if (error.error?.text === 'Usuario actualizado exitosamente') {
+          return of({ success: true, message: 'Usuario actualizado exitosamente' });
+        }
+
+        return throwError(() => ({ 
+          success: false, 
+          message: error.error?.mensaje || 'Error al actualizar el perfil'
+        }));
       })
     );
   }
@@ -149,12 +180,86 @@ export class UserService {
         if (typeof response === 'boolean') {
           return response;
         }
-        // Si la respuesta es un objeto con la propiedad success
         return response.success;
       }),
       catchError(error => {
         console.error('Error al verificar la contraseña:', error);
         return of(false);
+      })
+    );
+  }
+
+  changePassword(oldPassword: string, newPassword: string): Observable<any> {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      return throwError(() => new Error('No hay token de autorización'));
+    }
+
+    const headers = new HttpHeaders()
+      .set('Content-Type', 'application/json')
+      .set('Authorization', `Bearer ${token}`);
+
+    return this.http.post(
+      `http://localhost:8080/api/users/change-password`,
+      null,
+      { 
+        headers,
+        params: {
+          oldPassword,
+          newPassword
+        },
+        responseType: 'text'
+      }
+    ).pipe(
+      map(response => {
+        console.log('Respuesta cambio de contraseña:', response);
+        return { success: true, message: response };
+      }),
+      catchError(error => {
+        console.error('Error al cambiar la contraseña:', error);
+        // Si el error es un string, intentamos parsearlo como JSON
+        if (error.error && typeof error.error === 'string') {
+          try {
+            const errorObj = JSON.parse(error.error);
+            return throwError(() => ({ message: errorObj.message }));
+          } catch (e) {
+            // Si no se puede parsear, devolvemos el error como está
+            return throwError(() => ({ message: error.error }));
+          }
+        }
+        // Si ya es un objeto, solo pasamos el mensaje
+        if (error.error && error.error.message) {
+          return throwError(() => ({ message: error.error.message }));
+        }
+        return throwError(() => ({ message: 'Error al cambiar la contraseña' }));
+      })
+    );
+  }
+
+  deleteUser(): Observable<any> {
+    const token = localStorage.getItem('token');
+    
+    if (!token) {
+      return throwError(() => new Error('No hay token de autorización'));
+    }
+
+    const headers = new HttpHeaders()
+      .set('Content-Type', 'application/json')
+      .set('Authorization', `Bearer ${token}`);
+
+    return this.http.delete(`http://localhost:8080/api/users/deleteUser`, { 
+      headers,
+      responseType: 'text'
+    }).pipe(
+      map(response => {
+        return { success: true, message: response || 'Usuario eliminado exitosamente' };
+      }),
+      catchError(error => {
+        console.error('Error al eliminar usuario:', error);
+        return throwError(() => ({
+          success: false,
+          message: error.error?.mensaje || 'Error al eliminar el usuario'
+        }));
       })
     );
   }
