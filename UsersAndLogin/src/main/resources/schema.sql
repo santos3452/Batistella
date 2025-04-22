@@ -3,7 +3,7 @@ DROP TABLE IF EXISTS usuarios;
 
 -- Crear tabla de usuarios
 CREATE TABLE IF NOT EXISTS usuarios (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     nombre VARCHAR(255) NOT NULL,
     apellido VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,

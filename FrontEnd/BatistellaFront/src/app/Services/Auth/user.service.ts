@@ -20,7 +20,7 @@ export interface UserDto {
   providedIn: 'root'
 })
 export class UserService {
-  private apiUrl = 'http://localhost:8080/api/auth';
+  private apiUrl = 'http://localhost:8081/api/auth';
 
   constructor(private http: HttpClient) { }
 
@@ -30,7 +30,7 @@ export class UserService {
       .set('Content-Type', 'application/json')
       .set('Authorization', `Bearer ${token}`);
 
-    return this.http.get<User>(`http://localhost:8080/api/users/email/${email}`, { headers });
+    return this.http.get<User>(`http://localhost:8081/api/users/email/${email}`, { headers });
   }
 
   register(user: UserDto): Observable<any> {
@@ -77,7 +77,7 @@ export class UserService {
             .set('Content-Type', 'application/json')
             .set('Authorization', `Bearer ${token}`);
 
-          return this.http.get(`http://localhost:8080/api/users/email/${email}`, { headers: authHeaders }).pipe(
+          return this.http.get(`http://localhost:8081/api/users/email/${email}`, { headers: authHeaders }).pipe(
             map(userData => {
               return {
                 ...loginResponse,
@@ -110,7 +110,7 @@ export class UserService {
       .set('Content-Type', 'application/json')
       .set('Authorization', `Bearer ${token}`);
 
-    let url = `http://localhost:8080/api/users/updateUser?mail=${encodeURIComponent(email)}`;
+    let url = `http://localhost:8081/api/users/updateUser?mail=${encodeURIComponent(email)}`;
     if (userData.nombre) url += `&nombre=${encodeURIComponent(userData.nombre)}`;
     if (userData.apellido) url += `&apellido=${encodeURIComponent(userData.apellido)}`;
     if (userData.password) url += `&password=${encodeURIComponent(userData.password)}`;
@@ -164,7 +164,7 @@ export class UserService {
       .set('Authorization', `Bearer ${token}`);
 
     return this.http.post<boolean | { success: boolean; message: string }>(
-      `http://localhost:8080/api/users/verify-password`, 
+      `http://localhost:8081/api/users/verify-password`, 
       { email, password: currentPassword }, 
       { headers }
     ).pipe(
@@ -192,7 +192,7 @@ export class UserService {
       .set('Authorization', `Bearer ${token}`);
 
     return this.http.post(
-      `http://localhost:8080/api/users/change-password`,
+      `http://localhost:8081/api/users/change-password`,
       null,
       { 
         headers,
@@ -239,7 +239,7 @@ export class UserService {
       .set('Content-Type', 'application/json')
       .set('Authorization', `Bearer ${token}`);
 
-    return this.http.delete(`http://localhost:8080/api/users/deleteUser`, { 
+    return this.http.delete(`http://localhost:8081/api/users/deleteUser`, { 
       headers,
       responseType: 'text'
     }).pipe(
