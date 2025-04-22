@@ -97,14 +97,6 @@ export class UserService {
       );
   }
 
-  loginWithGoogle(token: string): Observable<any> {
-    const headers = new HttpHeaders().set('Content-Type', 'application/json');
-    return this.http.post(`${this.apiUrl}/google-login`, { token }, { headers })
-      .pipe(
-        catchError(this.handleError)
-      );
-  }
-
   updateUser(email: string, userData: { nombre?: string; apellido?: string; password?: string }): Observable<any> {
     const token = localStorage.getItem('token');
     console.log('Token para actualización:', token);

@@ -24,6 +24,7 @@ export class LoginComponent {
   showForgotPasswordModal: boolean = false;
   forgotPasswordEmail: string = '';
   forgotPasswordMessage: string = '';
+  showPassword: boolean = false;
 
   constructor(
     private userService: UserService,
@@ -125,45 +126,6 @@ export class LoginComponent {
 
   cancelReactivation() {
     this.showReactivateModal = false;
-  }
-
-  loginWithGoogle() {
-    this.errorMessage = '';
-    this.isLoading = true;
-    const startTime = Date.now();
-    
-    // En una implementación real, aquí llamarías a la API de autenticación de Google
-    // Por ahora simplemente redirigimos al endpoint de OAuth
-    this.authService.loginWithGoogle().subscribe({
-      next: (response) => {
-        // Calcular cuánto tiempo ha pasado desde el inicio
-        const elapsedTime = Date.now() - startTime;
-        const remainingTime = Math.max(0, 2000 - elapsedTime);
-        
-        // Esperar al menos 2 segundos en total antes de redirigir
-        setTimeout(() => {
-          this.isLoading = false;
-          if (response.redirectUrl) {
-            window.location.href = response.redirectUrl;
-          } else {
-            this.router.navigate(['/']);
-          }
-        }, remainingTime);
-      },
-      error: (error) => {
-        console.error('Error al iniciar sesión con Google (detallado):', JSON.stringify(error, null, 2));
-        
-        // Calcular cuánto tiempo ha pasado desde el inicio
-        const elapsedTime = Date.now() - startTime;
-        const remainingTime = Math.max(0, 2000 - elapsedTime);
-        
-        // Esperar al menos 2 segundos en total antes de mostrar el error
-        setTimeout(() => {
-          this.isLoading = false;
-          this.errorMessage = 'Error al conectar con Google. Por favor, intenta nuevamente.';
-        }, remainingTime);
-      }
-    });
   }
 
   toggleForgotPasswordModal() {

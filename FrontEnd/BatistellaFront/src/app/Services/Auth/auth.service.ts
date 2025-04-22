@@ -249,34 +249,6 @@ export class AuthService {
     return user ? user.rol : null;
   }
 
-  /**
-   * Intenta iniciar sesión con Google
-   * @returns Observable con la respuesta del servidor
-   */
-  loginWithGoogle(): Observable<any> {
-    return this.userService.loginWithGoogle('').pipe(
-      tap((response: any) => {
-        console.log('Respuesta de login con Google:', response);
-        // Si la respuesta contiene un token y datos de usuario
-        if (response && response.token && response.user) {
-          // Guardar datos en localStorage
-          localStorage.setItem('token', response.token);
-          localStorage.setItem('currentUser', JSON.stringify(response.user));
-          
-          // Actualizar los subjects
-          this.currentUserSubject.next(response.user);
-          this.isAuthenticatedSubject.next(true);
-          
-          console.log('Usuario autenticado con Google:', response.user.nombre);
-        }
-      }),
-      catchError(error => {
-        console.error('Error en login con Google:', error);
-        return throwError(() => error);
-      })
-    );
-  }
-
   reactivateAccount(email: string): Observable<any> {
     return this.userService.reactivateAccount(email);
   }

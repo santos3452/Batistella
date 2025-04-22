@@ -40,6 +40,8 @@ export class RegisterComponent {
   successMessage: string = '';
   showReactivateModal: boolean = false;
   deactivatedEmail: string = '';
+  showPassword: boolean = false;
+  showConfirmPassword: boolean = false;
 
   constructor(
     private router: Router,
