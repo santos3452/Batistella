@@ -38,8 +38,8 @@ export class RegisterComponent {
   isLoading: boolean = false;
   errorMessage: string = '';
   successMessage: string = '';
-  showReactivateModal = false;
-  deactivatedEmail = '';
+  showReactivateModal: boolean = false;
+  deactivatedEmail: string = '';
 
   constructor(
     private router: Router,
@@ -85,16 +85,13 @@ export class RegisterComponent {
       next: (response) => {
         console.log('✅ Registro exitoso:', response);
         
-        // Calcular cuánto tiempo ha pasado desde el inicio
         const elapsedTime = Date.now() - startTime;
         const remainingTime = Math.max(0, 2000 - elapsedTime);
         
-        // Esperar al menos 2 segundos en total antes de continuar
         setTimeout(() => {
           this.isLoading = false;
           this.successMessage = '¡Registro exitoso! Iniciando sesión automáticamente...';
           
-          // Iniciar sesión automáticamente
           this.loginAfterRegistration(userDto.email, userDto.password);
         }, remainingTime);
       },
@@ -107,11 +104,11 @@ export class RegisterComponent {
         setTimeout(() => {
           this.isLoading = false;
           
-          // El error ahora debería ser directamente el ErrorDto
-          if (error && error.message) {
+          if (error && error.message && error.message.includes('está dada de baja')) {
+            this.deactivatedEmail = this.user.email;
+            this.showReactivateModal = true;
+          } else if (error && error.message) {
             this.errorMessage = error.message;
-          } else if (error && error.status === 404) {
-            this.errorMessage = 'No se pudo conectar con el servidor. Por favor verifica que la API esté en ejecución.';
           } else {
             this.errorMessage = 'Ocurrió un error al registrar el usuario. Por favor, intenta nuevamente.';
           }
@@ -163,6 +160,33 @@ export class RegisterComponent {
     this.user.nombre = '';
     this.user.apellido = '';
     this.user.tipoUsuario = 'FINAL';
+  }
+
+  reactivateAccount() {
+    this.isLoading = true;
+    this.errorMessage = '';
+    
+    this.authService.reactivateAccount(this.deactivatedEmail).subscribe({
+      next: () => {
+        this.isLoading = false;
+        this.showReactivateModal = false;
+        // Redirigir al login con un mensaje de éxito
+        this.router.navigate(['/login'], { 
+          state: { 
+            successMessage: 'Cuenta reactivada exitosamente. Por favor, inicia sesión.' 
+          }
+        });
+      },
+      error: (error) => {
+        this.isLoading = false;
+        this.showReactivateModal = false;
+        this.errorMessage = error.message || 'Error al reactivar la cuenta. Por favor, intenta nuevamente.';
+      }
+    });
+  }
+
+  cancelReactivation() {
+    this.showReactivateModal = false;
   }
 }
 

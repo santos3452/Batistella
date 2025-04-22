@@ -264,6 +264,28 @@ export class UserService {
     );
   }
 
+  reactivateAccount(email: string): Observable<any> {
+    return this.http.post(
+      `${this.apiUrl}/reactivate`,
+      null,
+      {
+        params: { email },
+        responseType: 'text'
+      }
+    ).pipe(
+      map(response => {
+        return { success: true, message: response || 'Cuenta reactivada exitosamente' };
+      }),
+      catchError(error => {
+        console.error('Error al reactivar la cuenta:', error);
+        return throwError(() => ({
+          success: false,
+          message: error.error?.message || 'Error al reactivar la cuenta'
+        }));
+      })
+    );
+  }
+
   private handleError(error: HttpErrorResponse) {
     // Si es un código 201, no lo tratamos como error
     if (error.status === 201) {

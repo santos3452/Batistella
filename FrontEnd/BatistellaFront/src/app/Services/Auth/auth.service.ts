@@ -276,4 +276,8 @@ export class AuthService {
       })
     );
   }
+
+  reactivateAccount(email: string): Observable<any> {
+    return this.userService.reactivateAccount(email);
+  }
 }
