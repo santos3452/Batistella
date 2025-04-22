@@ -26,13 +26,17 @@ export class AppComponent implements OnInit {
       filter(event => event instanceof NavigationEnd)
     ).subscribe((event: any) => {
       this.isLoginRoute = event.url === '/login';
-      this.isAuthRoute = event.url === '/login' || event.url === '/register';
+      this.isAuthRoute = event.url === '/login' || 
+                        event.url === '/register' || 
+                        event.url.startsWith('/reset-password');
     });
 
     // Verificar la ruta inicial
     const currentUrl = this.router.url;
     this.isLoginRoute = currentUrl === '/login';
-    this.isAuthRoute = currentUrl === '/login' || currentUrl === '/register';
+    this.isAuthRoute = currentUrl === '/login' || 
+                      currentUrl === '/register' || 
+                      currentUrl.startsWith('/reset-password');
   }
 
   toggleSidebar() {

@@ -21,6 +21,9 @@ export class LoginComponent {
   isLoading: boolean = false;
   showReactivateModal: boolean = false;
   deactivatedEmail: string = '';
+  showForgotPasswordModal: boolean = false;
+  forgotPasswordEmail: string = '';
+  forgotPasswordMessage: string = '';
 
   constructor(
     private userService: UserService,
@@ -159,6 +162,44 @@ export class LoginComponent {
           this.isLoading = false;
           this.errorMessage = 'Error al conectar con Google. Por favor, intenta nuevamente.';
         }, remainingTime);
+      }
+    });
+  }
+
+  toggleForgotPasswordModal() {
+    this.showForgotPasswordModal = !this.showForgotPasswordModal;
+    if (!this.showForgotPasswordModal) {
+      this.forgotPasswordEmail = '';
+      this.forgotPasswordMessage = '';
+    }
+  }
+
+  onForgotPasswordSubmit() {
+    if (!this.forgotPasswordEmail) {
+      this.forgotPasswordMessage = 'Por favor, ingresa tu correo electrónico';
+      return;
+    }
+
+    this.isLoading = true;
+    this.forgotPasswordMessage = '';
+
+    this.authService.forgotPassword(this.forgotPasswordEmail).subscribe({
+      next: (response) => {
+        this.isLoading = false;
+        this.forgotPasswordMessage = response.message || 'Se ha enviado un enlace de recuperación a tu correo electrónico';
+        if (response.success) {
+          setTimeout(() => {
+            this.toggleForgotPasswordModal();
+          }, 3000);
+        }
+      },
+      error: (error) => {
+        this.isLoading = false;
+        if (error.error && typeof error.error === 'string') {
+          this.forgotPasswordMessage = error.error;
+        } else {
+          this.forgotPasswordMessage = error.message || 'Ocurrió un error al procesar tu solicitud';
+        }
       }
     });
   }

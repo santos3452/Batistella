@@ -280,4 +280,16 @@ export class AuthService {
   reactivateAccount(email: string): Observable<any> {
     return this.userService.reactivateAccount(email);
   }
+
+  forgotPassword(email: string): Observable<any> {
+    return this.userService.forgotPassword(email).pipe(
+      tap(response => {
+        console.log('Solicitud de recuperación de contraseña enviada');
+      }),
+      catchError(error => {
+        console.error('Error en solicitud de recuperación de contraseña:', error);
+        return throwError(() => error);
+      })
+    );
+  }
 }

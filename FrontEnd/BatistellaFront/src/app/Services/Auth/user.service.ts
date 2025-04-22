@@ -286,6 +286,42 @@ export class UserService {
     );
   }
 
+  forgotPassword(email: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/forgot-password`, null, {
+      params: { email },
+      headers: new HttpHeaders().set('Content-Type', 'application/json'),
+      responseType: 'text'
+    }).pipe(
+      map(response => {
+        return { success: true, message: response };
+      }),
+      catchError((error: HttpErrorResponse) => {
+        // Si recibimos una respuesta exitosa pero como error (debido al tipo de respuesta)
+        if (error.error && typeof error.error === 'string' && error.error.includes('enlace')) {
+          return of({ success: true, message: error.error });
+        }
+        console.error('Error en recuperación de contraseña:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  resetPassword(token: string, newPassword: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/reset-password`, null, {
+      params: { token, newPassword },
+      headers: new HttpHeaders().set('Content-Type', 'application/json'),
+      responseType: 'text'
+    }).pipe(
+      map(response => {
+        return { success: true, message: response };
+      }),
+      catchError((error: HttpErrorResponse) => {
+        console.error('Error al restablecer la contraseña:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
   private handleError(error: HttpErrorResponse) {
     // Si es un código 201, no lo tratamos como error
     if (error.status === 201) {
