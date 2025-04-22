@@ -3,6 +3,7 @@ import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http
 import { Observable, throwError, of, switchMap } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { User } from '../../Models/user';
+import { environment } from '../../../environments/environment';
 
 export type UserType = 'FINAL' | 'EMPRESA';
 export type Role = 'ROLE_CLIENTE' | 'ROLE_EMPRESA' | 'ROLE_ADMIN';
@@ -20,7 +21,8 @@ export interface UserDto {
   providedIn: 'root'
 })
 export class UserService {
-  private apiUrl = 'http://localhost:8081/api/auth';
+  private authUrl = environment.authUrl;
+  private usersUrl = environment.usersUrl;
 
   constructor(private http: HttpClient) { }
 
@@ -30,12 +32,12 @@ export class UserService {
       .set('Content-Type', 'application/json')
       .set('Authorization', `Bearer ${token}`);
 
-    return this.http.get<User>(`http://localhost:8081/api/users/email/${email}`, { headers });
+    return this.http.get<User>(`${this.usersUrl}/email/${email}`, { headers });
   }
 
   register(user: UserDto): Observable<any> {
     const headers = new HttpHeaders().set('Content-Type', 'application/json');
-    return this.http.post(`${this.apiUrl}/register`, user, { headers }).pipe(
+    return this.http.post(`${this.authUrl}/register`, user, { headers }).pipe(
       map(response => {
         return { success: true, message: 'Usuario registrado exitosamente' };
       }),
@@ -56,7 +58,7 @@ export class UserService {
 
   login(email: string, password: string): Observable<any> {
     const headers = new HttpHeaders().set('Content-Type', 'application/json');
-    return this.http.post(`${this.apiUrl}/login`, { email, password }, { headers })
+    return this.http.post(`${this.authUrl}/login`, { email, password }, { headers })
       .pipe(
         map(response => {
           if (typeof response === 'string') {
@@ -77,7 +79,7 @@ export class UserService {
             .set('Content-Type', 'application/json')
             .set('Authorization', `Bearer ${token}`);
 
-          return this.http.get(`http://localhost:8081/api/users/email/${email}`, { headers: authHeaders }).pipe(
+          return this.http.get(`${this.usersUrl}/email/${email}`, { headers: authHeaders }).pipe(
             map(userData => {
               return {
                 ...loginResponse,
@@ -110,7 +112,7 @@ export class UserService {
       .set('Content-Type', 'application/json')
       .set('Authorization', `Bearer ${token}`);
 
-    let url = `http://localhost:8081/api/users/updateUser?mail=${encodeURIComponent(email)}`;
+    let url = `${this.usersUrl}/updateUser?mail=${encodeURIComponent(email)}`;
     if (userData.nombre) url += `&nombre=${encodeURIComponent(userData.nombre)}`;
     if (userData.apellido) url += `&apellido=${encodeURIComponent(userData.apellido)}`;
     if (userData.password) url += `&password=${encodeURIComponent(userData.password)}`;
@@ -164,7 +166,7 @@ export class UserService {
       .set('Authorization', `Bearer ${token}`);
 
     return this.http.post<boolean | { success: boolean; message: string }>(
-      `http://localhost:8081/api/users/verify-password`, 
+      `${this.usersUrl}/verify-password`, 
       { email, password: currentPassword }, 
       { headers }
     ).pipe(
@@ -192,7 +194,7 @@ export class UserService {
       .set('Authorization', `Bearer ${token}`);
 
     return this.http.post(
-      `http://localhost:8081/api/users/change-password`,
+      `${this.usersUrl}/change-password`,
       null,
       { 
         headers,
@@ -239,7 +241,7 @@ export class UserService {
       .set('Content-Type', 'application/json')
       .set('Authorization', `Bearer ${token}`);
 
-    return this.http.delete(`http://localhost:8081/api/users/deleteUser`, { 
+    return this.http.delete(`${this.usersUrl}/deleteUser`, { 
       headers,
       responseType: 'text'
     }).pipe(
@@ -258,7 +260,7 @@ export class UserService {
 
   reactivateAccount(email: string): Observable<any> {
     return this.http.post(
-      `${this.apiUrl}/reactivate`,
+      `${this.authUrl}/reactivate`,
       null,
       {
         params: { email },
@@ -279,7 +281,7 @@ export class UserService {
   }
 
   forgotPassword(email: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/forgot-password`, null, {
+    return this.http.post(`${this.authUrl}/forgot-password`, null, {
       params: { email },
       headers: new HttpHeaders().set('Content-Type', 'application/json'),
       responseType: 'text'
@@ -299,7 +301,7 @@ export class UserService {
   }
 
   resetPassword(token: string, newPassword: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/reset-password`, null, {
+    return this.http.post(`${this.authUrl}/reset-password`, null, {
       params: { token, newPassword },
       headers: new HttpHeaders().set('Content-Type', 'application/json'),
       responseType: 'text'

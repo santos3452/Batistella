@@ -15,11 +15,15 @@ import java.util.Date;
 
 @Component
 public class JwtUtils {
+    @Value("${jwt.secret}")
+    private String jwtSecret;
+    
     private Key key;
 
     @PostConstruct
     public void init() {
-        key = Keys.secretKeyFor(SignatureAlgorithm.HS512);
+        byte[] keyBytes = Base64.getDecoder().decode(jwtSecret.getBytes());
+        key = Keys.hmacShaKeyFor(keyBytes);
     }
 
     public String generateToken(UserDetails userDetails) {
