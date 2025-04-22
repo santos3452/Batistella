@@ -54,4 +54,33 @@ public class JwtUtils {
                 .getExpiration();
         return expiration.before(new Date());
     }
+
+    public String generatePasswordResetToken(String email) {
+        return Jwts.builder()
+                .setSubject(email)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + 3600000)) // 1 hora
+                .claim("purpose", "password_reset")
+                .signWith(key)
+                .compact();
+    }
+
+    public String extractEmailFromResetToken(String token) {
+        try {
+            var claims = Jwts.parserBuilder()
+                    .setSigningKey(key)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+
+            // Verificar que el token es para restablecimiento de contraseña
+            if (!"password_reset".equals(claims.get("purpose"))) {
+                throw new IllegalArgumentException("Token inválido");
+            }
+
+            return claims.getSubject();
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Token inválido o expirado");
+        }
+    }
 }

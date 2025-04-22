@@ -57,4 +57,11 @@ public interface UserService {
      */
     void reactivateUser(String email);
 
+    /**
+     * Guarda o actualiza un usuario en la base de datos
+     * @param user El usuario a guardar o actualizar
+     * @return El usuario guardado
+     */
+    UserEntity save(UserEntity user);
+
 } 

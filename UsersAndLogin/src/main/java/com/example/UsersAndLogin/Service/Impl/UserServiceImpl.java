@@ -134,4 +134,9 @@ public class UserServiceImpl implements UserService {
         user.setActivo(true);
         userRepository.save(user);
     }
+
+    @Override
+    public UserEntity save(UserEntity user) {
+        return userRepository.save(user);
+    }
 } 

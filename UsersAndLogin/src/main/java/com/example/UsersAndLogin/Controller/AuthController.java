@@ -8,6 +8,7 @@ import com.example.UsersAndLogin.Entity.UserEntity;
 import com.example.UsersAndLogin.Security.CustomUserDetailsService;
 import com.example.UsersAndLogin.Security.JwtUtils;
 import com.example.UsersAndLogin.Service.UserService;
+import com.example.UsersAndLogin.Service.EmailService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -28,13 +29,15 @@ public class AuthController {
     private final JwtUtils jwtUtils;
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
 
-    public AuthController(AuthenticationManager authManager, CustomUserDetailsService uds, JwtUtils jwtUtils, UserService userService, PasswordEncoder passwordEncoder) {
+    public AuthController(AuthenticationManager authManager, CustomUserDetailsService uds, JwtUtils jwtUtils, UserService userService, PasswordEncoder passwordEncoder, EmailService emailService) {
         this.authManager = authManager;
         this.uds = uds;
         this.jwtUtils = jwtUtils;
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
+        this.emailService = emailService;
     }
 
     @PostMapping("/login")
@@ -123,6 +126,94 @@ public class AuthController {
                             HttpStatus.INTERNAL_SERVER_ERROR.value(),
                             "Error Interno del Servidor",
                             "Error al reactivar la cuenta: " + e.getMessage()
+                    ));
+        }
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestParam String email) {
+        try {
+            // Verificar si el usuario existe y está activo
+            UserEntity user = userService.findByEmail(email)
+                    .orElseThrow(() -> new IllegalArgumentException("No existe una cuenta con ese email"));
+
+            if (!user.getActivo()) {
+                throw new IllegalArgumentException("Esta cuenta está dada de baja");
+            }
+
+            // Generar token de restablecimiento (válido por 1 hora)
+            String resetToken = jwtUtils.generatePasswordResetToken(email);
+
+            // Enviar email
+            emailService.sendPasswordResetEmail(email, resetToken);
+
+            return ResponseEntity.ok("Se ha enviado un enlace de restablecimiento a tu correo electrónico");
+        } catch (IllegalArgumentException e) {
+            // No revelar si el email existe o no por seguridad
+            return ResponseEntity.ok("Si existe una cuenta con ese email, recibirás un enlace para restablecer tu contraseña");
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ErrorDto.of(
+                            HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                            "Error Interno del Servidor",
+                            "Error al procesar la solicitud de restablecimiento"
+                    ));
+        }
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(
+            @RequestParam String token,
+            @RequestParam String newPassword) {
+        try {
+            // Extraer email del token y validar
+            String email = jwtUtils.extractEmailFromResetToken(token);
+            
+            // Buscar usuario
+            UserEntity user = userService.findByEmail(email)
+                    .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+
+            if (!user.getActivo()) {
+                throw new IllegalArgumentException("Esta cuenta está dada de baja");
+            }
+
+            // Actualizar contraseña
+            user.setPassword(passwordEncoder.encode(newPassword));
+            userService.save(user);
+
+            return ResponseEntity.ok("Contraseña actualizada exitosamente");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(ErrorDto.of(
+                            HttpStatus.BAD_REQUEST.value(),
+                            "Error de Validación",
+                            e.getMessage()
+                    ));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ErrorDto.of(
+                            HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                            "Error Interno del Servidor",
+                            "Error al restablecer la contraseña"
+                    ));
+        }
+    }
+
+    @PostMapping("/test-email")
+    public ResponseEntity<?> testEmail(@RequestParam String email) {
+        try {
+            emailService.sendPasswordResetEmail(email, "test-token");
+            return ResponseEntity.ok("Email enviado exitosamente");
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ErrorDto.of(
+                            HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                            "Error al enviar email",
+                            e.getMessage()
                     ));
         }
     }
