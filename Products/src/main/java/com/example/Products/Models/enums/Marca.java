@@ -1,0 +1,53 @@
+package com.example.Products.Models.enums;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
+
+public enum Marca {
+    TOPNUTRITION("TopNutrition"),
+    KENL("Kenl"),
+    ODWALLA("Odwalla"),
+    NINELIVES("9Lives"),
+    EUKANUBA("Eukanuba"),
+    VITAL_CAN("Vital Can"),
+    PROPLAN("ProPlan");
+
+    private final String displayName;
+
+    Marca(String displayName) {
+        this.displayName = displayName;
+    }
+
+    @JsonCreator
+    public static Marca fromString(String value) {
+        if (value == null) {
+            return null;
+        }
+
+        // Primero intentamos hacer match con displayName
+        for (Marca marca : Marca.values()) {
+            if (marca.getDisplayName().equalsIgnoreCase(value)) {
+                return marca;
+            }
+        }
+
+        // Si no encontramos match con displayName, intentamos con el nombre del enum
+        for (Marca marca : Marca.values()) {
+            if (marca.name().equalsIgnoreCase(value)) {
+                return marca;
+            }
+        }
+        
+        throw new IllegalArgumentException("Marca no válida: " + value);
+    }
+
+    @JsonValue
+    public String getDisplayName() {
+        return this.displayName;
+    }
+
+    @Override
+    public String toString() {
+        return this.displayName;
+    }
+} 
