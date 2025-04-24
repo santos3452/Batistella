@@ -6,9 +6,13 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import com.example.Products.Service.productService;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/products")
@@ -23,7 +27,6 @@ public class ProductController {
     }
 
     @PostMapping("/saveProduct")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> saveProduct(@Valid @RequestBody ProductDTO productDTO) {
         try {
             ProductDTO savedProduct = productService.saveProduct(productDTO);
@@ -39,5 +42,22 @@ public class ProductController {
         }
     }
 
-  
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<ErrorDto> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getAllErrors().forEach((error) -> {
+            String fieldName = ((FieldError) error).getField();
+            String errorMessage = error.getDefaultMessage();
+            errors.put(fieldName, errorMessage);
+        });
+        
+        return ResponseEntity
+            .status(HttpStatus.BAD_REQUEST)
+            .body(ErrorDto.of(
+                HttpStatus.BAD_REQUEST.value(),
+                "Error de Validación",
+                "Errores en los campos: " + errors
+            ));
+    }
 }

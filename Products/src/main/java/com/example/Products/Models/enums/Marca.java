@@ -8,14 +8,9 @@ public enum Marca {
     KENL("Kenl"),
     ODWALLA("Odwalla"),
     NINELIVES("9Lives"),
-    AMICI("Amici"),
-    ZIMPI("Zimpi"),
-    FISHY("ProPlan"),
-    GANACAT("Ganacat"),
-    GANACAN("Ganacan"),
-    COMPINCHES("Compinches"),
-    EXACT("Exact");
-
+    EUKANUBA("Eukanuba"),
+    VITAL_CAN("Vital Can"),
+    PROPLAN("ProPlan");
 
     private final String displayName;
 
