@@ -1,12 +1,11 @@
 package com.example.Products.Dtos;
 
-import com.example.Products.Models.enums.Marca;
-import com.example.Products.Models.enums.TipoAlimento;
-import com.example.Products.Models.enums.TipoRaza;
-import com.example.Products.Models.enums.type;
+import com.example.Products.Entity.enums.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import com.fasterxml.jackson.annotation.JsonValue;
+import com.fasterxml.jackson.annotation.JsonCreator;
 
 import java.math.BigDecimal;
 
@@ -27,8 +26,7 @@ public class ProductDTO {
     private String description;
     
     @NotNull(message = "El peso es obligatorio")
-    @Min(value = 1, message = "El peso debe ser mayor a 0")
-    private Integer kg;
+    private Kilos kg;
     
     private BigDecimal priceMinorista;
     
@@ -57,7 +55,7 @@ public class ProductDTO {
         return "ProductDTO{" +
                 "name='" + getFullName() + '\'' +
                 ", description='" + description + '\'' +
-                ", kg=" + kg +
+                ", kg=" + (kg != null ? kg.getDisplayName() : "N/A") +
                 ", priceMinorista=" + priceMinorista +
                 ", priceMayorista=" + priceMayorista +
                 ", stock=" + stock +

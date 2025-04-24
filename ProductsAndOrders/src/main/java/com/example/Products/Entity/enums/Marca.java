@@ -1,4 +1,4 @@
-package com.example.Products.Models.enums;
+package com.example.Products.Entity.enums;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;

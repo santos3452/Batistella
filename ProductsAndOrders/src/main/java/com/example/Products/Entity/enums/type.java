@@ -1,4 +1,4 @@
-package com.example.Products.Models.enums;
+package com.example.Products.Entity.enums;
 
 public enum type {
     PERROS,

@@ -3,6 +3,8 @@ package com.example.Products.Service;
 import com.example.Products.Dtos.ProductDTO;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 
 public interface productService {
     ProductDTO saveProduct(ProductDTO producto);
@@ -11,7 +13,7 @@ public interface productService {
 
     void deleteProduct(long id);
 
-    ProductDTO getAllProducts();
+    List<ProductDTO> getAllProducts();
 
     ProductDTO getProductById(long id);
 }

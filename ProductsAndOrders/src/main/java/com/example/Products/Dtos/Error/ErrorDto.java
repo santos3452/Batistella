@@ -5,21 +5,19 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class ErrorDto {
-    private LocalDateTime timestamp;
+    private Long timestamp;
     private int status;
     private String error;
     private String message;
 
     public static ErrorDto of(int status, String error, String message) {
         return ErrorDto.builder()
-                .timestamp(LocalDateTime.now())
+                .timestamp(System.currentTimeMillis())
                 .status(status)
                 .error(error)
                 .message(message)
