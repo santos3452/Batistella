@@ -23,7 +23,7 @@ export class CartService {
    */
   addToCart(product: Product): void {
     const currentItems = this.itemsSubject.getValue();
-    const existingItemIndex = currentItems.findIndex(item => item.product.id === product.id);
+    const existingItemIndex = currentItems.findIndex(item => item.product.fullName === product.fullName);
     
     if (existingItemIndex > -1) {
       // El producto ya existe, incrementa la cantidad
@@ -38,23 +38,23 @@ export class CartService {
 
   /**
    * Elimina un producto del carrito
-   * @param productId ID del producto a eliminar
+   * @param productName Nombre completo del producto a eliminar
    */
-  removeFromCart(productId: number): void {
+  removeFromCart(productName: string): void {
     const currentItems = this.itemsSubject.getValue();
-    this.itemsSubject.next(currentItems.filter(item => item.product.id !== productId));
+    this.itemsSubject.next(currentItems.filter(item => item.product.fullName !== productName));
   }
 
   /**
    * Actualiza la cantidad de un producto en el carrito
-   * @param productId ID del producto
+   * @param productName Nombre completo del producto
    * @param quantity Nueva cantidad
    */
-  updateQuantity(productId: number, quantity: number): void {
+  updateQuantity(productName: string, quantity: number): void {
     const currentItems = this.itemsSubject.getValue();
     this.itemsSubject.next(
       currentItems.map(item => 
-        item.product.id === productId ? { ...item, quantity } : item
+        item.product.fullName === productName ? { ...item, quantity } : item
       )
     );
   }
@@ -73,7 +73,7 @@ export class CartService {
    */
   get totalPrice$(): Observable<number> {
     return this.items$.pipe(
-      map(items => items.reduce((total, item) => total + (item.product.price * item.quantity), 0))
+      map(items => items.reduce((total, item) => total + (item.product.priceMinorista * item.quantity), 0))
     );
   }
 }

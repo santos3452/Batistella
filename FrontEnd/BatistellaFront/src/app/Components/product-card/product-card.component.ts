@@ -29,12 +29,12 @@ export class ProductCardComponent {
     this.cartService.addToCart(this.product);
   }
 
-  getCategoryLabel(category: string): string {
-    switch(category) {
-      case 'dog': return 'Perros';
-      case 'cat': return 'Gatos';
-      case 'farm': return 'Granja';
-      default: return category;
+  getAnimalTypeLabel(animalType: string): string {
+    switch(animalType.toUpperCase()) {
+      case 'PERROS': return 'Perros';
+      case 'GATOS': return 'Gatos';
+      case 'GRANJA': return 'Granja';
+      default: return animalType;
     }
   }
 }

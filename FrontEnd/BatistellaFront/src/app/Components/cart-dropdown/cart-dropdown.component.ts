@@ -50,21 +50,21 @@ export class CartDropdownComponent implements OnInit, OnDestroy {
     this.subscription.unsubscribe();
   }
 
-  removeItem(productId: number): void {
-    this.cartService.removeFromCart(productId);
+  removeItem(productName: string): void {
+    this.cartService.removeFromCart(productName);
   }
 
-  updateQuantity(productId: number, quantity: number): void {
-    this.cartService.updateQuantity(productId, quantity);
+  updateQuantity(productName: string, quantity: number): void {
+    this.cartService.updateQuantity(productName, quantity);
   }
 
   incrementQuantity(item: CartItem): void {
-    this.updateQuantity(item.product.id, item.quantity + 1);
+    this.updateQuantity(item.product.fullName, item.quantity + 1);
   }
 
   decrementQuantity(item: CartItem): void {
     if (item.quantity > 1) {
-      this.updateQuantity(item.product.id, item.quantity - 1);
+      this.updateQuantity(item.product.fullName, item.quantity - 1);
     }
   }
 }

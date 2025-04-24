@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subir Nuevo Producto</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Añadir Nuevo Producto</h1>
+    
+    <form id="productForm">
+        <div class="form-group">
+            <label for="marca">Marca:</label>
+            <select id="marca" name="marca" required>
+                <option value="">Seleccione una marca</option>
+                <option value="TOPNUTRITION">TopNutrition</option>
+                <option value="KENL">Kenl</option>
+                <option value="ODWALLA">Odwalla</option>
+                <option value="NINELIVES">9Lives</option>
+                <option value="AMICI">Amici</option>
+                <option value="ZIMPI">Zimpi</option>
+                <option value="FISHY">ProPlan</option>
+                <option value="GANACAT">Ganacat</option>
+                <option value="GANACAN">Ganacan</option>
+                <option value="COMPINCHES">Compinches</option>
+                <option value="EXACT">Exact</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="tipoAlimento">Tipo de Alimento:</label>
+            <select id="tipoAlimento" name="tipoAlimento" required>
+                <option value="">Seleccione un tipo</option>
+                <!-- Estos valores deben ser reemplazados por los reales del enum TipoAlimento -->
+                <option value="SENIOR">SENIOR</option>
+                <option value="CACHORRO">CACHORRO</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="tipoRaza">Tipo de Raza (opcional):</label>
+            <select id="tipoRaza" name="tipoRaza">
+                <option value="">Seleccione un tipo de raza</option>
+                <!-- Estos valores deben ser reemplazados por los reales del enum TipoRaza -->
+                <option value="RAZA_GRANDE">RAZA_GRANDE</option>
+                <option value="RAZA_MEDIANA">RAZA_MEDIANA</option>
+                <option value="RAZA_PEQUENA">RAZA_PEQUENA</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="description">Descripción:</label>
+            <textarea id="description" name="description" rows="3"></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label for="kg">Kilogramos:</label>
+            <select id="kg" name="kg" required>
+                <option value="">Seleccione el peso</option>
+                <option value="EIGHTEEN_KG">18kg</option>
+                <option value="THREE_KG">3kg</option>
+                <option value="SEVEN_POINT_FIVE_KG">7.5kg</option>
+                <option value="TWENTY_KG">20kg</option>
+                <option value="FIFTEEN_KG">15kg</option>
+                <option value="ONE_POINT_FIVE">1.5kg</option>
+                <option value="FIFTEEN_PLUS_THREE_KG">15+3kg</option>
+                <option value="TWENTY_TWO_KG">22kg</option>
+                <option value="TWENTY_TWO_PLUS_THREE_KG">22+3kg</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="priceMinorista">Precio Minorista:</label>
+            <input type="number" id="priceMinorista" name="priceMinorista" step="0.01" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="priceMayorista">Precio Mayorista:</label>
+            <input type="number" id="priceMayorista" name="priceMayorista" step="0.01" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="stock">Stock:</label>
+            <input type="number" id="stock" name="stock" min="0" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="animalType">Tipo de Animal:</label>
+            <select id="animalType" name="animalType" required>
+                <option value="">Seleccione un tipo</option>
+                <option value="PERROS">Perros</option>
+                <option value="GATOS">Gatos</option>
+                <option value="GRANJA">Granja</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="image">Imagen del Producto:</label>
+            <input type="file" id="image" name="image" accept="image/*" required>
+        </div>
+        
+        <button type="submit">Guardar Producto</button>
+    </form>
+    
+    <div id="result" class="result">
+        <h3>Resultado:</h3>
+        <pre id="resultContent"></pre>
+    </div>
+    
+    <script>
+        // Función para obtener la base URL actual
+        function getBaseUrl() {
+            const protocol = window.location.protocol;
+            const hostname = window.location.hostname;
+            // Usar el puerto 8083 que es donde está tu aplicación Spring Boot
+            const port = '8083';
+            
+            return `${protocol}//${hostname}:${port}`;
+        }
+
+        document.getElementById('productForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData();
+            
+            // Crear el objeto del producto
+            const productData = {
+                marca: document.getElementById('marca').value,
+                tipoAlimento: document.getElementById('tipoAlimento').value,
+                tipoRaza: document.getElementById('tipoRaza').value || null,
+                description: document.getElementById('description').value,
+                kg: document.getElementById('kg').value,
+                priceMinorista: parseFloat(document.getElementById('priceMinorista').value),
+                priceMayorista: parseFloat(document.getElementById('priceMayorista').value),
+                stock: parseInt(document.getElementById('stock').value),
+                animalType: document.getElementById('animalType').value,
+                activo: true
+            };
+            
+            console.log('Enviando datos:', productData);
+            
+            // Convertir el objeto a JSON y añadirlo como parte
+            const productJson = JSON.stringify(productData);
+            formData.append('product', new Blob([productJson], {type: 'application/json'}));
+            
+            // Añadir la imagen
+            const imageFile = document.getElementById('image').files[0];
+            formData.append('image', imageFile);
+            
+            const resultElement = document.getElementById('result');
+            const resultContentElement = document.getElementById('resultContent');
+            resultElement.style.display = 'block';
+            
+            try {
+                // Construir la URL completa
+                const baseUrl = getBaseUrl();
+                const endpoint = '/api/products/saveProductWithImage';
+                const fullUrl = baseUrl + endpoint;
+                
+                console.log('Enviando solicitud a:', fullUrl);
+                
+                const response = await fetch(fullUrl, {
+                    method: 'POST',
+                    body: formData,
+                    // No establecer el Content-Type aquí, dejarlo al navegador para que maneje el multipart/form-data correctamente
+                });
+                
+                console.log('Respuesta recibida:', response.status, response.statusText);
+                
+                // Comprobar si la respuesta es JSON
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    const data = await response.json();
+                    resultContentElement.textContent = JSON.stringify(data, null, 2);
+                } else {
+                    // Si no es JSON, mostrar el texto de la respuesta
+                    const text = await response.text();
+                    resultContentElement.textContent = 'La respuesta no es JSON. Código: ' + 
+                        response.status + '\nTipo de contenido: ' + contentType + 
+                        '\n\nTexto de respuesta:\n' + (text.length > 500 ? text.substring(0, 500) + '...' : text);
+                }
+                
+                if (response.ok) {
+                    resultElement.style.backgroundColor = '#dff0d8';
+                    resultElement.style.borderColor = '#d6e9c6';
+                } else {
+                    resultElement.style.backgroundColor = '#f2dede';
+                    resultElement.style.borderColor = '#ebccd1';
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                
+                resultElement.style.backgroundColor = '#f2dede';
+                resultElement.style.borderColor = '#ebccd1';
+                resultContentElement.textContent = 'Error al enviar los datos: ' + error.message;
+            }
+        });
+    </script>
+</body>
+</html> 

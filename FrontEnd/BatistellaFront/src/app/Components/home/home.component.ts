@@ -4,6 +4,7 @@ import { ActivatedRoute, ParamMap } from '@angular/router';
 import { ProductCardComponent } from '../product-card/product-card.component';
 import { ProductService, Product } from '../../Services/Product/product.service';
 import { Subscription } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-home',
@@ -19,9 +20,9 @@ export class HomeComponent implements OnInit, OnDestroy {
   private subscription: Subscription = new Subscription();
 
   private categoryTitles: Record<string, string> = {
-    'dog': 'Productos para Perros',
-    'cat': 'Productos para Gatos',
-    'farm': 'Productos para Animales de Granja'
+    'PERROS': 'Productos para Perros',
+    'GATOS': 'Productos para Gatos',
+    'GRANJA': 'Productos para Animales de Granja'
   };
 
   constructor(
@@ -45,10 +46,17 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   private loadProducts(): void {
     if (this.categoryFilter) {
+      const filterCategory = this.categoryFilter.toUpperCase();
       this.subscription.add(
-        this.productService.getProductsByCategory(this.categoryFilter).subscribe(products => {
-          this.products = products;
-        })
+        this.productService.getProducts()
+          .pipe(
+            map(products => products.filter(product => 
+              product.animalType && product.animalType.toUpperCase() === filterCategory
+            ))
+          )
+          .subscribe(products => {
+            this.products = products;
+          })
       );
     } else {
       this.subscription.add(
@@ -60,8 +68,13 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   private updateCategoryTitle(): void {
-    if (this.categoryFilter && this.categoryTitles[this.categoryFilter]) {
-      this.categoryTitle = this.categoryTitles[this.categoryFilter];
+    if (this.categoryFilter) {
+      const filterCategory = this.categoryFilter.toUpperCase();
+      if (this.categoryTitles[filterCategory]) {
+        this.categoryTitle = this.categoryTitles[filterCategory];
+      } else {
+        this.categoryTitle = 'Todos los Productos';
+      }
     } else {
       this.categoryTitle = 'Todos los Productos';
     }

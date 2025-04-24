@@ -22,19 +22,19 @@ export class SidebarComponent {
   
   animalCategories: Category[] = [
     { 
-      id: 'dog', 
+      id: 'PERROS', 
       name: 'Perros', 
       icon: '🐕', 
       color: 'text-blue-500'
     },
     { 
-      id: 'cat', 
+      id: 'GATOS', 
       name: 'Gatos', 
       icon: '🐈', 
       color: 'text-purple-500'
     },
     { 
-      id: 'farm', 
+      id: 'GRANJA', 
       name: 'Animales de Granja', 
       icon: '🐄', 
       color: 'text-green-500'
