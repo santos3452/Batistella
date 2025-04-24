@@ -1,10 +1,10 @@
 <div class="product-card flex flex-col h-full bg-white rounded-lg shadow-sm overflow-hidden opacity-0 animate-slide-in" 
   [style.animation-delay]="animationDelay">
-  <div class="relative h-48 bg-gray-100">
+  <div class="relative h-64 bg-gray-100">
     <img
       [src]="product.imageUrl"
       [alt]="product.fullName"
-      class="w-full h-full object-cover"
+      class="w-full h-full object-contain"
     />
     <div class="absolute top-2 left-2 text-xs px-1.5 py-0.5 bg-gray-100 text-gray-800 rounded-md">
       {{ getAnimalTypeLabel(product.animalType) }}

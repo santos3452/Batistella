@@ -16,13 +16,13 @@ import { map } from 'rxjs/operators';
 export class HomeComponent implements OnInit, OnDestroy {
   products: Product[] = [];
   categoryFilter: string | null = null;
-  categoryTitle = 'Todos los Productos';
+  categoryTitle = 'Todos los Alimentos';
   private subscription: Subscription = new Subscription();
 
   private categoryTitles: Record<string, string> = {
-    'PERROS': 'Productos para Perros',
-    'GATOS': 'Productos para Gatos',
-    'GRANJA': 'Productos para Animales de Granja'
+    'PERROS': 'Alimentos para Perros',
+    'GATOS': 'Alimentos para Gatos',
+    'GRANJA': 'Alimentos para Animales de Granja'
   };
 
   constructor(
@@ -73,10 +73,10 @@ export class HomeComponent implements OnInit, OnDestroy {
       if (this.categoryTitles[filterCategory]) {
         this.categoryTitle = this.categoryTitles[filterCategory];
       } else {
-        this.categoryTitle = 'Todos los Productos';
+        this.categoryTitle = 'Todos los Alimentos';
       }
     } else {
-      this.categoryTitle = 'Todos los Productos';
+      this.categoryTitle = 'Todos los Alimentos';
     }
   }
 }
