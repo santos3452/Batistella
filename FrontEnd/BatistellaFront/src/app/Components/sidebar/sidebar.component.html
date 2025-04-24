@@ -1,52 +1,53 @@
 <div 
-class="fixed inset-0 bg-black/30 z-40 transition-opacity duration-300 lg:hidden"
-[class.opacity-100]="isOpen" 
-[class.opacity-0]="!isOpen"
-[class.pointer-events-none]="!isOpen"
-(click)="closeSidebar()"
+  class="fixed inset-0 bg-black/30 z-40 transition-opacity duration-300 md:hidden"
+  [class.opacity-100]="isOpen" 
+  [class.opacity-0]="!isOpen"
+  [class.visible]="isOpen"
+  [class.invisible]="!isOpen"
+  (click)="closeSidebar()"
 ></div>
 
 <aside 
-class="fixed top-0 bottom-0 left-0 w-64 bg-white shadow-lg z-50 transition-transform duration-300 transform lg:translate-x-0 lg:static lg:h-auto"
-[class.translate-x-0]="isOpen" 
-[class.-translate-x-full]="!isOpen"
+  class="fixed top-0 bottom-0 left-0 w-64 bg-white shadow-lg z-50 transition-transform duration-300 transform md:translate-x-0 md:static md:h-auto border-r border-gray-300"
+  [class.translate-x-0]="isOpen" 
+  [class.-translate-x-full]="!isOpen"
 >
-<div class="flex items-center justify-between p-4 lg:hidden">
-  <img src="assets/Images/BatistellaLogo.jpg" alt="Batistella Logo" class="h-6">
-  <button 
-    class="bg-transparent hover:bg-gray-100 p-2 rounded-full"
-    (click)="closeSidebar()"
-    aria-label="Close menu"
-  >
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M18 6 6 18"></path>
-      <path d="m6 6 12 12"></path>
-    </svg>
-  </button>
-</div>
-
-<div class="p-4">
-  <h3 class="font-medium text-sm text-gray-500 mb-2">NAVEGACIÓN</h3>
-  <a routerLink="/" class="flex items-center space-x-2 text-gray-700 hover:text-teal-600 py-2 px-3 rounded-md hover:bg-gray-100">
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-      <polyline points="9 22 9 12 15 12 15 22"></polyline>
-    </svg>
-    <span>Inicio</span>
-  </a>
-  
-  <h3 class="font-medium text-sm text-gray-500 mt-6 mb-2">CATEGORÍAS</h3>
-  <div class="space-y-1">
-    <a 
-      *ngFor="let category of animalCategories"
-      [routerLink]="['/']" 
-      [queryParams]="{category: category.id}"
-      class="flex items-center space-x-2 text-gray-700 hover:text-teal-600 py-2 px-3 rounded-md hover:bg-gray-100"
+  <div class="flex items-center justify-between p-4 border-b border-gray-300 md:hidden">
+    <img src="assets/Images/BatistellaLogo.jpg" alt="Batistella Logo" class="h-6">
+    <button 
+      class="bg-transparent hover:bg-gray-100 p-2 rounded-full"
       (click)="closeSidebar()"
+      aria-label="Close menu"
     >
-      <span [class]="category.color">{{ category.icon }}</span>
-      <span>{{ category.name }}</span>
-    </a>
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 6 6 18"></path>
+        <path d="m6 6 12 12"></path>
+      </svg>
+    </button>
   </div>
-</div>
+
+  <div class="p-4">
+    <h3 class="font-medium text-sm text-gray-500 mb-2">NAVEGACIÓN</h3>
+    <a routerLink="/" class="flex items-center space-x-2 text-gray-700 hover:text-teal-600 py-2 px-3 rounded-md hover:bg-gray-100">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+      </svg>
+      <span>Inicio</span>
+    </a>
+    
+    <h3 class="font-medium text-sm text-gray-500 mt-6 mb-2">CATEGORÍAS</h3>
+    <div class="space-y-1 border-t border-gray-200 pt-2">
+      <a 
+        *ngFor="let category of animalCategories"
+        [routerLink]="['/']" 
+        [queryParams]="{category: category.id}"
+        class="flex items-center space-x-2 text-gray-700 hover:text-teal-600 py-2 px-3 rounded-md hover:bg-gray-100"
+        (click)="closeSidebar()"
+      >
+        <span [class]="category.color">{{ category.icon }}</span>
+        <span>{{ category.name }}</span>
+      </a>
+    </div>
+  </div>
 </aside>

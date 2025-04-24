@@ -15,9 +15,12 @@
 
 .product-card {
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  will-change: transform;
+  z-index: 1;
 }
 
 .product-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  transform: translateY(-5px) scale(1.06);
+  box-shadow: 0 15px 20px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  z-index: 2;
 }

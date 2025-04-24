@@ -5,6 +5,7 @@ import { CartService } from '../../Services/Cart/cart.service';
 import { CartDropdownComponent } from '../cart-dropdown/cart-dropdown.component';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../Services/Auth/auth.service';
+import { UtilsService } from '../../Services/Utils/utils.service';
 
 @Component({
   selector: 'app-navbar',
@@ -26,7 +27,8 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   constructor(
     private cartService: CartService,
-    private authService: AuthService
+    private authService: AuthService,
+    public utils: UtilsService
   ) {}
 
   ngOnInit(): void {

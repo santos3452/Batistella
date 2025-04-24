@@ -1,4 +1,4 @@
-<nav class="bg-white shadow-sm py-4 px-6 sticky top-0 z-50">
+<nav class="bg-white shadow-sm py-4 px-6 sticky top-0 z-50 border-b border-gray-300">
   <div class="flex items-center justify-between">
     <div class="flex items-center space-x-4">
       <button 
@@ -96,7 +96,7 @@
               <div class="border-t border-gray-200 p-4 bg-white">
                 <div class="flex justify-between mb-4">
                   <span class="text-gray-600">Total</span>
-                  <span class="font-semibold">{{cartTotal | currency:'EUR'}}</span>
+                  <span class="font-semibold">{{utils.formatCurrency(cartTotal)}}</span>
                 </div>
                 <button 
                   class="w-full bg-teal-600 text-white py-3 px-4 rounded-md hover:bg-teal-700 transition duration-150 font-medium"

@@ -10,9 +10,14 @@
   
   <!-- Contenido principal con sidebar -->
   <div class="flex flex-1">
-    <!-- Sidebar (visible en desktop) -->
-    <div class="hidden md:block">
+    <!-- Sidebar para móvil (invisible pero presente) -->
+    <div class="block md:hidden">
       <app-sidebar [isOpen]="sidebarOpen" (onClose)="closeSidebar()"></app-sidebar>
+    </div>
+    
+    <!-- Sidebar para desktop (siempre visible) -->
+    <div class="hidden md:block">
+      <app-sidebar [isOpen]="true" (onClose)="closeSidebar()"></app-sidebar>
     </div>
     
     <!-- Contenido principal -->
@@ -22,4 +27,12 @@
       </div>
     </main>
   </div>
+  
+  <!-- Footer -->
+  <footer class="bg-gray-700 py-6 border-t border-gray-800">
+    <div class="container mx-auto px-6 text-center">
+      <p class="text-gray-200 font-medium">© 2025 Batistella & Cia S.A.</p>
+      <p class="text-gray-200 font-medium">Todos los derechos reservados</p>
+    </div>
+  </footer>
 </div>
