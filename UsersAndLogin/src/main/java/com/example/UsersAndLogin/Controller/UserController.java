@@ -56,10 +56,7 @@ public class UserController {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String emailAutenticado = authentication.getName();
             
-            System.out.println("Email autenticado: " + emailAutenticado);
-            System.out.println("Email a actualizar: " + mail);
-            System.out.println("¿Está autenticado? " + authentication.isAuthenticated());
-            System.out.println("Autoridades: " + authentication.getAuthorities());
+
             
             // Verificar que el usuario solo pueda actualizar sus propios datos
             if (!emailAutenticado.equals(mail)) {

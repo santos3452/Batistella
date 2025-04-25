@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -25,5 +26,17 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/static/**")
                 .addResourceLocations("classpath:/static/")
                 .setCachePeriod(3600);
+    }
+    
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/**")
+                .allowedOrigins("*")
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                .allowedHeaders("*")
+                .exposedHeaders("Access-Control-Allow-Origin", "Access-Control-Allow-Methods", 
+                               "Access-Control-Allow-Headers", "Access-Control-Max-Age", 
+                               "Access-Control-Request-Headers", "Access-Control-Request-Method")
+                .maxAge(3600);
     }
 } 

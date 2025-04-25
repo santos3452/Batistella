@@ -1,6 +1,7 @@
 package com.example.Products.Service;
 
 import com.example.Products.Dtos.ProductDTO;
+import com.example.Products.Dtos.ProductListDTO;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -9,11 +10,12 @@ import java.util.List;
 public interface productService {
     ProductDTO saveProduct(ProductDTO producto);
 
-    void updateProduct(long id, String name, String description, String type,int kg, double price, int stock);
+    ProductDTO updateProduct(ProductListDTO productListDTO);
 
     void deleteProduct(long id);
 
-    List<ProductDTO> getAllProducts();
+    List<ProductListDTO> getAllProducts();
 
     ProductDTO getProductById(long id);
+
 }

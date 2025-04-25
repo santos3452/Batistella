@@ -2,6 +2,7 @@ package com.example.Products.Service.impl;
 
 import com.example.Products.Config.ModelMapperConfig;
 import com.example.Products.Dtos.ProductDTO;
+import com.example.Products.Dtos.ProductListDTO;
 import com.example.Products.Entity.Products;
 import com.example.Products.Service.productService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,8 +55,17 @@ public class productServiceImpl implements productService {
     }
 
     @Override
-    public void updateProduct(long id, String name, String description, String type, int kg, double price, int stock) {
-        // TODO: Implementar actualización
+    public ProductDTO updateProduct(ProductListDTO product) {
+        Products existingProduct = productRepository.findById(product.getId())
+                .orElse(null);
+
+        existingProduct = modelMapper.modelMapper().map(product, Products.class);
+
+        productRepository.save(existingProduct);
+
+        return modelMapper.modelMapper().map(existingProduct, ProductDTO.class);
+
+
     }
 
     @Override
@@ -64,11 +74,11 @@ public class productServiceImpl implements productService {
     }
 
     @Override
-    public List<ProductDTO> getAllProducts() {
+    public List<ProductListDTO> getAllProducts() {
         // TODO: Implementar obtención de todos los productos
         List<Products> products = productRepository.findAll();
-        List<ProductDTO> productDTOs = products.stream()
-                .map(product -> modelMapper.modelMapper().map(product, ProductDTO.class))
+        List<ProductListDTO> productDTOs = products.stream()
+                .map(product -> modelMapper.modelMapper().map(product, ProductListDTO.class))
                 .toList();
         return productDTOs;
     }

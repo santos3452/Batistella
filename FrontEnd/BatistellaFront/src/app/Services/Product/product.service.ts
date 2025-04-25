@@ -4,7 +4,7 @@ import { Observable, throwError, of } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 
 export interface Product {
-  id?: string;
+  id?: number | string;
   marca: string;
   tipoAlimento: string;
   tipoRaza: string;
@@ -53,6 +53,31 @@ export class ProductService {
     return 'local-' + Math.abs(hash).toString(16);
   }
 
+  // Genera un nombre completo para el producto a partir de sus propiedades
+  public generateProductFullName(product: Product): string {
+    if (!product) return '';
+    
+    const parts: string[] = [];
+    
+    // Añadir marca si existe
+    if (product.marca) {
+      parts.push(product.marca);
+    }
+    
+    // Añadir tipo de alimento si existe
+    if (product.tipoAlimento) {
+      parts.push(product.tipoAlimento);
+    }
+    
+    // Añadir tipo de raza solo si no es null
+    if (product.tipoRaza) {
+      parts.push(product.tipoRaza);
+    }
+    
+    // Unir las partes con espacios
+    return parts.join(' ');
+  }
+
   // Procesar productos para añadir IDs locales a los que no tienen ID
   private processProducts(products: Product[]): Product[] {
     return products.map(product => {
@@ -60,7 +85,15 @@ export class ProductService {
         // Si no tiene ID, generamos uno local y lo asignamos
         product.localId = this.generateLocalId(product);
       }
-      return product;
+      
+      // Generamos el fullName pero no lo asignamos directamente al objeto
+      // para evitar enviarlo al backend
+      const fullName = this.generateProductFullName(product);
+      
+      // Creamos una copia del producto con el fullName para uso local
+      const processedProduct = { ...product, fullName };
+      
+      return processedProduct;
     });
   }
 
@@ -132,8 +165,8 @@ export class ProductService {
   }
 
   // Obtener un producto basado en un identificador (puede ser ID o localId)
-  getProductById(id: string): Observable<Product> {
-    if (!id) {
+  getProductById(id: string | number): Observable<Product> {
+    if (id === undefined || id === null) {
       return throwError(() => new Error('Identificador de producto inválido'));
     }
     
@@ -142,8 +175,8 @@ export class ProductService {
       map(products => {
         // Buscar por ID o localId
         const product = products.find(p => 
-          (p.id && p.id === id) || 
-          (p.localId && p.localId === id)
+          (p.id !== undefined && p.id.toString() === id.toString()) || 
+          (p.localId && p.localId === id.toString())
         );
         
         if (!product) {
@@ -159,14 +192,25 @@ export class ProductService {
     return this.http.post<Product>(`${this.apiUrl}/saveProductWithImage`, formData);
   }
 
-  updateProductWithImage(id: string, formData: FormData): Observable<Product> {
-    return this.http.put<Product>(`${this.apiUrl}/updateProductWithImage/${id}`, formData);
+  updateProductWithImage(id: string | number, formData: FormData): Observable<Product> {
+    // El endpoint espera un objeto JSON en "product" y un archivo en "image" (opcional para actualizaciones)
+    return this.http.put<Product>(`${this.apiUrl}/UpdateProductWithImage`, formData);
   }
 
-  deleteProduct(id: string | undefined): Observable<void> {
-    if (!id) {
+  deleteProduct(id: string | number | undefined): Observable<void> {
+    if (id === undefined || id === null) {
       return throwError(() => new Error('ID de producto inválido'));
     }
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+  
+  /**
+   * Limpia la caché de productos para forzar una nueva petición al servidor
+   * Útil después de crear, actualizar o eliminar productos
+   */
+  clearProductsCache(): void {
+    this.productsCache = [];
+    this.lastFetchTime = 0;
+    console.log('Caché de productos limpiada');
   }
 }

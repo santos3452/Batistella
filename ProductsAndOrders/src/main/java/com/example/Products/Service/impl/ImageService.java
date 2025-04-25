@@ -1,16 +1,12 @@
-package com.example.Products.Service;
+package com.example.Products.Service.impl;
 
 import com.example.Products.Dtos.ProductDTO;
+import com.example.Products.Dtos.ProductListDTO;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StreamUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.text.Normalizer;
 import java.util.UUID;
 
@@ -60,7 +56,22 @@ public class ImageService {
         // Ruta completa del archivo
         String filePath = marcaDir + File.separator + newFilename;
         File fileToSave = new File(filePath);
-        
+        // Verificar si el archivo ya existe
+        if (fileToSave.exists()) {
+            System.out.println("La imagen ya existe, reutilizando: " + fileToSave.getAbsolutePath());
+        } else {
+            System.out.println("Guardando nueva imagen en: " + fileToSave.getAbsolutePath());
+            try (FileOutputStream fos = new FileOutputStream(fileToSave)) {
+                fos.write(image.getBytes());
+                System.out.println("Imagen guardada exitosamente. Tamaño: " + fileToSave.length() + " bytes");
+            } catch (Exception e) {
+                System.err.println("Error al guardar la imagen: " + e.getMessage());
+                e.printStackTrace();
+                throw new IOException("Error al guardar la imagen: " + e.getMessage());
+            }
+        }
+
+
         System.out.println("Guardando imagen en: " + fileToSave.getAbsolutePath());
         
         try (FileOutputStream fos = new FileOutputStream(fileToSave)) {
@@ -72,6 +83,76 @@ public class ImageService {
             throw new IOException("Error al guardar la imagen: " + e.getMessage());
         }
         
+        // Devolver la URL relativa para acceder a la imagen, incluyendo la URL base
+        String relativePath = "/images/" + marca + "/" + newFilename;
+        String imageUrl = baseUrl + relativePath;
+        System.out.println("URL de la imagen generada: " + imageUrl);
+        return imageUrl;
+    }
+    public String updateImage(MultipartFile image, ProductListDTO product) throws IOException {
+        // Verificar que la imagen no sea nula y tenga contenido
+        if (image == null || image.isEmpty()) {
+            System.err.println("Error: La imagen está vacía o es nula");
+            throw new IOException("La imagen está vacía o es nula");
+        }
+
+        System.out.println("Iniciando guardado de imagen para producto: " + product);
+        System.out.println("Tamaño de la imagen: " + image.getSize() + " bytes");
+        System.out.println("Nombre original de la imagen: " + image.getOriginalFilename());
+
+        // Determinar la marca para la carpeta
+        String marca = "OTROS";
+        try {
+            marca = product.getMarca() != null ? product.getMarca().toString() : "OTROS";
+        } catch (Exception e) {
+            System.err.println("Error al obtener la marca: " + e.getMessage());
+        }
+
+        System.out.println("Marca determinada: " + marca);
+
+        // Asegurarnos de que existe el directorio de marcas
+        String marcaDir = uploadDir + File.separator + marca;
+        File marcaDirFile = new File(marcaDir);
+        if (!marcaDirFile.exists()) {
+            boolean dirCreated = marcaDirFile.mkdirs();
+            System.out.println("Directorio creado: " + dirCreated + " - Ruta: " + marcaDirFile.getAbsolutePath());
+        }
+
+        // Generar nombre de archivo
+        String nombreProducto = generarNombreArchivo1(product);
+        String fileExtension = getFileExtension(image.getOriginalFilename());
+        String newFilename = nombreProducto + "." + fileExtension;
+
+        // Ruta completa del archivo
+        String filePath = marcaDir + File.separator + newFilename;
+        File fileToSave = new File(filePath);
+        // Verificar si el archivo ya existe
+        if (fileToSave.exists()) {
+            System.out.println("La imagen ya existe, reutilizando: " + fileToSave.getAbsolutePath());
+        } else {
+            System.out.println("Guardando nueva imagen en: " + fileToSave.getAbsolutePath());
+            try (FileOutputStream fos = new FileOutputStream(fileToSave)) {
+                fos.write(image.getBytes());
+                System.out.println("Imagen guardada exitosamente. Tamaño: " + fileToSave.length() + " bytes");
+            } catch (Exception e) {
+                System.err.println("Error al guardar la imagen: " + e.getMessage());
+                e.printStackTrace();
+                throw new IOException("Error al guardar la imagen: " + e.getMessage());
+            }
+        }
+
+
+        System.out.println("Guardando imagen en: " + fileToSave.getAbsolutePath());
+
+        try (FileOutputStream fos = new FileOutputStream(fileToSave)) {
+            fos.write(image.getBytes());
+            System.out.println("Imagen guardada exitosamente. Tamaño: " + fileToSave.length() + " bytes");
+        } catch (Exception e) {
+            System.err.println("Error al guardar la imagen: " + e.getMessage());
+            e.printStackTrace();
+            throw new IOException("Error al guardar la imagen: " + e.getMessage());
+        }
+
         // Devolver la URL relativa para acceder a la imagen, incluyendo la URL base
         String relativePath = "/images/" + marca + "/" + newFilename;
         String imageUrl = baseUrl + relativePath;
@@ -129,6 +210,31 @@ public class ImageService {
         // Limpiar el nombre (quitar espacios, caracteres especiales, etc.)
         String nombreLimpio = limpiarNombre(nombre.toString());
         
+        return nombreLimpio;
+    }
+    private String generarNombreArchivo1(ProductListDTO productDTO) {
+        // Construir un nombre descriptivo para el archivo
+        StringBuilder nombre = new StringBuilder();
+
+        // Añadir marca
+        if (productDTO.getMarca() != null) {
+            String marcaStr = productDTO.getMarca().toString();
+            nombre.append(marcaStr.contains("Top") ? "Top" : marcaStr);
+        }
+
+        // Añadir tipo de alimento (por ejemplo, Adulto, Cachorro, etc.)
+        if (productDTO.getTipoAlimento() != null) {
+            nombre.append(productDTO.getTipoAlimento().toString());
+        }
+
+        // Añadir tipo de raza si existe
+        if (productDTO.getTipoRaza() != null) {
+            nombre.append(productDTO.getTipoRaza().toString().replace("RAZA_", "Raza"));
+        }
+
+        // Limpiar el nombre (quitar espacios, caracteres especiales, etc.)
+        String nombreLimpio = limpiarNombre(nombre.toString());
+
         return nombreLimpio;
     }
     

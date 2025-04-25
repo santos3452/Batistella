@@ -2,6 +2,7 @@ package com.example.Products.Controller;
 
 import com.example.Products.Dtos.Error.ErrorDto;
 import com.example.Products.Dtos.ProductDTO;
+import com.example.Products.Dtos.ProductListDTO;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -11,13 +12,11 @@ import org.springframework.web.bind.annotation.*;
 import com.example.Products.Service.productService;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
-import java.util.UUID;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import com.example.Products.Service.ImageService;
+
+import com.example.Products.Service.impl.ImageService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.File;
+import java.io.FileOutputStream;
 
 @RestController
 @RequestMapping("/api/products")
@@ -41,7 +40,7 @@ public class ProductController {
             ProductDTO savedProduct = productService.saveProduct(productDTO);
             return ResponseEntity.status(HttpStatus.CREATED).body(savedProduct);
         } catch (IllegalArgumentException e) {
-            // Manejar específicamente la excepción de producto duplicado
+
             return ResponseEntity
                     .status(HttpStatus.CONFLICT)
                     .body(ErrorDto.of(
@@ -74,11 +73,92 @@ public class ProductController {
                     ));
         }
     }
+    @PutMapping("/updateProduct")
+    public ResponseEntity<?> updateProduct(@Valid @RequestBody ProductListDTO product){
+        try {
+                productService.updateProduct(product);
+                return ResponseEntity.ok("Producto actualizado exitosamente");
+
+        }
+        catch (IllegalArgumentException e) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(ErrorDto.of(
+                            HttpStatus.BAD_REQUEST.value(),
+                            "Error de Validación",
+                            e.getMessage()
+                    ));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ErrorDto.of(
+                            HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                            "Error Interno del Servidor",
+                            "Error al actualizar producto: " + e.getMessage()
+                    ));
+        }
+
+
+    }
 
     @GetMapping("/upload-form")
     public String uploadForm() {
         return "redirect:/static/example-upload.html";
     }
+    @PutMapping(value = "/UpdateProductWithImage", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
+    public ResponseEntity<?> updateProductWithImage(
+            @RequestPart(value = "product", required = true) String productJson,
+            @RequestPart(value = "image", required = true) MultipartFile image) {
+        try {
+            // Convertir la cadena JSON a objeto ProductDTO
+            ObjectMapper objectMapper = new ObjectMapper();
+            // Registrar módulos para manejo de fechas y otras configuraciones
+            objectMapper.findAndRegisterModules();
+            ProductListDTO product = objectMapper.readValue(productJson, ProductListDTO.class);
+
+            // Guardar la imagen y obtener su URL
+            String imageUrl = imageService.updateImage(image, product);
+
+            // Imprimir información para depuración
+            System.out.println("Imagen guardada en: " + imageUrl);
+            System.out.println("Datos del producto: " + product);
+
+            // Asignar la URL al producto
+            product.setImageUrl(imageUrl);
+
+            // Guardar el producto
+            ProductDTO savedProduct = productService.updateProduct(product);
+            return ResponseEntity.status(HttpStatus.CREATED).body(savedProduct);
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace(); // Para depuración
+            return ResponseEntity
+                    .status(HttpStatus.CONFLICT)
+                    .body(ErrorDto.of(
+                            HttpStatus.CONFLICT.value(),
+                            "Producto Duplicado",
+                            e.getMessage()
+                    ));
+        } catch (IOException e) {
+            e.printStackTrace(); // Para depuración
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(ErrorDto.of(
+                            HttpStatus.BAD_REQUEST.value(),
+                            "Error de imagen",
+                            "No se pudo procesar la imagen: " + e.getMessage()
+                    ));
+        } catch (Exception e) {
+            e.printStackTrace(); // Para depuración
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ErrorDto.of(
+                            HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                            "Error Interno del Servidor",
+                            "Error al registrar producto: " + e.getMessage()
+                    ));
+        }
+    }
+
 
     @PostMapping(value = "/saveProductWithImage", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
     public ResponseEntity<?> saveProductWithImage(
@@ -99,7 +179,6 @@ public class ProductController {
             System.out.println("Datos del producto: " + productDTO);
             
             // Asignar la URL al producto
-            // Ignoramos el error del linter porque sabemos que Lombok genera este método
             productDTO.setImageUrl(imageUrl);
             
             // Guardar el producto
