@@ -387,60 +387,67 @@ export class ProductFormComponent implements OnInit {
     
     console.log('Datos del producto a enviar:', productDataForBackend);
     
-    // Crear FormData
-    const formData = new FormData();
+    // LÓGICA DUAL DE ACTUALIZACIÓN:
+    // 1. Si estamos editando y NO hay una nueva imagen, usamos el endpoint JSON simple
+    // 2. Para nuevos productos o actualizaciones con nueva imagen, usamos FormData
     
-    // Añadir el producto como una cadena JSON (sin fullName)
-    formData.append('product', JSON.stringify(productDataForBackend));
-    
-    // Gestión de imágenes en el FormData
-    if (this.selectedFile) {
-      // Si hay un nuevo archivo seleccionado, añadirlo
-      formData.append('image', this.selectedFile);
-    } else if (this.isEditing && this.imagePreview) {
-      // Si estamos editando y no hay una nueva imagen pero hay una existente,
-      // creamos una imagen vacía de 1x1 pixel para satisfacer el requisito del backend
-      console.log('Manteniendo imagen existente. URL:', typeof this.imagePreview === 'string' ? this.imagePreview : 'No es string');
+    if (this.isEditing && !this.selectedFile) {
+      // CASO 1: Actualización sin cambio de imagen - Usar updateProduct con JSON
+      console.log('Actualizando producto sin cambiar imagen, usando endpoint JSON');
+      if (productId) {
+        // Agregar logs detallados para depuración
+        console.log('ID del producto:', productId);
+        console.log('Tipo de ID:', typeof productId);
+        console.log('Datos completos enviados al endpoint updateProduct:', JSON.stringify(productDataForBackend, null, 2));
+        console.log('URL del endpoint:', `${this.productService['apiUrl']}/updateProduct`);
+        
+        this.productService.updateProduct(productId, productDataForBackend).subscribe({
+          next: (response: any) => {
+            console.log('Producto actualizado:', response);
+            this.isSubmitting = false;
+            this.successMessage = 'Producto actualizado con éxito';
+            
+            // Limpiar caché de productos para forzar recarga de datos
+            this.productService.clearProductsCache();
+            
+            setTimeout(() => {
+              this.router.navigate(['/admin/products'], { queryParams: { refresh: new Date().getTime() } });
+            }, 1500);
+          },
+          error: (error: any) => {
+            console.error('Error al actualizar el producto:', error);
+            this.isSubmitting = false;
+            this.errorMessage = 'Error al actualizar el producto: ' + (error.error?.message || error.message);
+          }
+        });
+      } else {
+        this.isSubmitting = false;
+        this.errorMessage = 'Error: ID de producto no disponible para la actualización';
+      }
+    } else {
+      // CASO 2: Nuevo producto o actualización con nueva imagen - Usar FormData
+      // Crear FormData
+      const formData = new FormData();
       
-      // Añadimos un campo especial para indicar al backend que debe mantener la imagen existente
-      formData.append('keepExistingImage', 'true');
+      // Añadir el producto como una cadena JSON
+      formData.append('product', JSON.stringify(productDataForBackend));
       
-      // Añadimos la URL de la imagen existente para que el backend pueda usarla si es necesario
-      if (typeof this.imagePreview === 'string') {
-        formData.append('existingImageUrl', this.imagePreview);
+      // Añadir la imagen si hay una seleccionada (debe haberla para nuevos productos)
+      if (this.selectedFile) {
+        formData.append('image', this.selectedFile);
       }
       
-      // Crear una imagen vacía para satisfacer el requisito de 'image' en la solicitud
-      const emptyImageBlob = this.createEmptyImageBlob();
-      const emptyFile = new File([emptyImageBlob], 'empty.png', { type: 'image/png' });
-      formData.append('image', emptyFile);
+      this.sendRequestWithImage(formData, productId);
     }
-    
-    this.sendRequest(formData, productId);
   }
 
-  // Método para crear un blob de imagen vacío (1x1 pixel transparente)
-  private createEmptyImageBlob(): Blob {
-    // Base64 de una imagen PNG transparente de 1x1 pixel
-    const base64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
-    const byteString = atob(base64);
-    const arrayBuffer = new ArrayBuffer(byteString.length);
-    const int8Array = new Uint8Array(arrayBuffer);
-    
-    for (let i = 0; i < byteString.length; i++) {
-      int8Array[i] = byteString.charCodeAt(i);
-    }
-    
-    return new Blob([int8Array], { type: 'image/png' });
-  }
-
-  // Método para enviar la petición HTTP
-  private sendRequest(formData: FormData, productId: string | number | null): void {
+  // Método para enviar la petición HTTP con imagen (FormData)
+  private sendRequestWithImage(formData: FormData, productId: string | number | null): void {
     if (this.isEditing && productId) {
-      // Si estamos editando, usamos el método de actualización
+      // Si estamos editando, usamos el método de actualización con imagen
       this.productService.updateProductWithImage(productId, formData).subscribe({
         next: (response) => {
-          console.log('Producto actualizado:', response);
+          console.log('Producto actualizado con imagen:', response);
           this.isSubmitting = false;
           this.successMessage = 'Producto actualizado con éxito';
           
@@ -452,7 +459,7 @@ export class ProductFormComponent implements OnInit {
           }, 1500);
         },
         error: (error) => {
-          console.error('Error al actualizar el producto:', error);
+          console.error('Error al actualizar el producto con imagen:', error);
           this.isSubmitting = false;
           this.errorMessage = 'Error al actualizar el producto: ' + (error.error?.message || error.message);
         }

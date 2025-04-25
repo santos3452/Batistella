@@ -197,6 +197,24 @@ export class ProductService {
     return this.http.put<Product>(`${this.apiUrl}/UpdateProductWithImage`, formData);
   }
 
+  updateProduct(id: string | number, product: Product): Observable<Product> {
+    // Endpoint para actualizar un producto sin cambiar la imagen
+    console.log('ProductService.updateProduct - ID:', id);
+    console.log('ProductService.updateProduct - Datos:', JSON.stringify(product, null, 2));
+    console.log('ProductService.updateProduct - URL:', `${this.apiUrl}/updateProduct`);
+    
+    // Usar responseType 'text' ya que el backend responde con texto plano
+    return this.http.put(`${this.apiUrl}/updateProduct`, product, { responseType: 'text' })
+      .pipe(
+        map(response => {
+          console.log('Respuesta del servidor:', response);
+          // Devolver el producto original como respuesta simulada
+          // ya que el backend no devuelve un objeto producto
+          return product;
+        })
+      );
+  }
+
   deleteProduct(id: string | number | undefined): Observable<void> {
     if (id === undefined || id === null) {
       return throwError(() => new Error('ID de producto inválido'));
