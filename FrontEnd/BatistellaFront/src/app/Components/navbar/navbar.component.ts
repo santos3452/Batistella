@@ -21,6 +21,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   cartTotal = 0;
   showCart = false;
   isLoggedIn = false;
+  isAdmin = false;
   showUserMenu = false;
   userName = '';
   private subscription: Subscription = new Subscription();
@@ -63,6 +64,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
         if (user) {
           this.isLoggedIn = true;
           this.updateUserNameFromUser(user);
+          this.isAdmin = user.rol === 'ROLE_ADMIN';
         }
       })
     );
@@ -73,12 +75,15 @@ export class NavbarComponent implements OnInit, OnDestroy {
       const user = this.authService.currentUser;
       if (user) {
         this.updateUserNameFromUser(user);
+        this.isAdmin = user.rol === 'ROLE_ADMIN';
       } else {
         this.userName = 'Usuario';
+        this.isAdmin = false;
         console.log('No se pudo obtener el usuario actual');
       }
     } else {
       this.userName = '';
+      this.isAdmin = false;
     }
   }
   
@@ -107,9 +112,11 @@ export class NavbarComponent implements OnInit, OnDestroy {
         const user = JSON.parse(userData);
         this.isLoggedIn = true;
         this.updateUserNameFromUser(user);
+        this.isAdmin = user.rol === 'ROLE_ADMIN';
       } catch (error) {
         console.error('Error al parsear datos de usuario:', error);
         this.userName = 'Usuario';
+        this.isAdmin = false;
       }
     }
   }
@@ -141,5 +148,6 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.showUserMenu = false;
     this.isLoggedIn = false;
     this.userName = '';
+    this.isAdmin = false;
   }
 }

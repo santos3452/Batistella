@@ -1,8 +1,9 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, ParamMap } from '@angular/router';
+import { ActivatedRoute, ParamMap, RouterLink } from '@angular/router';
 import { ProductCardComponent } from '../product-card/product-card.component';
 import { ProductService, Product } from '../../Services/Product/product.service';
+import { AuthService } from '../../Services/Auth/auth.service';
 import { Subscription } from 'rxjs';
 import { map } from 'rxjs/operators';
 
@@ -11,12 +12,13 @@ import { map } from 'rxjs/operators';
   templateUrl: './home.component.html',
   styleUrl: './home.component.css',
   standalone: true,
-  imports: [CommonModule, ProductCardComponent]
+  imports: [CommonModule, ProductCardComponent, RouterLink]
 })
 export class HomeComponent implements OnInit, OnDestroy {
   products: Product[] = [];
   categoryFilter: string | null = null;
   categoryTitle = 'Todos los Alimentos';
+  isAdmin = false;
   private subscription: Subscription = new Subscription();
 
   private categoryTitles: Record<string, string> = {
@@ -27,15 +29,30 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   constructor(
     private productService: ProductService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
+    // Suscribirse a los cambios de ruta para filtrar por categoría
     this.subscription.add(
-      this.route.queryParamMap.subscribe((params: ParamMap) => {
+      this.route.paramMap.subscribe((params: ParamMap) => {
         this.categoryFilter = params.get('category');
-        this.updateCategoryTitle();
+        
+        if (this.categoryFilter) {
+          this.categoryTitle = this.categoryTitles[this.categoryFilter] || 'Productos';
+        } else {
+          this.categoryTitle = 'Todos los Alimentos';
+        }
+        
         this.loadProducts();
+      })
+    );
+
+    // Verificar si el usuario es administrador
+    this.subscription.add(
+      this.authService.currentUser$.subscribe(user => {
+        this.isAdmin = user?.rol === 'ROLE_ADMIN';
       })
     );
   }
@@ -44,39 +61,16 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.subscription.unsubscribe();
   }
 
-  private loadProducts(): void {
-    if (this.categoryFilter) {
-      const filterCategory = this.categoryFilter.toUpperCase();
-      this.subscription.add(
-        this.productService.getProducts()
-          .pipe(
-            map(products => products.filter(product => 
-              product.animalType && product.animalType.toUpperCase() === filterCategory
-            ))
-          )
-          .subscribe(products => {
-            this.products = products;
-          })
-      );
-    } else {
-      this.subscription.add(
-        this.productService.getProducts().subscribe(products => {
-          this.products = products;
-        })
-      );
-    }
-  }
-
-  private updateCategoryTitle(): void {
-    if (this.categoryFilter) {
-      const filterCategory = this.categoryFilter.toUpperCase();
-      if (this.categoryTitles[filterCategory]) {
-        this.categoryTitle = this.categoryTitles[filterCategory];
+  loadProducts(): void {
+    this.productService.getProducts().subscribe(products => {
+      if (this.categoryFilter) {
+        // Filtrar productos por categoría
+        this.products = products.filter(
+          product => product.animalType.toUpperCase() === this.categoryFilter
+        );
       } else {
-        this.categoryTitle = 'Todos los Alimentos';
+        this.products = products;
       }
-    } else {
-      this.categoryTitle = 'Todos los Alimentos';
-    }
+    });
   }
 }

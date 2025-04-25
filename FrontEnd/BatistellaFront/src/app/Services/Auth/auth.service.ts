@@ -264,4 +264,19 @@ export class AuthService {
       })
     );
   }
+
+  /**
+   * Comprueba si el usuario actual está autenticado
+   */
+  isAuthenticated(): boolean {
+    return this.isAuthenticatedSubject.value;
+  }
+
+  /**
+   * Comprueba si el usuario actual tiene rol de administrador
+   */
+  isAdmin(): boolean {
+    const user = this.currentUserSubject.value;
+    return user?.rol === 'ROLE_ADMIN';
+  }
 }

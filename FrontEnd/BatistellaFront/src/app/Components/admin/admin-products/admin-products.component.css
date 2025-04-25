@@ -1,0 +1,19 @@
+/* Estilos para el componente de administración de productos */
+.container {
+  max-width: 1280px;
+}
+
+th, td {
+  vertical-align: middle;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+  
+  table {
+    display: block;
+    overflow-x: auto;
+  }
+} 

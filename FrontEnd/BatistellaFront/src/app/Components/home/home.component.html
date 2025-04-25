@@ -1,11 +1,27 @@
 <!-- Encabezado de productos -->
-<div class="mb-6">
-  <h1 class="text-2xl font-bold text-gray-800">
-    {{ categoryTitle }}
-  </h1>
-  <p class="text-gray-500 mt-1">
-    Encuentra todos los alimentos que necesitas para tus mascotas
-  </p>
+<div class="mb-6 flex justify-between items-center">
+  <div>
+    <h1 class="text-2xl font-bold text-gray-800">
+      {{ categoryTitle }}
+    </h1>
+    <p class="text-gray-500 mt-1">
+      Encuentra todos los alimentos que necesitas para tus mascotas
+    </p>
+  </div>
+  
+  <!-- Botón de administración para usuarios admin -->
+  <a 
+    *ngIf="isAdmin"
+    routerLink="/admin/products" 
+    class="bg-teal-600 text-white py-2 px-4 rounded-md hover:bg-teal-700 transition duration-150 flex items-center"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2">
+      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+      <line x1="12" y1="8" x2="12" y2="16"></line>
+      <line x1="8" y1="12" x2="16" y2="12"></line>
+    </svg>
+    Administrar Productos
+  </a>
 </div>
 
 <!-- Grid de productos -->

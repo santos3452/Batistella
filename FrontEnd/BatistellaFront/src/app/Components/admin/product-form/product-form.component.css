@@ -1,0 +1,30 @@
+/* Estilos para el formulario de productos */
+.form-group {
+  margin-bottom: 1rem;
+}
+
+input.ng-invalid.ng-touched,
+select.ng-invalid.ng-touched,
+textarea.ng-invalid.ng-touched {
+  border-color: #ef4444;
+}
+
+/* Ajuste para el área de arrastrar y soltar */
+div[formControlName="image"] {
+  transition: all 0.2s ease;
+}
+
+div[formControlName="image"]:hover {
+  border-color: #0d9488;
+}
+
+/* Responsive fixes */
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+  
+  .grid {
+    grid-template-columns: 1fr;
+  }
+} 

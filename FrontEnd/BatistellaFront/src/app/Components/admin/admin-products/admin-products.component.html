@@ -1,0 +1,107 @@
+<div class="container mx-auto p-4">
+  <div class="mb-6 flex items-center justify-between">
+    <h1 class="text-2xl font-bold text-gray-800">
+      Administración de Productos
+    </h1>
+    <a 
+      routerLink="/admin/products/new" 
+      class="bg-teal-600 text-white py-2 px-4 rounded-md hover:bg-teal-700 transition duration-150 flex items-center"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2">
+        <line x1="12" y1="5" x2="12" y2="19"></line>
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+      </svg>
+      Agregar Producto
+    </a>
+  </div>
+
+  <!-- Mensaje de carga -->
+  <div *ngIf="isLoading" class="text-center py-8">
+    <div class="animate-spin mx-auto mb-2 w-8 h-8 border-4 border-teal-500 border-t-transparent rounded-full"></div>
+    <p class="text-gray-600">Cargando productos...</p>
+  </div>
+
+  <!-- Mensaje de error -->
+  <div *ngIf="errorMessage" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+    {{ errorMessage }}
+  </div>
+
+  <!-- Tabla de productos -->
+  <div *ngIf="!isLoading && products.length > 0" class="overflow-x-auto bg-white shadow-md rounded-lg">
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Imagen</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Marca</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kg</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">P. Minorista</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">P. Mayorista</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200">
+        <tr *ngFor="let product of products">
+          <td class="px-6 py-4 whitespace-nowrap">
+            <img [src]="product.imageUrl" [alt]="product.fullName" class="h-10 w-10 object-cover rounded">
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">{{ product.fullName }}</td>
+          <td class="px-6 py-4 whitespace-nowrap">{{ product.marca }}</td>
+          <td class="px-6 py-4 whitespace-nowrap">{{ product.animalType }}</td>
+          <td class="px-6 py-4 whitespace-nowrap">{{ product.kg }}</td>
+          <td class="px-6 py-4 whitespace-nowrap">{{ utils.formatCurrency(product.priceMinorista) }}</td>
+          <td class="px-6 py-4 whitespace-nowrap">{{ utils.formatCurrency(product.priceMayorista) }}</td>
+          <td class="px-6 py-4 whitespace-nowrap">{{ product.stock }}</td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <span 
+              [ngClass]="{
+                'bg-green-100 text-green-800': product.activo,
+                'bg-red-100 text-red-800': !product.activo
+              }" 
+              class="px-2 py-1 rounded-full text-xs">
+              {{ product.activo ? 'Activo' : 'Inactivo' }}
+            </span>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="flex space-x-2">
+              <a 
+                [routerLink]="['/admin/products/edit', product.id]" 
+                class="text-blue-600 hover:text-blue-900">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+              </a>
+              <button 
+                (click)="product.id && deleteProduct(product.id)" 
+                class="text-red-600 hover:text-red-900">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  <line x1="10" y1="11" x2="10" y2="17"></line>
+                  <line x1="14" y1="11" x2="14" y2="17"></line>
+                </svg>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- No hay productos -->
+  <div *ngIf="!isLoading && products.length === 0" class="bg-white p-8 text-center rounded-lg shadow">
+    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mx-auto mb-4 text-gray-400">
+      <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+      <polyline points="13 2 13 9 20 9"></polyline>
+    </svg>
+    <h3 class="mb-2 text-xl font-medium">No hay productos disponibles</h3>
+    <p class="text-gray-600 mb-4">Comienza agregando productos a tu inventario</p>
+    <a routerLink="/admin/products/new" class="bg-teal-600 text-white py-2 px-4 rounded-md hover:bg-teal-700 transition duration-150">
+      Agregar Primer Producto
+    </a>
+  </div>
+</div> 
