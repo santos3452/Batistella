@@ -1,0 +1,10 @@
+/* Estilos para la página de resultados de búsqueda */
+.container {
+  max-width: 1280px;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+} 

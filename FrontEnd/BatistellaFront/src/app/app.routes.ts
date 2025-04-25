@@ -6,6 +6,8 @@ import { ProfileComponent } from './Components/profile/profile.component';
 import { ResetPasswordComponent } from './Components/reset-password/reset-password.component';
 import { AdminProductsComponent } from './Components/admin/admin-products/admin-products.component';
 import { ProductFormComponent } from './Components/admin/product-form/product-form.component';
+import { SearchResultsComponent } from './Components/search-results/search-results.component';
+import { ProductDetailComponent } from './Components/product-detail/product-detail.component';
 import { AuthGuard } from './Services/Auth/auth.guard';
 import { AdminGuard } from './Services/Auth/admin.guard';
 
@@ -15,6 +17,8 @@ export const routes: Routes = [
   { path: 'register', component: RegisterComponent },
   { path: 'profile', component: ProfileComponent, canActivate: [AuthGuard] },
   { path: 'reset-password', component: ResetPasswordComponent },
+  { path: 'search', component: SearchResultsComponent },
+  { path: 'product/:id', component: ProductDetailComponent },
   { 
     path: 'admin/products', 
     component: AdminProductsComponent, 

@@ -1,5 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { Product } from '../../Services/Product/product.service';
 import { CartService } from '../../Services/Cart/cart.service';
 import { UtilsService } from '../../Services/Utils/utils.service';
@@ -22,10 +23,24 @@ export class ProductCardComponent {
 
   constructor(
     private cartService: CartService,
-    public utils: UtilsService
+    public utils: UtilsService,
+    private router: Router
   ) {}
 
-  addToCart(): void {
+  // Navega al detalle del producto
+  navigateToDetail(): void {
+    if (this.product && (this.product.id || this.product.localId)) {
+      const productId = this.product.id || this.product.localId;
+      this.router.navigate(['/product', productId]);
+    }
+  }
+
+  // Modifica la función para prevenir que el clic en el botón navegue a la página de detalle
+  addToCart(event?: MouseEvent): void {
+    if (event) {
+      // Detiene la propagación del evento para que no se active el evento clic de la tarjeta
+      event.stopPropagation();
+    }
     this.cartService.addToCart(this.product);
   }
 

@@ -36,7 +36,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     // Suscribirse a los cambios de ruta para filtrar por categoría
     this.subscription.add(
-      this.route.paramMap.subscribe((params: ParamMap) => {
+      this.route.queryParamMap.subscribe(params => {
         this.categoryFilter = params.get('category');
         
         if (this.categoryFilter) {
@@ -62,15 +62,16 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   loadProducts(): void {
-    this.productService.getProducts().subscribe(products => {
-      if (this.categoryFilter) {
-        // Filtrar productos por categoría
-        this.products = products.filter(
-          product => product.animalType.toUpperCase() === this.categoryFilter
-        );
-      } else {
+    if (this.categoryFilter) {
+      // Filtrar productos por categoría
+      this.productService.getProductsByCategory(this.categoryFilter).subscribe(products => {
         this.products = products;
-      }
-    });
+      });
+    } else {
+      // Cargar todos los productos
+      this.productService.getProducts().subscribe(products => {
+        this.products = products;
+      });
+    }
   }
 }

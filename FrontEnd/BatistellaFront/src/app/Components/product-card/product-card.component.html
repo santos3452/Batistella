@@ -1,5 +1,6 @@
-<div class="product-card flex flex-col h-full bg-white rounded-lg shadow-sm overflow-hidden opacity-0 animate-slide-in" 
-  [style.animation-delay]="animationDelay">
+<div class="product-card flex flex-col h-full bg-white rounded-lg shadow-sm overflow-hidden opacity-0 animate-slide-in cursor-pointer" 
+  [style.animation-delay]="animationDelay"
+  (click)="navigateToDetail()">
   <div class="relative h-64 bg-gray-100">
     <img
       [src]="product.imageUrl"
@@ -18,7 +19,7 @@
       <span class="text-lg font-semibold">{{ utils.formatCurrency(product.priceMinorista) }}</span>
       <button 
         class="flex items-center bg-teal-600 text-white py-1 px-3 rounded-md hover:bg-teal-700 transition duration-150"
-        (click)="addToCart()"
+        (click)="addToCart($event)"
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1">
           <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>

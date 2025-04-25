@@ -28,7 +28,14 @@
 
   <div class="p-4">
     <h3 class="font-medium text-sm text-gray-500 mb-2">NAVEGACIÓN</h3>
-    <a routerLink="/" class="flex items-center space-x-2 text-gray-700 hover:text-teal-600 py-2 px-3 rounded-md hover:bg-gray-100">
+    <a 
+      routerLink="/" 
+      [queryParams]="{}"
+      routerLinkActive="bg-gray-100 text-teal-600"
+      [routerLinkActiveOptions]="{exact: true}"
+      class="flex items-center space-x-2 text-gray-700 hover:text-teal-600 py-2 px-3 rounded-md hover:bg-gray-100"
+      (click)="closeSidebar()"
+    >
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
         <polyline points="9 22 9 12 15 12 15 22"></polyline>
@@ -38,10 +45,13 @@
     
     <h3 class="font-medium text-sm text-gray-500 mt-6 mb-2">CATEGORÍAS</h3>
     <div class="space-y-1 border-t border-gray-200 pt-2">
+      <!-- Categorías de animales -->
       <a 
         *ngFor="let category of animalCategories"
-        [routerLink]="['/']" 
+        routerLink="/" 
         [queryParams]="{category: category.id}"
+        routerLinkActive="bg-gray-100 text-teal-600"
+        [routerLinkActiveOptions]="{exact: true}"
         class="flex items-center space-x-2 text-gray-700 hover:text-teal-600 py-2 px-3 rounded-md hover:bg-gray-100"
         (click)="closeSidebar()"
       >
