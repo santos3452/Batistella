@@ -17,6 +17,7 @@ export class AppComponent implements OnInit {
   sidebarOpen = false;
   isLoginRoute = false;
   isAuthRoute = false;
+  currentYear = new Date().getFullYear();
 
   constructor(private router: Router) {}
 
