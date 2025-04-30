@@ -1,14 +1,16 @@
-<div class="container mx-auto px-3 py-5">
+<div class="bg-gray-50 min-h-screen py-5">
   <!-- Indicador de carga -->
   <div *ngIf="isLoading" class="text-center py-16">
-    <div class="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
+    <div class="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent"></div>
     <p class="mt-2 text-gray-600">Cargando producto...</p>
   </div>
 
   <!-- Mensaje de error -->
-  <div *ngIf="errorMessage" class="bg-red-100 border border-red-400 text-red-700 px-3 py-2 rounded mb-3">
-    {{ errorMessage }}
-    <a routerLink="/" class="ml-2 text-red-700 hover:text-red-900 underline">Volver al inicio</a>
+  <div *ngIf="errorMessage" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="bg-red-100 border border-red-400 text-red-700 px-3 py-2 rounded mb-3">
+      {{ errorMessage }}
+      <a routerLink="/" class="ml-2 text-red-700 hover:text-red-900 underline">Volver al inicio</a>
+    </div>
   </div>
 
   <!-- Mensaje de éxito -->
@@ -23,207 +25,291 @@
   </div>
 
   <!-- Detalle del producto -->
-  <div *ngIf="!isLoading && product" class="bg-white rounded-lg overflow-hidden md:grid md:grid-cols-12 gap-0">
-    <!-- Migas de pan -->
-    <div class="col-span-12 p-3">
-      <div class="flex items-center text-xs text-gray-500 mb-3">
-        <a routerLink="/" class="hover:text-blue-500">Inicio</a>
-        <span class="mx-1">›</span>
-        <a [routerLink]="'/category/' + product.animalType" class="hover:text-blue-500">{{ product.animalType }}</a>
-        <span class="mx-1">›</span>
-        <a [routerLink]="'/alimento'" class="hover:text-blue-500">Alimentos</a>
-        <span class="mx-1">›</span>
-        <span class="text-gray-700">{{ product.marca }}</span>
+  <div *ngIf="!isLoading && product" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Navegación -->
+    <div class="flex items-center text-sm text-gray-500 mb-6">
+      <a routerLink="/" class="hover:text-emerald-600 transition">
+        Inicio
+      </a>
+      <svg class="h-4 w-4 mx-1" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+      </svg>
+      <a [routerLink]="'/category/' + product.animalType" class="hover:text-emerald-600 transition">
+        {{ product.animalType }}
+      </a>
+      <svg class="h-4 w-4 mx-1" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+      </svg>
+      <a routerLink="/alimentos" class="hover:text-emerald-600 transition">
+        Alimentos
+      </a>
+      <svg class="h-4 w-4 mx-1" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+      </svg>
+      <span class="text-gray-900 font-medium">{{ product.marca }}</span>
+    </div>
+
+    <div class="flex flex-col lg:flex-row gap-8">
+      <!-- Columna izquierda - Imágenes -->
+      <div class="lg:w-1/2">
+        <div class="sticky top-8">
+          <div class="bg-white rounded-2xl p-6 shadow-sm mb-4 relative">
+            <div class="absolute top-4 left-4 bg-emerald-500 text-white text-xs font-semibold px-2 py-1 rounded-full">Nuevo</div>
+            <button class="absolute top-4 right-4 rounded-full hover:bg-rose-50 hover:text-rose-500 border border-gray-200 p-2">
+              <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"></path>
+              </svg>
+            </button>
+            <div class="flex justify-center">
+              <img 
+                [src]="product.imageUrl" 
+                [alt]="product.fullName"
+                class="object-contain h-[400px]"
+              />
+            </div>
+          </div>
+
+          <!-- Miniaturas de imágenes adicionales (simuladas) -->
+          <div class="flex gap-2 overflow-x-auto pb-2">
+            <div *ngFor="let i of [1, 2, 3]" 
+                 class="min-w-[100px] bg-white rounded-lg p-2 border border-gray-200 cursor-pointer hover:border-emerald-500 transition">
+              <img 
+                [src]="product.imageUrl" 
+                [alt]="'Vista ' + i"
+                class="object-contain h-[80px] w-full"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Columna derecha - Información -->
+      <div class="lg:w-1/2">
+        <div class="bg-white rounded-2xl p-6 shadow-sm mb-6">
+          <div class="flex items-center gap-2 mb-2">
+            <div class="flex">
+              <ng-container *ngFor="let star of [1, 2, 3, 4, 5]">
+                <svg class="h-4 w-4" [class.text-amber-400]="star <= 4" [class.fill-amber-400]="star <= 4" [class.text-gray-300]="star > 4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                </svg>
+              </ng-container>
+            </div>
+            <span class="text-sm text-gray-500">(24 reseñas)</span>
+          </div>
+
+          <h1 class="text-2xl font-bold text-gray-900 mb-2">{{ product.fullName }}</h1>
+          <p class="text-gray-600 mb-4">{{ product.description || 'Alimento balanceado para mascotas' }}</p>
+
+          <div class="flex items-baseline mb-6">
+            <span class="text-3xl font-bold text-gray-900">$ {{ Math.floor(product.priceMinorista).toLocaleString('es-AR') }}</span>
+            <span class="text-lg ml-1 text-gray-900">{{ (product.priceMinorista % 1 > 0 ? Math.round((product.priceMinorista % 1) * 100) : '00') }}</span>
+          </div>
+
+          <div class="mb-6">
+            <h3 class="font-medium mb-3">Peso</h3>
+            <div class="flex flex-wrap gap-3">
+              <div *ngFor="let weight of ['3kg', '8kg', '15kg']" class="flex items-center">
+                <input type="radio" [id]="'weight-'+weight" name="weight" [value]="weight" class="sr-only peer" [checked]="product.kg === weight">
+                <label [for]="'weight-'+weight" class="flex items-center justify-center px-4 py-2 rounded-full border border-gray-200 
+                      peer-checked:bg-emerald-50 peer-checked:border-emerald-500 
+                      peer-checked:text-emerald-600 cursor-pointer hover:bg-gray-50 transition">
+                  {{ weight }}
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-6">
+            <h3 class="font-medium mb-3">Cantidad</h3>
+            <div class="flex items-center">
+              <button
+                (click)="decrementQuantity()"
+                class="rounded-l-md rounded-r-none border border-gray-200 p-2 hover:bg-gray-50"
+                [disabled]="quantity <= 1">
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+              </button>
+              <div class="w-16 h-10 flex items-center justify-center border-y border-gray-200">{{ quantity }}</div>
+              <button
+                (click)="incrementQuantity()"
+                class="rounded-r-md rounded-l-none border border-gray-200 p-2 hover:bg-gray-50"
+                [disabled]="quantity >= product.stock">
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+              </button>
+              <span class="ml-4 text-sm text-gray-500">({{ product.stock }} disponibles)</span>
+            </div>
+          </div>
+
+          <div class="mb-6">
+            <h3 class="font-medium mb-3">Medios de pago</h3>
+            <div class="flex items-center gap-2 p-3 bg-blue-50 rounded-lg border border-blue-100 mb-4">
+              <div class="h-5 w-5 rounded-full bg-blue-500 flex items-center justify-center">
+                <span class="text-white text-xs font-bold">MP</span>
+              </div>
+              <span class="text-blue-800 font-medium">Mercado Pago</span>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-3">
+              <button 
+                (click)="addToCart()"
+                class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white p-3 rounded-md flex items-center justify-center"
+                [disabled]="product.stock <= 0">
+                <svg class="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="9" cy="21" r="1"></circle>
+                  <circle cx="20" cy="21" r="1"></circle>
+                  <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                </svg>
+                Agregar al carrito
+              </button>
+              <button 
+                class="flex-1 border border-emerald-600 text-emerald-600 hover:bg-emerald-50 p-3 rounded-md"
+                [disabled]="product.stock <= 0">
+                Comprar ahora
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-6 shadow-sm mb-6">
+          <div class="flex flex-col gap-4">
+            <div class="flex items-start gap-3">
+              <svg class="h-5 w-5 text-emerald-600 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="1" y="3" width="15" height="13"></rect>
+                <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+                <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                <circle cx="18.5" cy="18.5" r="2.5"></circle>
+              </svg>
+              <div>
+                <h3 class="font-medium">Envío a domicilio</h3>
+                <p class="text-sm text-gray-600">Envío gratis en compras mayores a $20.000</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3">
+              <svg class="h-5 w-5 text-emerald-600 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                <line x1="1" y1="10" x2="23" y2="10"></line>
+              </svg>
+              <div>
+                <h3 class="font-medium">Devoluciones</h3>
+                <p class="text-sm text-gray-600">
+                  Tienes 30 días desde que recibís el producto para devolverlo
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- Imagen del producto -->
-    <div class="col-span-12 md:col-span-7 p-4">
-      <div class="w-full">
-        <div class="relative pb-[75%] overflow-hidden">
-          <img 
-            [src]="product.imageUrl" 
-            [alt]="product.fullName"
-            class="absolute inset-0 w-full h-full object-contain"
-          />
+    <!-- Detalles del producto en pestañas -->
+    <div class="mt-8">
+      <div class="bg-white rounded-lg shadow-sm">
+        <div class="flex border-b border-gray-200">
+          <button 
+            class="flex-1 py-3 px-4 text-center font-medium hover:text-emerald-600 transition" 
+            [class.border-b-2]="activeTab === 'descripcion'"
+            [class.border-emerald-500]="activeTab === 'descripcion'"
+            [class.text-emerald-600]="activeTab === 'descripcion'"
+            (click)="activeTab = 'descripcion'">
+            Descripción
+          </button>
+          <button 
+            class="flex-1 py-3 px-4 text-center font-medium hover:text-emerald-600 transition" 
+            [class.border-b-2]="activeTab === 'caracteristicas'"
+            [class.border-emerald-500]="activeTab === 'caracteristicas'"
+            [class.text-emerald-600]="activeTab === 'caracteristicas'"
+            (click)="activeTab = 'caracteristicas'">
+            Características
+          </button>
+          <button 
+            class="flex-1 py-3 px-4 text-center font-medium hover:text-emerald-600 transition" 
+            [class.border-b-2]="activeTab === 'envios'"
+            [class.border-emerald-500]="activeTab === 'envios'"
+            [class.text-emerald-600]="activeTab === 'envios'"
+            (click)="activeTab = 'envios'">
+            Envíos
+          </button>
         </div>
-      </div>
-      
-      <!-- Descripción del producto -->
-      <div class="mt-4">
-        <h2 class="text-lg font-medium mb-3">Descripción</h2>
-        <div class="text-gray-700 text-sm">
-          <p class="mb-2">{{ product.description || 'Alimento balanceado completo para su mascota, formulado con nutrientes esenciales para mantener su salud y bienestar.' }}</p>
+        
+        <div class="p-6">
+          <!-- Contenido de la pestaña de Descripción -->
+          <div *ngIf="activeTab === 'descripcion'">
+            <p class="text-gray-700">
+              {{ product.description || 'Alimento balanceado TopNutrition para perros adultos de raza grande. Formulado con ingredientes de alta calidad para proporcionar una nutrición completa y equilibrada que satisface las necesidades específicas de los perros de razas grandes en su etapa adulta.' }}
+            </p>
+          </div>
           
-          <div class="mt-4">
-            <h3 class="text-base font-medium mb-2">Características del producto</h3>
-            <ul class="space-y-2">
-              <li class="flex">
-                <span class="text-gray-700 mr-2">•</span>
+          <!-- Contenido de la pestaña de Características -->
+          <div *ngIf="activeTab === 'caracteristicas'">
+            <ul class="space-y-3">
+              <li class="flex items-start gap-2">
+                <div class="h-5 w-5 rounded-full bg-emerald-100 flex items-center justify-center mt-0.5">
+                  <svg class="h-3 w-3 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </div>
                 <span>Tipo de alimento: {{ product.tipoAlimento }}</span>
               </li>
-              <li class="flex">
-                <span class="text-gray-700 mr-2">•</span>
+              <li class="flex items-start gap-2">
+                <div class="h-5 w-5 rounded-full bg-emerald-100 flex items-center justify-center mt-0.5">
+                  <svg class="h-3 w-3 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </div>
                 <span>Tamaño de la raza: {{ product.tipoRaza || 'Todo tipo de razas' }}</span>
               </li>
-              <li class="flex">
-                <span class="text-gray-700 mr-2">•</span>
+              <li class="flex items-start gap-2">
+                <div class="h-5 w-5 rounded-full bg-emerald-100 flex items-center justify-center mt-0.5">
+                  <svg class="h-3 w-3 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </div>
                 <span>Peso: {{ product.kg }}</span>
               </li>
-              <li class="flex">
-                <span class="text-gray-700 mr-2">•</span>
+              <li class="flex items-start gap-2">
+                <div class="h-5 w-5 rounded-full bg-emerald-100 flex items-center justify-center mt-0.5">
+                  <svg class="h-3 w-3 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </div>
                 <span>Marca: {{ product.marca }}</span>
               </li>
-              <li class="flex">
-                <span class="text-gray-700 mr-2">•</span>
+              <li class="flex items-start gap-2">
+                <div class="h-5 w-5 rounded-full bg-emerald-100 flex items-center justify-center mt-0.5">
+                  <svg class="h-3 w-3 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </div>
                 <span>Tipo de mascota: {{ product.animalType }}</span>
               </li>
             </ul>
           </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Información del producto -->
-    <div class="col-span-12 md:col-span-5 p-4 border-l border-gray-200 flex flex-col">
-      <!-- Etiquetas -->
-      <div class="mb-1">
-        <span class="text-xs text-gray-500">Nuevo</span>
-      </div>
-      
-      <!-- Nombre del producto -->
-      <h1 class="text-lg font-normal text-gray-800 mb-3">{{ product.fullName }}</h1>
-      
-      <!-- Aviso de stock bajo -->
-      <div *ngIf="product.stock < 10" class="mb-3">
-        <span class="text-orange-500 font-medium text-sm">¡Últimas {{ product.stock }} unidades!</span>
-      </div>
-      
-      <!-- Precios -->
-      <div class="mb-4">
-        <div class="flex items-center">
-          <span class="text-3xl font-light">$ {{ Math.floor(product.priceMinorista).toLocaleString('es-AR') }}</span>
-          <span class="text-base ml-0.5">{{ (product.priceMinorista % 1 > 0 ? Math.round((product.priceMinorista % 1) * 100) : '00') }}</span>
-        </div>
-      </div>
-
-      <!-- Opciones de peso -->
-      <div class="mb-4">
-        <span class="text-xs font-medium mb-1 block">Peso</span>
-        <div class="flex gap-2">
-          <button class="border px-3 py-1 rounded font-normal text-xs hover:border-blue-500" [class.border-blue-500]="product.kg === '3kg'">3kg</button>
-          <button class="border px-3 py-1 rounded font-normal text-xs hover:border-blue-500" [class.border-blue-500]="product.kg === '8kg'">8kg</button>
-          <button class="border px-3 py-1 rounded font-normal text-xs hover:border-blue-500" [class.border-blue-500]="product.kg === '15kg'">15kg</button>
-        </div>
-      </div>
-      
-      <!-- Stock y cantidad -->
-      <div class="mb-4">
-        <span class="text-xs font-medium mb-1 block">Cantidad</span>
-        <div class="flex items-center">
-          <div class="flex items-center border border-gray-300 rounded-md">
-            <button 
-              (click)="decrementQuantity()" 
-              class="px-2 py-0.5 text-gray-600 hover:bg-gray-100"
-              [disabled]="quantity <= 1"
-            >−</button>
-            <input 
-              type="number" 
-              [(ngModel)]="quantity" 
-              min="1" 
-              [max]="product.stock" 
-              class="w-12 text-center border-none focus:outline-none focus:ring-0 p-0 text-sm"
-            />
-            <button 
-              (click)="incrementQuantity()" 
-              class="px-2 py-0.5 text-gray-600 hover:bg-gray-100"
-              [disabled]="quantity >= product.stock"
-            >+</button>
-          </div>
-          <span class="ml-2 text-xs text-gray-600">
-            ({{ product.stock }} disponibles)
-          </span>
-        </div>
-      </div>
-      
-      <!-- Medios de pago -->
-      <div class="mb-4">
-        <span class="text-xs font-medium mb-1 block">Medios de pago</span>
-        <div class="flex items-center">
-          <div class="flex items-center border border-gray-300 rounded-md px-2 py-1.5">
-            <svg class="h-4 w-4 text-sky-500 mr-1" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm.35 15.5c-3.58 0-6.5-2.92-6.5-6.5s2.92-6.5 6.5-6.5 6.5 2.92 6.5 6.5-2.92 6.5-6.5 6.5z"/>
-            </svg>
-            <span class="text-sky-500 font-medium text-xs">Mercado Pago</span>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Botones de acción -->
-      <div class="mb-4">
-        <button 
-          (click)="addToCart()"
-          class="mb-2 w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-3 rounded-md flex items-center justify-center transition duration-150 text-sm"
-          [disabled]="product.stock <= 0"
-        >
-          Agregar al carrito
-        </button>
-        <button 
-          class="w-full bg-blue-100 text-blue-700 border border-blue-700 py-2 px-3 rounded-md flex items-center justify-center transition duration-150 hover:bg-blue-200 text-sm"
-          [disabled]="product.stock <= 0"
-        >
-          Comprar ahora
-        </button>
-      </div>
-    </div>
-
-    <!-- Secciones colapsables -->
-    <div class="col-span-12 px-4 py-2 border-t border-gray-200">
-      <div class="accordion">
-        <!-- Devoluciones -->
-        <div class="border-b border-gray-200 py-2">
-          <div class="flex justify-between items-center cursor-pointer" (click)="toggleAccordion('devoluciones')">
-            <h3 class="text-sm font-medium">DEVOLUCIONES</h3>
-            <svg class="h-4 w-4 text-gray-500" viewBox="0 0 20 20" fill="currentColor" 
-                 [class.transform]="accordionState.devoluciones" 
-                 [class.rotate-180]="accordionState.devoluciones">
-              <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-            </svg>
-          </div>
-          <div [class.hidden]="!accordionState.devoluciones" class="mt-1 text-gray-700 text-xs">
-            <p>Tenés 30 días desde que recibís el producto para devolverlo. ¡Siempre pagamos el envío de vuelta!</p>
-          </div>
-        </div>
-
-        <!-- Envíos a domicilio -->
-        <div class="border-b border-gray-200 py-2">
-          <div class="flex justify-between items-center cursor-pointer" (click)="toggleAccordion('envios')">
-            <h3 class="text-sm font-medium">ENVÍOS A DOMICILIO</h3>
-            <svg class="h-4 w-4 text-gray-500" viewBox="0 0 20 20" fill="currentColor" 
-                 [class.transform]="accordionState.envios" 
-                 [class.rotate-180]="accordionState.envios">
-              <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-            </svg>
-          </div>
-          <div [class.hidden]="!accordionState.envios" class="mt-1 text-gray-700 text-xs">
-            <p>Conocé los tiempos y las formas de envío.</p>
-            <p class="mt-1">Envío gratis en compras mayores a $20.000</p>
-          </div>
-        </div>
-
-        <!-- Retiro en depósito -->
-        <div class="border-b border-gray-200 py-2">
-          <div class="flex justify-between items-center cursor-pointer" (click)="toggleAccordion('retiro')">
-            <h3 class="text-sm font-medium">RETIRO EN DEPÓSITO</h3>
-            <svg class="h-4 w-4 text-gray-500" viewBox="0 0 20 20" fill="currentColor" 
-                 [class.transform]="accordionState.retiro" 
-                 [class.rotate-180]="accordionState.retiro">
-              <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-            </svg>
-          </div>
-          <div [class.hidden]="!accordionState.retiro" class="mt-1 text-gray-700 text-xs">
-            <p>Podés retirar tu compra en nuestro depósito de lunes a viernes de 9 a 18hs.</p>
-            <p class="mt-1">Dirección: Av. Colón 5050, Córdoba Capital</p>
+          
+          <!-- Contenido de la pestaña de Envíos -->
+          <div *ngIf="activeTab === 'envios'">
+            <div class="space-y-4">
+              <div class="border-b border-gray-200 pb-4">
+                <h3 class="font-medium mb-2">ENVÍOS A DOMICILIO</h3>
+                <p class="text-gray-700 text-sm">Conocé los tiempos y las formas de envío.</p>
+                <p class="text-gray-700 text-sm mt-1">Envío gratis en compras mayores a $20.000</p>
+              </div>
+              
+              <div class="border-b border-gray-200 pb-4">
+                <h3 class="font-medium mb-2">RETIRO EN DEPÓSITO</h3>
+                <p class="text-gray-700 text-sm">Podés retirar tu compra en nuestro depósito de lunes a viernes de 9 a 18hs.</p>
+                <p class="text-gray-700 text-sm mt-1">Dirección: Av. Colón 5050, Córdoba Capital</p>
+              </div>
+              
+              <div>
+                <h3 class="font-medium mb-2">DEVOLUCIONES</h3>
+                <p class="text-gray-700 text-sm">Tenés 30 días desde que recibís el producto para devolverlo. ¡Siempre pagamos el envío de vuelta!</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>

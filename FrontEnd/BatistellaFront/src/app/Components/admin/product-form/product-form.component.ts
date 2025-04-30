@@ -20,6 +20,7 @@ export class ProductFormComponent implements OnInit {
   successMessage = '';
   selectedFile: File | null = null;
   imagePreview: string | ArrayBuffer | null = null;
+  dragOver = false; // Para indicar cuando se está arrastrando un archivo
 
   // Opciones para los campos del formulario
   marcaOptions = [
@@ -188,6 +189,57 @@ export class ProductFormComponent implements OnInit {
     });
   }
 
+  // Método para activar el input de selección de archivo
+  triggerFileInput(): void {
+    document.getElementById('product-image')?.click();
+  }
+
+  // Método para eliminar la imagen seleccionada
+  removeImage(): void {
+    this.imagePreview = null;
+    this.selectedFile = null;
+    // Limpiar también el input de archivo
+    const fileInput = document.getElementById('product-image') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.value = '';
+    }
+  }
+
+  // Método para manejar cuando se arrastra un archivo sobre el dropzone
+  onDragOver(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.dragOver = true;
+  }
+
+  // Método para manejar cuando se deja de arrastrar sobre el dropzone
+  onDragLeave(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.dragOver = false;
+  }
+
+  // Método para manejar cuando se suelta un archivo en el dropzone
+  onDrop(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.dragOver = false;
+    
+    if (event.dataTransfer && event.dataTransfer.files.length > 0) {
+      const file = event.dataTransfer.files[0];
+      if (file.type.startsWith('image/')) {
+        // Simular un evento de cambio de input
+        const changeEvent = { target: { files: [file] } } as unknown as Event;
+        this.onFileSelected(changeEvent);
+      }
+    }
+  }
+
+  // Método para regresar a la página anterior
+  goBack(): void {
+    this.router.navigate(['/admin/products']);
+  }
+
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
@@ -249,14 +301,13 @@ export class ProductFormComponent implements OnInit {
             return;
           }
           
-          // Crear nombre de archivo con extensión .jpg
-          const originalName = file.name.replace(/\.[^/.]+$/, ""); // Eliminar extensión existente
-          const newFile = new File([blob], `${originalName}.jpg`, { 
-            type: 'image/jpeg', 
-            lastModified: file.lastModified 
+          // Crear archivo a partir del blob
+          const convertedFile = new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), {
+            type: 'image/jpeg',
+            lastModified: new Date().getTime()
           });
           
-          resolve(newFile);
+          resolve(convertedFile);
         }, 'image/jpeg', quality);
       };
       
@@ -264,8 +315,15 @@ export class ProductFormComponent implements OnInit {
         reject(new Error('Error al cargar la imagen'));
       };
       
-      // Cargar imagen desde el archivo
-      img.src = URL.createObjectURL(file);
+      // Cargar imagen desde archivo
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = () => {
+        reject(new Error('Error al leer el archivo'));
+      };
+      reader.readAsDataURL(file);
     });
   }
   

@@ -20,6 +20,7 @@ export class ProductDetailComponent implements OnInit {
   quantity = 1;
   successMessage = '';
   showSuccessMessage = false;
+  activeTab = 'descripcion'; // Pestaña activa por defecto
   
   // Acordeón para secciones colapsables
   accordionState = {
@@ -110,6 +111,11 @@ export class ProductDetailComponent implements OnInit {
   // Alternar el estado de un acordeón
   toggleAccordion(section: 'devoluciones' | 'envios' | 'retiro'): void {
     this.accordionState[section] = !this.accordionState[section];
+  }
+  
+  // Cambiar la pestaña activa
+  setActiveTab(tab: string): void {
+    this.activeTab = tab;
   }
   
   // Obtener fecha de entrega estimada

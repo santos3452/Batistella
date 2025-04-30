@@ -4,15 +4,15 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum Kilos {
-    EIGHTEEN_KG(18.0, "18 kg"),
-    THREE_KG(3.0, "3 kg"),
-    SEVEN_POINT_FIVE_KG(7.5, "7.5 kg"),
-    TWENTY_KG(20.0, "20 kg"),
-    FIFTEEN_KG(15.0, "15 kg"),
-    ONE_POINT_FIVE(1.5, "1.5 kg"),
-    FIFTEEN_PLUS_THREE_KG(18.0, "15+3 kg"),
-    TWENTY_TWO_KG(22.0, "22 kg"),
-    TWENTY_TWO_PLUS_THREE_KG(25.0, "22+3 kg");
+    EIGHTEEN_KG(18.0, "18kg"),
+    THREE_KG(3.0, "3kg"),
+    SEVEN_POINT_FIVE_KG(7.5, "7.5kg"),
+    TWENTY_KG(20.0, "20kg"),
+    FIFTEEN_KG(15.0, "15kg"),
+    ONE_POINT_FIVE(1.5, "1.5kg"),
+    FIFTEEN_PLUS_THREE_KG(18.0, "15+3kg"),
+    TWENTY_TWO_KG(22.0, "22kg"),
+    TWENTY_TWO_PLUS_THREE_KG(25.0, "22+3kg");
 
     private final double weight;
     private final String displayName;
