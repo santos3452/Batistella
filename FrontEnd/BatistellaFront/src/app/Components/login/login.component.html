@@ -1,11 +1,18 @@
-<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-100 to-teal-50 py-12 px-4 sm:px-6 lg:px-8">
-  <div class="max-w-md w-full bg-white rounded-lg shadow-[0_10px_30px_-12px_rgba(0,0,0,0.3)] p-8 space-y-6 transform transition-all duration-300 hover:shadow-[0_20px_40px_-12px_rgba(0,0,0,0.4)] hover:scale-105">
+<div class="min-h-screen flex items-center justify-center bg-cover bg-center p-4 md:p-8" style="background-image: url('/assets/Images/Animals.webp');">
+  <!-- Overlay oscuro para mejorar la legibilidad del contenido -->
+  <div class="absolute inset-0 bg-black opacity-40"></div>
+  
+  <div class="max-w-xl w-full bg-white rounded-xl shadow-[0_10px_30px_-12px_rgba(0,0,0,0.5)] p-8 space-y-6 transform transition-all duration-300 hover:shadow-[0_20px_40px_-12px_rgba(0,0,0,0.6)] relative z-10">
+    <!-- Cabecera del login con color teal -->
+    <div class="relative -mx-8 -mt-8">
+      <div class="h-16 bg-teal-500 rounded-t-xl"></div>
+    </div>
+    
     <div class="text-center">
-      <div class="flex justify-center">
-        <!-- Logo de Batistella -->
-        <img src="assets/Images/BatistellaLogo.jpg" alt="Batistella Logo" class="h-16">
+      <div class="flex justify-center mb-4">
+        <img src="assets/Images/BatistellaLogo.jpg" alt="Batistella Logo" class="h-20 object-contain">
       </div>
-      <h2 class="mt-4 text-3xl font-extrabold text-gray-900">
+      <h2 class="text-3xl font-extrabold text-gray-900">
         Iniciar Sesión
       </h2>
       <p class="mt-2 text-sm text-gray-600">
@@ -23,7 +30,7 @@
       <input type="hidden" name="remember" value="true">
       
       <!-- Mensaje de éxito -->
-      <div *ngIf="successMessage" class="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-md shadow-md animate-fadeIn">
+      <div *ngIf="successMessage" class="bg-green-50 border-l-4 border-green-500 text-green-600 px-4 py-3 rounded-md shadow-md animate-fadeIn">
         <div class="flex items-center">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
@@ -33,7 +40,7 @@
       </div>
       
       <!-- Mensaje de error -->
-      <div *ngIf="errorMessage" class="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md shadow-md animate-fadeIn">
+      <div *ngIf="errorMessage" class="bg-red-50 border-l-4 border-red-500 text-red-600 px-4 py-3 rounded-md shadow-md animate-fadeIn">
         <div class="flex items-center">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -45,18 +52,30 @@
       <div class="space-y-4">
         <div>
           <label for="email-address" class="block text-sm font-medium text-gray-700 mb-1">Correo electrónico</label>
-          <input id="email-address" name="email" type="email" autocomplete="email" required 
-                 [(ngModel)]="email"
-                 class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm" 
-                 placeholder="nombre@ejemplo.com">
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+              </svg>
+            </div>
+            <input id="email-address" name="email" type="email" autocomplete="email" required 
+                  [(ngModel)]="email"
+                  class="appearance-none block w-full pl-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm" 
+                  placeholder="nombre@ejemplo.com">
+          </div>
         </div>
         <div>
           <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
           <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            </div>
             <input id="password" name="password" [type]="showPassword ? 'text' : 'password'" autocomplete="current-password" required 
-                   [(ngModel)]="password"
-                   class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm" 
-                   placeholder="••••••••">
+                  [(ngModel)]="password"
+                  class="appearance-none block w-full pl-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm" 
+                  placeholder="••••••••">
             <button 
               type="button"
               (click)="showPassword = !showPassword"
@@ -91,14 +110,14 @@
 
       <button type="submit" 
               [disabled]="isLoading"
-              class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-colors duration-200 disabled:opacity-70 disabled:cursor-not-allowed shadow-md hover:shadow-lg">
+              class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-teal-500 hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed shadow-md hover:shadow-lg">
         <span class="absolute left-0 inset-y-0 flex items-center pl-3">
           <!-- Icono de candado o spinner de carga -->
-          <svg *ngIf="!isLoading" class="h-5 w-5 text-teal-500 group-hover:text-teal-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <svg *ngIf="!isLoading" class="h-5 w-5 text-teal-400 group-hover:text-teal-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
             <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
           </svg>
           <!-- Spinner de carga -->
-          <svg *ngIf="isLoading" class="animate-spin h-5 w-5 text-teal-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <svg *ngIf="isLoading" class="animate-spin h-5 w-5 text-teal-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
@@ -171,13 +190,22 @@
 
 <!-- Modal de Recuperación de Contraseña -->
 <div *ngIf="showForgotPasswordModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center">
-  <div class="relative bg-white rounded-lg shadow-xl p-8 max-w-md w-full m-4 transform transition-all duration-300">
+  <div class="relative bg-white rounded-lg shadow-xl p-8 max-w-md w-full m-4 transform transition-all duration-300 scale-100">
     <div class="absolute top-4 right-4">
       <button (click)="toggleForgotPasswordModal()" class="text-gray-400 hover:text-gray-600 focus:outline-none">
         <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
         </svg>
       </button>
+    </div>
+
+    <div class="mb-6 -mt-2 -mx-2">
+      <div class="h-16 bg-teal-500 rounded-t-lg flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+        </svg>
+      </div>
+
     </div>
 
     <h3 class="text-2xl font-bold text-gray-900 mb-6">Recuperar Contraseña</h3>
@@ -187,7 +215,7 @@
       
       <!-- Mensaje de éxito o error -->
       <div *ngIf="forgotPasswordMessage" 
-           [class]="forgotPasswordMessage.includes('enviado') ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'"
+           [class]="forgotPasswordMessage.includes('enviado') ? 'bg-green-50 border-l-4 border-green-500 text-green-700' : 'bg-red-50 border-l-4 border-red-500 text-red-700'"
            class="p-4 rounded-md">
         {{ forgotPasswordMessage }}
       </div>
@@ -196,17 +224,24 @@
         <label for="forgot-password-email" class="block text-sm font-medium text-gray-700 mb-1">
           Correo electrónico
         </label>
-        <input id="forgot-password-email"
-               type="email"
-               [(ngModel)]="forgotPasswordEmail"
-               [disabled]="isLoading"
-               class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm"
-               placeholder="nombre@ejemplo.com">
+        <div class="relative">
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+            </svg>
+          </div>
+          <input id="forgot-password-email"
+                 type="email"
+                 [(ngModel)]="forgotPasswordEmail"
+                 [disabled]="isLoading"
+                 class="appearance-none block w-full pl-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm"
+                 placeholder="nombre@ejemplo.com">
+        </div>
       </div>
 
       <button (click)="onForgotPasswordSubmit()"
               [disabled]="isLoading"
-              class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 disabled:opacity-50 disabled:cursor-not-allowed">
+              class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-teal-500 hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 disabled:opacity-50 disabled:cursor-not-allowed">
         <span *ngIf="!isLoading">Enviar enlace de recuperación</span>
         <svg *ngIf="isLoading" class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -216,3 +251,4 @@
     </div>
   </div>
 </div>
+

@@ -1,252 +1,330 @@
-<div class="container mx-auto px-4 py-8">
-  <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-md overflow-hidden">
+<div class="min-h-screen bg-gray-50 p-4 md:p-8">
+  <div class="max-w-4xl mx-auto">
     <!-- Estado de carga -->
     <div *ngIf="isLoading" class="flex items-center justify-center p-8">
-      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600"></div>
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
       <span class="ml-3 text-gray-600">Cargando información...</span>
     </div>
     
     <!-- Contenido del perfil -->
     <div *ngIf="!isLoading">
-      <!-- Cabecera del perfil -->
-      <div class="bg-teal-600 px-6 py-12 text-white">
-        <div class="flex flex-col md:flex-row items-center">
-          <!-- Avatar con inicial -->
-          <div class="w-24 h-24 bg-white text-teal-600 rounded-full flex items-center justify-center text-4xl font-bold mb-4 md:mb-0 md:mr-6">
-            {{ userInitial }}
+      <!-- Cabecera del perfil con fondo gradiente -->
+      <div class="relative mb-8">
+        <div class="h-40 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-t-xl"></div>
+
+        <div class="absolute -bottom-16 left-8 flex items-end">
+          <div class="relative group">
+            <div class="h-32 w-32 border-4 border-white bg-emerald-600 rounded-full flex items-center justify-center text-white text-5xl font-bold shadow-lg">
+              {{ userInitial }}
+            </div>
+            <button class="absolute bottom-1 right-1 bg-white p-1.5 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                <circle cx="12" cy="13" r="4"></circle>
+              </svg>
+            </button>
           </div>
-          <div class="text-center md:text-left">
-            <h1 class="text-3xl font-bold">{{ user?.nombre }} {{ user?.apellido }}</h1>
-            <p class="text-teal-100 mt-1">{{ user?.email }}</p>
-            <p class="text-teal-100 mt-1">{{ user?.tipoUsuario === 'EMPRESA' ? 'Cuenta Empresarial' : 'Cuenta Personal' }}</p>
+
+          <div class="ml-4 mb-4 text-white">
+            <h1 class="text-2xl font-bold">{{ user?.nombre }} {{ user?.apellido }}</h1>
+            <div class="flex items-center text-emerald-50">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                <polyline points="22,6 12,13 2,6"></polyline>
+              </svg>
+              <span class="text-sm">{{ user?.email }}</span>
+            </div>
           </div>
         </div>
       </div>
 
       <!-- Alertas de error -->
-      <div *ngIf="errorMessage" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mt-4 mx-6" role="alert">
+      <div *ngIf="errorMessage" class="mt-20 mb-6 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md" role="alert">
         <p>{{ errorMessage }}</p>
       </div>
 
       <!-- Mensaje de éxito -->
-      <div *ngIf="successMessage" class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mt-4 mx-6" role="alert">
+      <div *ngIf="successMessage" class="mt-20 mb-6 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded-md" role="alert">
         <p>{{ successMessage }}</p>
       </div>
 
-      <!-- Información del perfil -->
-      <div class="p-6">
+      <!-- Contenido principal -->
+      <div class="mt-20">
         <div class="flex justify-between items-center mb-6">
-          <h2 class="text-2xl font-bold text-gray-800">Información Personal</h2>
-          <div class="space-x-3">
+          <div class="flex items-center space-x-1">
+            <button class="px-4 py-2 rounded-md bg-emerald-50 text-emerald-700 font-medium flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              Perfil
+            </button>
+          </div>
+
+          <div class="flex space-x-2">
             <button 
               *ngIf="!isEditing && !showPasswordFields" 
               (click)="toggleEdit()"
-              class="px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 transition-colors"
+              class="px-4 py-2 border border-emerald-600 text-emerald-600 bg-white hover:bg-emerald-50 rounded-md font-medium flex items-center space-x-2"
             >
-              Editar Perfil
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+              </svg>
+              <span>Editar Perfil</span>
             </button>
             <button 
               *ngIf="!isEditing && !showPasswordFields"
               (click)="togglePasswordFields()"
-              class="px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 transition-colors"
+              class="px-4 py-2 border border-emerald-600 text-emerald-600 bg-white hover:bg-emerald-50 rounded-md font-medium flex items-center space-x-2"
             >
-              Cambiar Contraseña
-            </button>
-          </div>
-        </div>
-
-        <!-- Modo visualización -->
-        <div *ngIf="!isEditing && !showPasswordFields" class="space-y-4">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <h3 class="text-sm font-medium text-gray-500">Nombre</h3>
-              <p class="mt-1 text-gray-900">{{ user?.nombre || 'No especificado' }}</p>
-            </div>
-            <div>
-              <h3 class="text-sm font-medium text-gray-500">Apellido</h3>
-              <p class="mt-1 text-gray-900">{{ user?.apellido || 'No especificado' }}</p>
-            </div>
-            <div>
-              <h3 class="text-sm font-medium text-gray-500">Email</h3>
-              <p class="mt-1 text-gray-900">{{ user?.email }}</p>
-            </div>
-            <div>
-              <h3 class="text-sm font-medium text-gray-500">Tipo de Usuario</h3>
-              <p class="mt-1 text-gray-900">{{ user?.tipoUsuario === 'EMPRESA' ? 'Empresarial' : 'Personal' }}</p>
-            </div>
-            <div>
-              <h3 class="text-sm font-medium text-gray-500">Rol</h3>
-              <p class="mt-1 text-gray-900">{{ user?.rol === 'ROLE_ADMIN' ? 'Administrador' : (user?.rol === 'ROLE_EMPRESA' ? 'Empresa' : 'Cliente') }}</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Modo edición de perfil -->
-        <div *ngIf="isEditing && !showPasswordFields && editableUser" class="space-y-6">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label for="nombre" class="block text-sm font-medium text-gray-700">Nombre</label>
-              <input 
-                type="text" 
-                id="nombre" 
-                name="nombre" 
-                [(ngModel)]="editableUser.nombre"
-                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-teal-500 focus:border-teal-500"
-              >
-            </div>
-            <div>
-              <label for="apellido" class="block text-sm font-medium text-gray-700">Apellido</label>
-              <input 
-                type="text" 
-                id="apellido" 
-                name="apellido" 
-                [(ngModel)]="editableUser.apellido"
-                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-teal-500 focus:border-teal-500"
-              >
-            </div>
-          </div>
-
-          <!-- Botones de acción para edición de perfil -->
-          <div class="mt-6 flex justify-end space-x-3">
-            <button 
-              type="button"
-              (click)="cancelEdit()"
-              [disabled]="isLoading"
-              class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
-            >
-              Cancelar
-            </button>
-            <button 
-              type="button"
-              (click)="saveChanges()"
-              [disabled]="isLoading"
-              class="px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 transition-colors disabled:opacity-50 flex items-center space-x-2"
-            >
-              <svg *ngIf="isLoading" class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
               </svg>
-              <span>{{ isLoading ? 'Guardando...' : 'Guardar cambios' }}</span>
+              <span>Cambiar Contraseña</span>
             </button>
           </div>
         </div>
 
-        <!-- Formulario de cambio de contraseña -->
-        <div *ngIf="showPasswordFields && !isEditing" class="space-y-6">
-          <div class="space-y-4">
-            <div>
-              <label for="currentPassword" class="block text-sm font-medium text-gray-700">Contraseña actual</label>
-              <input 
-                type="password" 
-                id="currentPassword" 
-                name="currentPassword" 
-                [(ngModel)]="currentPassword"
-                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-teal-500 focus:border-teal-500"
-              >
-            </div>
-            <div>
-              <label for="newPassword" class="block text-sm font-medium text-gray-700">Nueva contraseña</label>
-              <input 
-                type="password" 
-                id="newPassword" 
-                name="newPassword" 
-                [(ngModel)]="newPassword"
-                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-teal-500 focus:border-teal-500"
-              >
-            </div>
-            <div>
-              <label for="confirmNewPassword" class="block text-sm font-medium text-gray-700">Confirmar nueva contraseña</label>
-              <input 
-                type="password" 
-                id="confirmNewPassword" 
-                name="confirmNewPassword" 
-                [(ngModel)]="confirmNewPassword"
-                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-teal-500 focus:border-teal-500"
-              >
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <!-- Card principal con información personal -->
+          <div class="md:col-span-2">
+            <div class="bg-white rounded-lg shadow-sm p-6">
+              <div class="flex items-center mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <h2 class="text-xl font-bold">Información Personal</h2>
+              </div>
+              <p class="text-gray-500 text-sm mb-6">Información básica de tu cuenta</p>
+
+              <!-- Modo visualización -->
+              <div *ngIf="!isEditing && !showPasswordFields" class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div class="space-y-2">
+                    <label class="text-sm text-gray-500">Nombre</label>
+                    <div class="font-medium">{{ user?.nombre || 'No especificado' }}</div>
+                  </div>
+                  <div class="space-y-2">
+                    <label class="text-sm text-gray-500">Apellido</label>
+                    <div class="font-medium">{{ user?.apellido || 'No especificado' }}</div>
+                  </div>
+                </div>
+
+                <div class="space-y-2">
+                  <label class="text-sm text-gray-500">Email</label>
+                  <div class="font-medium">{{ user?.email }}</div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div class="space-y-2">
+                    <label class="text-sm text-gray-500">Tipo de Usuario</label>
+                    <div class="font-medium flex items-center">
+                      {{ user?.tipoUsuario === 'EMPRESA' ? 'Empresarial' : 'Personal' }}
+                      <span class="ml-2 px-2 py-0.5 bg-emerald-100 text-emerald-800 text-xs rounded-full">
+                        {{ user?.tipoUsuario === 'EMPRESA' ? 'Empresa' : 'Personal' }}
+                      </span>
+                    </div>
+                  </div>
+                  <div class="space-y-2">
+                    <label class="text-sm text-gray-500">Rol</label>
+                    <div class="font-medium flex items-center">
+                      <svg *ngIf="user?.rol === 'ROLE_ADMIN'" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="8.5" cy="7" r="4"></circle>
+                        <line x1="23" y1="11" x2="17" y2="11"></line>
+                        <line x1="20" y1="8" x2="20" y2="14"></line>
+                      </svg>
+                      {{ user?.rol === 'ROLE_ADMIN' ? 'Administrador' : (user?.rol === 'ROLE_EMPRESA' ? 'Empresa' : 'Cliente') }}
+                      <span class="ml-2 px-2 py-0.5 bg-blue-100 text-blue-800 text-xs rounded-full">
+                        {{ user?.rol === 'ROLE_ADMIN' ? 'Admin' : (user?.rol === 'ROLE_EMPRESA' ? 'Empresa' : 'Cliente') }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Modo edición de perfil -->
+              <div *ngIf="isEditing && !showPasswordFields && editableUser" class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label for="nombre" class="block text-sm font-medium text-gray-700">Nombre</label>
+                    <input 
+                      type="text" 
+                      id="nombre" 
+                      name="nombre" 
+                      [(ngModel)]="editableUser.nombre"
+                      class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
+                    >
+                  </div>
+                  <div>
+                    <label for="apellido" class="block text-sm font-medium text-gray-700">Apellido</label>
+                    <input 
+                      type="text" 
+                      id="apellido" 
+                      name="apellido" 
+                      [(ngModel)]="editableUser.apellido"
+                      class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
+                    >
+                  </div>
+                </div>
+
+                <!-- Botones de acción para edición de perfil -->
+                <div class="mt-6 flex justify-end space-x-3">
+                  <button 
+                    type="button"
+                    (click)="cancelEdit()"
+                    [disabled]="isLoading"
+                    class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                  >
+                    Cancelar
+                  </button>
+                  <button 
+                    type="button"
+                    (click)="saveChanges()"
+                    [disabled]="isLoading"
+                    class="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors disabled:opacity-50 flex items-center space-x-2"
+                  >
+                    <svg *ngIf="isLoading" class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>{{ isLoading ? 'Guardando...' : 'Guardar cambios' }}</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Formulario de cambio de contraseña -->
+              <div *ngIf="showPasswordFields && !isEditing" class="space-y-6">
+                <div class="space-y-4">
+                  <div>
+                    <label for="currentPassword" class="block text-sm font-medium text-gray-700">Contraseña actual</label>
+                    <input 
+                      type="password" 
+                      id="currentPassword" 
+                      name="currentPassword" 
+                      [(ngModel)]="currentPassword"
+                      class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
+                    >
+                  </div>
+                  <div>
+                    <label for="newPassword" class="block text-sm font-medium text-gray-700">Nueva contraseña</label>
+                    <input 
+                      type="password" 
+                      id="newPassword" 
+                      name="newPassword" 
+                      [(ngModel)]="newPassword"
+                      class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
+                    >
+                  </div>
+                  <div>
+                    <label for="confirmNewPassword" class="block text-sm font-medium text-gray-700">Confirmar nueva contraseña</label>
+                    <input 
+                      type="password" 
+                      id="confirmNewPassword" 
+                      name="confirmNewPassword" 
+                      [(ngModel)]="confirmNewPassword"
+                      class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
+                    >
+                  </div>
+                </div>
+
+                <!-- Botones de acción para cambio de contraseña -->
+                <div class="mt-6 flex justify-end space-x-3">
+                  <button 
+                    type="button"
+                    (click)="cancelPasswordChange()"
+                    [disabled]="isLoading"
+                    class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                  >
+                    Cancelar
+                  </button>
+                  <button 
+                    type="button"
+                    (click)="savePasswordChange()"
+                    [disabled]="isLoading"
+                    class="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors disabled:opacity-50 flex items-center space-x-2"
+                  >
+                    <svg *ngIf="isLoading" class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>{{ isLoading ? 'Guardando...' : 'Cambiar contraseña' }}</span>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
-          <!-- Botones de acción para cambio de contraseña -->
-          <div class="mt-6 flex justify-end space-x-3">
-            <button 
-              type="button"
-              (click)="cancelPasswordChange()"
-              [disabled]="isLoading"
-              class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
-            >
-              Cancelar
-            </button>
-            <button 
-              type="button"
-              (click)="savePasswordChange()"
-              [disabled]="isLoading"
-              class="px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 transition-colors disabled:opacity-50 flex items-center space-x-2"
-            >
-              <svg *ngIf="isLoading" class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              <span>{{ isLoading ? 'Guardando...' : 'Cambiar contraseña' }}</span>
-            </button>
+          <!-- Columna derecha con cards adicionales -->
+          <div class="space-y-6">
+            <!-- Card de zona de peligro -->
+            <div class="bg-red-50 rounded-lg shadow-sm border border-red-100 overflow-hidden">
+              <div class="p-5 border-b border-red-100">
+                <div class="flex items-center text-red-700">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                  </svg>
+                  <h3 class="text-lg font-medium">Zona de Peligro</h3>
+                </div>
+              </div>
+              <div class="p-5">
+                <button 
+                  class="w-full px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors flex items-center justify-center space-x-2"
+                  (click)="deleteAccount()"
+                  [disabled]="isLoading">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                  </svg>
+                  <span>Eliminar cuenta</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Separador -->
-    <div class="border-t border-gray-200 my-6"></div>
-
-    <!-- Botón de eliminar cuenta -->
-    <div class="px-6 pb-6">
-      <button 
-        class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors flex items-center space-x-2 disabled:opacity-50"
-        (click)="deleteAccount()"
-        [disabled]="isLoading">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
-        </svg>
-        <span>Eliminar cuenta</span>
-      </button>
-    </div>
-  </div>
-
-  <!-- Modal de confirmación -->
-  <div *ngIf="showDeleteModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center">
-    <div class="relative bg-white rounded-lg shadow-xl max-w-md mx-4 w-full">
-      <div class="p-6">
-        <div class="flex items-start">
-          <div class="flex-shrink-0">
-            <svg class="h-6 w-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
+    <!-- Modal de confirmación -->
+    <div *ngIf="showDeleteModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center">
+      <div class="relative bg-white rounded-lg shadow-xl max-w-md mx-4 w-full">
+        <div class="p-6">
+          <div class="flex items-start">
+            <div class="flex-shrink-0">
+              <svg class="h-6 w-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <div class="ml-4">
+              <h3 class="text-lg font-medium text-gray-900">Eliminar cuenta</h3>
+              <p class="mt-2 text-sm text-gray-500">
+                ¿Estás seguro de que deseas eliminar tu cuenta? Esta acción no se puede deshacer y perderás todo el acceso a tus datos.
+              </p>
+            </div>
           </div>
-          <div class="ml-4">
-            <h3 class="text-lg font-medium text-gray-900">Eliminar cuenta</h3>
-            <p class="mt-2 text-sm text-gray-500">
-              ¿Estás seguro de que deseas eliminar tu cuenta? Esta acción no se puede deshacer y perderás todo el acceso a tus datos.
-            </p>
+          <div class="mt-6 flex justify-end space-x-3">
+            <button
+              type="button"
+              (click)="cancelDelete()"
+              class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              (click)="confirmDelete()"
+              class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors flex items-center space-x-2"
+              [disabled]="isLoading"
+            >
+              <svg *ngIf="isLoading" class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span>{{ isLoading ? 'Eliminando...' : 'Sí, eliminar cuenta' }}</span>
+            </button>
           </div>
-        </div>
-        <div class="mt-6 flex justify-end space-x-3">
-          <button
-            type="button"
-            (click)="cancelDelete()"
-            class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
-          >
-            Cancelar
-          </button>
-          <button
-            type="button"
-            (click)="confirmDelete()"
-            class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors flex items-center space-x-2"
-            [disabled]="isLoading"
-          >
-            <svg *ngIf="isLoading" class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <span>{{ isLoading ? 'Eliminando...' : 'Sí, eliminar cuenta' }}</span>
-          </button>
         </div>
       </div>
     </div>
