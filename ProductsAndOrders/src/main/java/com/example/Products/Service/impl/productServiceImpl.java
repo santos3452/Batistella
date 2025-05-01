@@ -71,6 +71,17 @@ public class productServiceImpl implements productService {
     @Override
     public void deleteProduct(long id) {
         // TODO: Implementar eliminación
+        Products producto = productRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("No existe el producto con id: " + id));
+
+        if(producto.getActivo()) {
+            producto.setActivo(false);
+        }
+        else {
+           producto.setActivo(true);
+        }
+
+        productRepository.save(producto);
     }
 
     @Override

@@ -71,7 +71,9 @@ export class ProductService {
     
     // Añadir tipo de raza solo si no es null
     if (product.tipoRaza) {
-      parts.push(product.tipoRaza);
+      // Reemplazar guiones bajos por espacios en tipoRaza
+      const tipoRazaFormateado = product.tipoRaza.replace(/_/g, ' ');
+      parts.push(tipoRazaFormateado);
     }
     
     // Unir las partes con espacios
@@ -115,8 +117,15 @@ export class ProductService {
     );
   }
 
-  getProductsByCategory(category: string): Observable<Product[]> {
+  // Obtener productos para mostrar en el catálogo (solo activos)
+  getActiveProducts(): Observable<Product[]> {
     return this.getProducts().pipe(
+      map(products => products.filter(product => product.activo === true))
+    );
+  }
+
+  getProductsByCategory(category: string): Observable<Product[]> {
+    return this.getActiveProducts().pipe(
       map(products => products.filter(product => 
         product.animalType && product.animalType.toUpperCase() === category.toUpperCase()
       ))
@@ -130,7 +139,7 @@ export class ProductService {
 
     query = query.toLowerCase().trim();
     
-    return this.getProducts().pipe(
+    return this.getActiveProducts().pipe(
       map(products => {
         // Primero, filtramos los productos nulos o undefined
         const productosValidos = products.filter(product => product !== null && product !== undefined);
@@ -219,7 +228,13 @@ export class ProductService {
     if (id === undefined || id === null) {
       return throwError(() => new Error('ID de producto inválido'));
     }
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+    return this.http.delete(`${this.apiUrl}/deleteProduct/${id}?id=${id}`, { responseType: 'text' })
+      .pipe(
+        map(response => {
+          console.log('Respuesta del servidor (cambio de estado):', response);
+          return;
+        })
+      );
   }
   
   /**

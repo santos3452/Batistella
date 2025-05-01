@@ -32,6 +32,10 @@ export class AdminProductsComponent implements OnInit {
   weights: string[] = [];
   statuses: string[] = ['Activo', 'Inactivo'];
 
+  // Modal de confirmación
+  showConfirmModal = false;
+  productToToggle: Product | null = null;
+
   constructor(
     private productService: ProductService,
     public utils: UtilsService
@@ -108,21 +112,67 @@ export class AdminProductsComponent implements OnInit {
     this.filteredProducts = [...this.products];
   }
 
-  deleteProduct(id: string | number | undefined): void {
-    if (id === undefined || id === null) return;
+  confirmToggleProductStatus(product: Product): void {
+    if (!product || !product.id) return;
     
-    if (confirm('¿Estás seguro de que deseas eliminar este producto?')) {
-      this.productService.deleteProduct(id)
-        .subscribe({
-          next: () => {
-            this.utils.showToast('success', 'Producto eliminado con éxito');
+    this.productToToggle = product;
+    this.showConfirmModal = true;
+  }
+
+  cancelToggleStatus(): void {
+    this.showConfirmModal = false;
+    this.productToToggle = null;
+  }
+
+  toggleProductStatus(): void {
+    if (!this.productToToggle || !this.productToToggle.id) return;
+    
+    this.isLoading = true;
+    
+    // Guardamos el estado actual para el mensaje
+    const wasActive = this.productToToggle.activo;
+    
+    this.productService.deleteProduct(this.productToToggle.id)
+      .subscribe({
+        next: () => {
+          // Mensaje basado en el estado anterior
+          const action = wasActive ? 'desactivado' : 'activado';
+          this.utils.showToast('success', `Producto ${action} con éxito`);
+          
+          // Limpiar la caché de productos para forzar la recarga desde el servidor
+          this.productService.clearProductsCache();
+          
+          // Pequeño delay para asegurar que el backend procesó el cambio
+          setTimeout(() => {
             this.loadProducts();
-          },
-          error: (error) => {
-            console.error('Error deleting product', error);
-            this.utils.showToast('error', 'Error al eliminar el producto');
+            this.showConfirmModal = false;
+            this.productToToggle = null;
+            this.isLoading = false;
+          }, 300);
+        },
+        error: (error) => {
+          console.error('Error changing product status', error);
+          
+          // Verificar si realmente es un error o solo un problema de tipo de respuesta
+          if (error.status === 200) {
+            // Es un "error" pero con código 200, lo tratamos como éxito
+            const action = wasActive ? 'desactivado' : 'activado';
+            this.utils.showToast('success', `Producto ${action} con éxito`);
+            
+            // Limpiar la caché y recargar
+            this.productService.clearProductsCache();
+            setTimeout(() => {
+              this.loadProducts();
+            }, 300);
+          } else {
+            // Es un error real
+            this.utils.showToast('error', 'Error al cambiar el estado del producto');
           }
-        });
-    }
+          
+          this.showConfirmModal = false;
+          this.productToToggle = null;
+          this.isLoading = false;
+        }
+      });
   }
 } 

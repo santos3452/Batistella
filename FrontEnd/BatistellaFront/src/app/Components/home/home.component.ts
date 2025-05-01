@@ -68,8 +68,8 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.products = products;
       });
     } else {
-      // Cargar todos los productos
-      this.productService.getProducts().subscribe(products => {
+      // Cargar solo los productos activos
+      this.productService.getActiveProducts().subscribe(products => {
         this.products = products;
       });
     }

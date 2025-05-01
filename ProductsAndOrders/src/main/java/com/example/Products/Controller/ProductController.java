@@ -73,6 +73,30 @@ public class ProductController {
                     ));
         }
     }
+
+    @DeleteMapping("/deleteProduct/{id}")
+    public ResponseEntity<?> deleteProduct(@RequestParam("id") Long id){
+        try {
+            productService.deleteProduct(id);
+            return ResponseEntity.ok("Producto Actualizado exitosamente");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(ErrorDto.of(
+                            HttpStatus.BAD_REQUEST.value(),
+                            "Error de Validación",
+                            e.getMessage()
+                    ));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ErrorDto.of(
+                            HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                            "Error Interno del Servidor",
+                            "Error al eliminar producto: " + e.getMessage()
+                    ));
+        }
+    }
     @PutMapping("/updateProduct")
     public ResponseEntity<?> updateProduct(@Valid @RequestBody ProductListDTO product){
         try {
