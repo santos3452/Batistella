@@ -18,4 +18,7 @@ public interface productService {
 
     ProductDTO getProductById(long id);
 
+    void aumentarPrecio(double porcentaje, String marca);
+
+
 }

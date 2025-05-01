@@ -21,6 +21,8 @@ export class ProductFormComponent implements OnInit {
   selectedFile: File | null = null;
   imagePreview: string | ArrayBuffer | null = null;
   dragOver = false; // Para indicar cuando se está arrastrando un archivo
+  // Descuento para calcular precio mayorista (28%)
+  readonly DESCUENTO_MAYORISTA = 0.28;
 
   // Opciones para los campos del formulario
   marcaOptions = [
@@ -86,6 +88,9 @@ export class ProductFormComponent implements OnInit {
         this.loadProduct(id);
       }
     });
+
+    // Escuchar cambios en los campos de precio para calcular automáticamente
+    this.listenPriceChanges();
   }
 
   initForm(): void {
@@ -101,6 +106,58 @@ export class ProductFormComponent implements OnInit {
       animalType: ['', Validators.required],
       activo: [true]
     });
+  }
+
+  /**
+   * Configura los escuchadores para los cambios en los campos de precio
+   * para calcular automáticamente el otro precio con un 28% de descuento
+   */
+  listenPriceChanges(): void {
+    // Escuchar cambios en el precio minorista
+    this.productForm.get('priceMinorista')?.valueChanges.subscribe(value => {
+      if (value && !isNaN(parseFloat(value))) {
+        // Solo actualizar el precio mayorista si el campo no está enfocado
+        const mayoristaPrecio = this.calcularPrecioMayorista(parseFloat(value));
+        const mayoristaCampo = this.productForm.get('priceMayorista');
+        
+        // Verificar si el campo de precio mayorista está enfocado
+        const mayoristaCampoElement = document.getElementById('priceMayorista');
+        if (mayoristaCampo && !document.activeElement?.isSameNode(mayoristaCampoElement)) {
+          mayoristaCampo.setValue(mayoristaPrecio.toFixed(2), { emitEvent: false });
+        }
+      }
+    });
+
+    // Escuchar cambios en el precio mayorista
+    this.productForm.get('priceMayorista')?.valueChanges.subscribe(value => {
+      if (value && !isNaN(parseFloat(value))) {
+        // Solo actualizar el precio minorista si el campo no está enfocado
+        const minoristaPrecio = this.calcularPrecioMinorista(parseFloat(value));
+        const minoristaCampo = this.productForm.get('priceMinorista');
+        
+        // Verificar si el campo de precio minorista está enfocado
+        const minoristaCampoElement = document.getElementById('priceMinorista');
+        if (minoristaCampo && !document.activeElement?.isSameNode(minoristaCampoElement)) {
+          minoristaCampo.setValue(minoristaPrecio.toFixed(2), { emitEvent: false });
+        }
+      }
+    });
+  }
+
+  /**
+   * Calcula el precio mayorista a partir del precio minorista
+   * aplicando un 28% de descuento
+   */
+  calcularPrecioMayorista(precioMinorista: number): number {
+    return precioMinorista * (1 - this.DESCUENTO_MAYORISTA);
+  }
+
+  /**
+   * Calcula el precio minorista a partir del precio mayorista
+   * considerando el 28% de descuento
+   */
+  calcularPrecioMinorista(precioMayorista: number): number {
+    return precioMayorista / (1 - this.DESCUENTO_MAYORISTA);
   }
 
   loadProduct(id: string): void {

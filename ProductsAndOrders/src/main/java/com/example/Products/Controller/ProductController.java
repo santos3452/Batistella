@@ -3,6 +3,7 @@ package com.example.Products.Controller;
 import com.example.Products.Dtos.Error.ErrorDto;
 import com.example.Products.Dtos.ProductDTO;
 import com.example.Products.Dtos.ProductListDTO;
+import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -70,6 +71,33 @@ public class ProductController {
                             HttpStatus.INTERNAL_SERVER_ERROR.value(),
                             "Error Interno del Servidor",
                             "Error al obtener productos: " + e.getMessage()
+                    ));
+        }
+    }
+
+    @PutMapping("/updatePrices")
+    public ResponseEntity<?> UpdatePrices (
+            @RequestParam(value = "porcentaje") double porcentaje,
+            @Parameter(description = "Marca del producto (opcional). Si no se proporciona, se actualizarán todas las marcas.")
+            @Valid @RequestParam(value = "marca", required = false) String marca) {
+        try {
+            productService.aumentarPrecio(porcentaje, marca);
+            return ResponseEntity.ok("Precios actualizados exitosamente");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(ErrorDto.of(
+                            HttpStatus.BAD_REQUEST.value(),
+                            "Error de Validación",
+                            e.getMessage()
+                    ));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ErrorDto.of(
+                            HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                            "Error Interno del Servidor",
+                            "Error al actualizar precios: " + e.getMessage()
                     ));
         }
     }

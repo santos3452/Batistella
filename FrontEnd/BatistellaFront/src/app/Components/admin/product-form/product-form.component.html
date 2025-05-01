@@ -100,6 +100,9 @@
                 <span *ngIf="productForm.get('priceMinorista')?.errors?.['required']">El precio minorista es obligatorio</span>
                 <span *ngIf="productForm.get('priceMinorista')?.errors?.['min']">El precio debe ser mayor o igual a 0</span>
               </div>
+              <div class="text-xs text-emerald-600 italic mt-1">
+                Al completar este campo, el precio mayorista se calculará automáticamente con un 28% de descuento.
+              </div>
             </div>
 
             <!-- Stock -->
@@ -215,6 +218,9 @@
               >
                 <span *ngIf="productForm.get('priceMayorista')?.errors?.['required']">El precio mayorista es obligatorio</span>
                 <span *ngIf="productForm.get('priceMayorista')?.errors?.['min']">El precio debe ser mayor o igual a 0</span>
+              </div>
+              <div class="text-xs text-emerald-600 italic mt-1">
+                Al completar este campo, el precio minorista se calculará automáticamente considerando un 28% de descuento.
               </div>
             </div>
 

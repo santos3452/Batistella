@@ -3,13 +3,14 @@ import { CommonModule } from '@angular/common';
 import { CartService, CartItem } from '../../Services/Cart/cart.service';
 import { UtilsService } from '../../Services/Utils/utils.service';
 import { Subscription } from 'rxjs';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-cart-dropdown',
   templateUrl: './cart-dropdown.component.html',
   styleUrl: './cart-dropdown.component.css',
   standalone: true,
-  imports: [CommonModule]
+  imports: [CommonModule, RouterLink]
 })
 export class CartDropdownComponent implements OnInit, OnDestroy {
   items: CartItem[] = [];
@@ -50,21 +51,31 @@ export class CartDropdownComponent implements OnInit, OnDestroy {
     this.subscription.unsubscribe();
   }
 
-  removeItem(productName: string): void {
-    this.cartService.removeFromCart(productName);
+  // Obtiene un identificador único para el producto
+  getProductId(product: CartItem['product']): string {
+    // Mismo método que en CartService
+    const id = product.id || product.localId || '';
+    const kg = product.kg || '';
+    return `${id}-${kg}`;
   }
 
-  updateQuantity(productName: string, quantity: number): void {
-    this.cartService.updateQuantity(productName, quantity);
+  removeItem(item: CartItem): void {
+    const productId = this.getProductId(item.product);
+    this.cartService.removeFromCart(productId);
+  }
+
+  updateQuantity(item: CartItem, quantity: number): void {
+    const productId = this.getProductId(item.product);
+    this.cartService.updateQuantity(productId, quantity);
   }
 
   incrementQuantity(item: CartItem): void {
-    this.updateQuantity(item.product.fullName, item.quantity + 1);
+    this.updateQuantity(item, item.quantity + 1);
   }
 
   decrementQuantity(item: CartItem): void {
     if (item.quantity > 1) {
-      this.updateQuantity(item.product.fullName, item.quantity - 1);
+      this.updateQuantity(item, item.quantity - 1);
     }
   }
 }

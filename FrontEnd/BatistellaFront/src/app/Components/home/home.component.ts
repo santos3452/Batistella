@@ -7,6 +7,18 @@ import { AuthService } from '../../Services/Auth/auth.service';
 import { Subscription } from 'rxjs';
 import { map } from 'rxjs/operators';
 
+interface ProductGroup {
+  baseProduct: Product;
+  variants: Array<{
+    id: string | number;
+    localId?: string;
+    kg: string;
+    priceMinorista: number;
+    priceMayorista: number;
+    stock: number;
+  }>;
+}
+
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
@@ -16,6 +28,7 @@ import { map } from 'rxjs/operators';
 })
 export class HomeComponent implements OnInit, OnDestroy {
   products: Product[] = [];
+  productGroups: ProductGroup[] = [];
   categoryFilter: string | null = null;
   categoryTitle = 'Todos los Alimentos';
   isAdmin = false;
@@ -45,7 +58,7 @@ export class HomeComponent implements OnInit, OnDestroy {
           this.categoryTitle = 'Todos los Alimentos';
         }
         
-        this.loadProducts();
+        this.loadProductGroups();
       })
     );
 
@@ -61,16 +74,16 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.subscription.unsubscribe();
   }
 
-  loadProducts(): void {
+  loadProductGroups(): void {
     if (this.categoryFilter) {
       // Filtrar productos por categoría
-      this.productService.getProductsByCategory(this.categoryFilter).subscribe(products => {
-        this.products = products;
+      this.productService.getProductsGroupedByWeightByCategory(this.categoryFilter).subscribe(groups => {
+        this.productGroups = groups;
       });
     } else {
-      // Cargar solo los productos activos
-      this.productService.getActiveProducts().subscribe(products => {
-        this.products = products;
+      // Cargar todos los productos activos agrupados
+      this.productService.getProductsGroupedByWeight().subscribe(groups => {
+        this.productGroups = groups;
       });
     }
   }

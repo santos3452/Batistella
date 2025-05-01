@@ -3,16 +3,28 @@
     <h1 class="text-2xl font-bold text-gray-800">
       Administración de Productos
     </h1>
-    <a 
-      routerLink="/admin/products/new" 
-      class="bg-teal-600 text-white py-2 px-4 rounded-md hover:bg-teal-700 transition duration-150 flex items-center"
-    >
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2">
-        <line x1="12" y1="5" x2="12" y2="19"></line>
-        <line x1="5" y1="12" x2="19" y2="12"></line>
-      </svg>
-      Agregar Producto
-    </a>
+    <div class="flex space-x-3">
+      <button 
+        (click)="openUpdatePricesModal()" 
+        class="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-150 flex items-center"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2">
+          <line x1="12" y1="1" x2="12" y2="23"></line>
+          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+        </svg>
+        Actualizar Precios
+      </button>
+      <a 
+        routerLink="/admin/products/new" 
+        class="bg-teal-600 text-white py-2 px-4 rounded-md hover:bg-teal-700 transition duration-150 flex items-center"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        Agregar Producto
+      </a>
+    </div>
   </div>
 
   <!-- Filtros -->
@@ -243,6 +255,94 @@
             type="button" 
             (click)="cancelToggleStatus()"
             class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+          >
+            Cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para actualizar precios masivamente -->
+  <div *ngIf="showUpdatePricesModal" class="fixed inset-0 z-50 overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+      <!-- Overlay de fondo oscuro -->
+      <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+        <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+      </div>
+
+      <!-- Modal -->
+      <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+        <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+          <div class="sm:flex sm:items-start">
+            <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
+              <!-- Ícono de actualización de precios -->
+              <svg class="h-6 w-6 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+              <h3 class="text-lg leading-6 font-medium text-gray-900">
+                Actualizar Precios
+              </h3>
+              <div class="mt-4 space-y-4">
+                <div>
+                  <label for="selectBrand" class="block text-sm font-medium text-gray-700 mb-1">
+                    Marca
+                  </label>
+                  <select
+                    id="selectBrand"
+                    [(ngModel)]="selectedBrand"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="TODAS">Todas las marcas</option>
+                    <option *ngFor="let brand of brands" [value]="brand">{{ brand }}</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label for="updatePercentage" class="block text-sm font-medium text-gray-700 mb-1">
+                    Porcentaje de ajuste (%)
+                  </label>
+                  <div class="relative">
+                    <input
+                      id="updatePercentage"
+                      type="number"
+                      [(ngModel)]="updatePercentage"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      min="-90"
+                      max="100"
+                      step="0.5"
+                      placeholder="Ej: 10 para aumentar, -10 para reducir"
+                    >
+                  </div>
+                  <p class="text-xs text-gray-500 mt-1">
+                    Usar valores positivos para aumentar precios y negativos para reducirlos.
+                    Ejemplo: 10 aumentará los precios un 10%, -10 los reducirá un 10%.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+          <button 
+            type="button" 
+            (click)="updatePrices()"
+            [disabled]="isUpdatingPrices"
+            class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <!-- Spinner de carga -->
+            <svg *ngIf="isUpdatingPrices" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Actualizar Precios
+          </button>
+          <button 
+            type="button" 
+            (click)="closeUpdatePricesModal()"
+            class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
           >
             Cancelar
           </button>

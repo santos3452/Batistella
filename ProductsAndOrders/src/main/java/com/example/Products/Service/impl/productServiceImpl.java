@@ -4,10 +4,13 @@ import com.example.Products.Config.ModelMapperConfig;
 import com.example.Products.Dtos.ProductDTO;
 import com.example.Products.Dtos.ProductListDTO;
 import com.example.Products.Entity.Products;
+import com.example.Products.Entity.enums.Marca;
 import com.example.Products.Service.productService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.example.Products.Repository.productRepository;
+
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
 
@@ -98,5 +101,44 @@ public class productServiceImpl implements productService {
     public ProductDTO getProductById(long id) {
         // TODO: Implementar obtención por ID
         return null;
+    }
+
+    @Override
+    public void aumentarPrecio(double porcentaje, String marca) {
+
+
+        if(porcentaje < -50) {
+            throw new IllegalArgumentException("No se puede hacer un descuento de mas del 50%");
+        }
+
+        if( marca != null && !marca.isEmpty()) {
+            String marca1 = marca.toUpperCase();
+            Marca enumMarca = Marca.valueOf(marca1);
+            List<Products> productos = productRepository.findByMarca(enumMarca);
+
+            for (Products producto : productos) {
+                BigDecimal porcentajeDecimal = BigDecimal.valueOf(porcentaje).divide(BigDecimal.valueOf(100));
+                BigDecimal nuevoPrecioMinorista = producto.getPriceMinorista().multiply(BigDecimal.ONE.add(porcentajeDecimal));
+                BigDecimal nuevoPrecioMayorista = producto.getPriceMayorista().multiply(BigDecimal.ONE.add(porcentajeDecimal));
+                producto.setPriceMinorista(nuevoPrecioMinorista);
+                producto.setPriceMayorista(nuevoPrecioMayorista);
+                productRepository.save(producto);
+            }
+
+        }
+        else {
+            List<Products> productos = productRepository.findAll();
+
+            for (Products producto : productos) {
+                BigDecimal porcentajeDecimal = BigDecimal.valueOf(porcentaje).divide(BigDecimal.valueOf(100));
+                BigDecimal nuevoPrecioMinorista = producto.getPriceMinorista().multiply(BigDecimal.ONE.add(porcentajeDecimal));
+                BigDecimal nuevoPrecioMayorista = producto.getPriceMayorista().multiply(BigDecimal.ONE.add(porcentajeDecimal));
+                producto.setPriceMinorista(nuevoPrecioMinorista);
+                producto.setPriceMayorista(nuevoPrecioMayorista);
+                productRepository.save(producto);
+            }
+        }
+
+
     }
 }

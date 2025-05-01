@@ -36,6 +36,12 @@ export class AdminProductsComponent implements OnInit {
   showConfirmModal = false;
   productToToggle: Product | null = null;
 
+  // Modal actualización de precios
+  showUpdatePricesModal = false;
+  selectedBrand: string = 'TODAS';
+  updatePercentage: number = 0;
+  isUpdatingPrices = false;
+
   constructor(
     private productService: ProductService,
     public utils: UtilsService
@@ -172,6 +178,64 @@ export class AdminProductsComponent implements OnInit {
           this.showConfirmModal = false;
           this.productToToggle = null;
           this.isLoading = false;
+        }
+      });
+  }
+
+  // Métodos para la actualización de precios
+  openUpdatePricesModal(): void {
+    this.selectedBrand = 'TODAS'; // Valor por defecto: todas las marcas
+    this.updatePercentage = 0;
+    this.showUpdatePricesModal = true;
+  }
+
+  closeUpdatePricesModal(): void {
+    this.showUpdatePricesModal = false;
+  }
+
+  updatePrices(): void {
+    // Validar que el porcentaje esté dentro de un rango razonable
+    if (this.updatePercentage < -90 || this.updatePercentage > 100) {
+      this.utils.showToast('error', 'El porcentaje debe estar entre -90% y 100%');
+      return;
+    }
+
+    this.isUpdatingPrices = true;
+
+    this.productService.updatePricesByBrandAndPercentage(this.updatePercentage, this.selectedBrand)
+      .subscribe({
+        next: () => {
+          this.utils.showToast('success', `Precios actualizados con éxito (${this.updatePercentage > 0 ? '+' : ''}${this.updatePercentage}%)`);
+          
+          // Limpiar la caché de productos para forzar la recarga desde el servidor
+          this.productService.clearProductsCache();
+          
+          // Pequeño delay para asegurar que el backend procesó los cambios
+          setTimeout(() => {
+            this.loadProducts();
+            this.showUpdatePricesModal = false;
+            this.isUpdatingPrices = false;
+          }, 300);
+        },
+        error: (error) => {
+          console.error('Error al actualizar precios', error);
+          
+          // Verificar si realmente es un error o un "éxito" con código 200
+          if (error.status === 200) {
+            this.utils.showToast('success', `Precios actualizados con éxito (${this.updatePercentage > 0 ? '+' : ''}${this.updatePercentage}%)`);
+            
+            // Limpiar la caché y recargar
+            this.productService.clearProductsCache();
+            setTimeout(() => {
+              this.loadProducts();
+              this.showUpdatePricesModal = false;
+              this.isUpdatingPrices = false;
+            }, 300);
+          } else {
+            this.utils.showToast('error', 'Error al actualizar los precios');
+            this.showUpdatePricesModal = false;
+            this.isUpdatingPrices = false;
+          }
         }
       });
   }

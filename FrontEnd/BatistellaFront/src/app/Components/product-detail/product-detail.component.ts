@@ -15,6 +15,8 @@ import { FormsModule } from '@angular/forms';
 })
 export class ProductDetailComponent implements OnInit {
   product: Product | null = null;
+  variants: Product[] = [];
+  selectedVariant: Product | null = null;
   isLoading = true;
   errorMessage = '';
   quantity = 1;
@@ -68,7 +70,10 @@ export class ProductDetailComponent implements OnInit {
       next: (product) => {
         console.log('Producto cargado exitosamente:', product);
         this.product = product;
-        this.isLoading = false;
+        this.selectedVariant = product;
+        
+        // Cargar variantes del producto por peso
+        this.loadProductVariants(product);
       },
       error: (error) => {
         console.error('Error al cargar el producto:', error);
@@ -78,8 +83,30 @@ export class ProductDetailComponent implements OnInit {
     });
   }
 
+  loadProductVariants(product: Product): void {
+    this.productService.getProductVariants(product).subscribe({
+      next: (variants) => {
+        this.variants = variants;
+        console.log('Variantes del producto cargadas:', variants);
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error al cargar variantes del producto:', error);
+        // No mostramos error al usuario, simplemente usamos el producto original
+        this.variants = [product];
+        this.isLoading = false;
+      }
+    });
+  }
+
+  selectVariant(variant: Product): void {
+    this.selectedVariant = variant;
+    // Reiniciar cantidad al cambiar de variante
+    this.quantity = 1;
+  }
+
   incrementQuantity(): void {
-    if (this.product && this.quantity < this.product.stock) {
+    if (this.selectedVariant && this.quantity < this.selectedVariant.stock) {
       this.quantity++;
     }
   }
@@ -91,14 +118,14 @@ export class ProductDetailComponent implements OnInit {
   }
 
   addToCart(): void {
-    if (this.product) {
+    if (this.selectedVariant) {
       // Agregar el producto al carrito la cantidad de veces seleccionada
       for (let i = 0; i < this.quantity; i++) {
-        this.cartService.addToCart(this.product);
+        this.cartService.addToCart(this.selectedVariant);
       }
       
       // Mostrar mensaje de éxito
-      this.successMessage = `Se ${this.quantity > 1 ? 'agregaron' : 'agregó'} ${this.quantity} ${this.quantity > 1 ? 'unidades' : 'unidad'} de ${this.product.fullName} al carrito`;
+      this.successMessage = `Se ${this.quantity > 1 ? 'agregaron' : 'agregó'} ${this.quantity} ${this.quantity > 1 ? 'unidades' : 'unidad'} de ${this.selectedVariant.fullName} al carrito`;
       this.showSuccessMessage = true;
       
       // Ocultar mensaje después de 3 segundos

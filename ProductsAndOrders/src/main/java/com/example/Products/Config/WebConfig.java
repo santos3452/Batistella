@@ -17,10 +17,17 @@ public class WebConfig implements WebMvcConfigurer {
     
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        // Configurar el acceso a las imágenes que ya están en el directorio static
+        // Convertir ruta relativa a absoluta
+        Path uploadPath = Paths.get(uploadDir).toAbsolutePath().normalize();
+        String location = uploadPath.toUri().toString();
+        
+        // Imprimir la ruta para depuración
+        System.out.println("Configurando acceso a imágenes en: " + location);
+        
+        // Configurar el acceso a las imágenes que ya están en el directorio estático
         registry.addResourceHandler("/images/**")
-                .addResourceLocations("classpath:/static/images/")
-                .setCachePeriod(3600); // Caché por 1 hora
+                .addResourceLocations("classpath:/static/images/", location)
+                .setCachePeriod(0); // Desactivar caché para evitar problemas
         
         // Configurar el acceso a otros recursos estáticos
         registry.addResourceHandler("/static/**")

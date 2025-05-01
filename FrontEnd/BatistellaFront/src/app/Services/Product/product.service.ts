@@ -246,4 +246,121 @@ export class ProductService {
     this.lastFetchTime = 0;
     console.log('Caché de productos limpiada');
   }
+
+  /**
+   * Actualiza los precios de productos por marca y porcentaje
+   * @param porcentaje Porcentaje de ajuste (puede ser positivo o negativo)
+   * @param marca Opcional: marca específica a actualizar, si no se especifica se actualizan todas
+   * @returns Observable con la respuesta del servidor
+   */
+  updatePricesByBrandAndPercentage(porcentaje: number, marca?: string): Observable<any> {
+    let url = `${this.apiUrl}/updatePrices?porcentaje=${porcentaje}`;
+    
+    if (marca && marca !== 'TODAS') {
+      url += `&marca=${marca}`;
+    }
+    
+    // Usar responseType 'text' ya que el backend responde con texto plano
+    return this.http.put(url, {}, { responseType: 'text' }).pipe(
+      map(response => {
+        console.log('Respuesta de actualización de precios:', response);
+        // Limpiar caché después de actualizar precios
+        this.clearProductsCache();
+        return response;
+      }),
+      // En caso de error, pero con status 200, tratar como éxito
+      tap({
+        error: error => {
+          if (error.status === 200) {
+            console.log('La actualización de precios fue exitosa a pesar del error técnico');
+            this.clearProductsCache();
+          }
+        }
+      })
+    );
+  }
+
+  /**
+   * Agrupa productos que son iguales excepto por su peso (kg) y precio
+   * @returns Observable con productos agrupados donde cada grupo tiene variantes de peso
+   */
+  getProductsGroupedByWeight(): Observable<any[]> {
+    return this.getActiveProducts().pipe(
+      map(products => {
+        // Crear un mapa para agrupar productos por marca, tipoAlimento y tipoRaza
+        const productGroups = new Map();
+        
+        products.forEach(product => {
+          // La clave es la combinación de marca + tipoAlimento + tipoRaza + animalType
+          const key = `${product.marca}_${product.tipoAlimento}_${product.tipoRaza}_${product.animalType}`;
+          
+          if (!productGroups.has(key)) {
+            // Crear un nuevo grupo con el primer producto y su variante de peso
+            productGroups.set(key, {
+              baseProduct: { ...product },
+              variants: [{
+                id: product.id,
+                localId: product.localId,
+                kg: product.kg,
+                priceMinorista: product.priceMinorista,
+                priceMayorista: product.priceMayorista,
+                stock: product.stock
+              }]
+            });
+          } else {
+            // Añadir una nueva variante al grupo existente
+            const group = productGroups.get(key);
+            group.variants.push({
+              id: product.id,
+              localId: product.localId,
+              kg: product.kg,
+              priceMinorista: product.priceMinorista,
+              priceMayorista: product.priceMayorista,
+              stock: product.stock
+            });
+          }
+        });
+        
+        // Convertir el mapa en un array de grupos de productos
+        return Array.from(productGroups.values());
+      })
+    );
+  }
+
+  /**
+   * Igual que getProductsGroupedByWeight pero filtrado por categoría
+   */
+  getProductsGroupedByWeightByCategory(category: string): Observable<any[]> {
+    return this.getProductsGroupedByWeight().pipe(
+      map(groupedProducts => 
+        groupedProducts.filter(group => 
+          group.baseProduct.animalType && 
+          group.baseProduct.animalType.toUpperCase() === category.toUpperCase()
+        )
+      )
+    );
+  }
+
+  /**
+   * Obtiene todas las variantes de peso de un producto específico
+   * @param product El producto base para buscar sus variantes
+   * @returns Observable con el array de variantes encontradas
+   */
+  getProductVariants(product: Product): Observable<Product[]> {
+    if (!product) {
+      return throwError(() => new Error('Producto no válido'));
+    }
+    
+    return this.getActiveProducts().pipe(
+      map(products => {
+        // Filtrar productos que sean variantes del producto indicado (mismo nombre, misma marca, mismo tipo)
+        return products.filter(p => 
+          p.marca === product.marca && 
+          p.tipoAlimento === product.tipoAlimento && 
+          p.tipoRaza === product.tipoRaza &&
+          p.animalType === product.animalType
+        );
+      })
+    );
+  }
 }
