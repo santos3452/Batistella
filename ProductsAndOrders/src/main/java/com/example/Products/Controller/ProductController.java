@@ -3,6 +3,7 @@ package com.example.Products.Controller;
 import com.example.Products.Dtos.Error.ErrorDto;
 import com.example.Products.Dtos.ProductDTO;
 import com.example.Products.Dtos.ProductListDTO;
+import com.example.Products.Dtos.UpdateProductDto;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -126,7 +127,7 @@ public class ProductController {
         }
     }
     @PutMapping("/updateProduct")
-    public ResponseEntity<?> updateProduct(@Valid @RequestBody ProductListDTO product){
+    public ResponseEntity<?> updateProduct(@Valid @RequestBody UpdateProductDto product){
         try {
                 productService.updateProduct(product);
                 return ResponseEntity.ok("Producto actualizado exitosamente");
@@ -166,7 +167,7 @@ public class ProductController {
             ObjectMapper objectMapper = new ObjectMapper();
             // Registrar módulos para manejo de fechas y otras configuraciones
             objectMapper.findAndRegisterModules();
-            ProductListDTO product = objectMapper.readValue(productJson, ProductListDTO.class);
+            UpdateProductDto product = objectMapper.readValue(productJson, UpdateProductDto.class);
 
             // Guardar la imagen y obtener su URL
             String imageUrl = imageService.updateImage(image, product);

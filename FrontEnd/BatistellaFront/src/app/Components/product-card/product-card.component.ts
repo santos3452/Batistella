@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { Product } from '../../Services/Product/product.service';
 import { CartService } from '../../Services/Cart/cart.service';
 import { UtilsService } from '../../Services/Utils/utils.service';
+import { AuthService } from '../../Services/Auth/auth.service';
 
 interface ProductVariant {
   id: string | number;
@@ -36,8 +37,13 @@ export class ProductCardComponent implements OnInit {
   hasVariants: boolean = false;
   selectedVariantIndex: number = 0;
   currentPrice: number = 0;
+  currentMinoristaPrice: number = 0;
+  currentMayoristaPrice: number = 0;
   currentWeight: string = '';
   selectedVariant?: ProductVariant;
+  
+  // Variable para controlar si se muestra el precio mayorista
+  showMayoristaPrice: boolean = false;
 
   // Calcular el delay de la animación basado en el índice
   get animationDelay(): string {
@@ -47,7 +53,8 @@ export class ProductCardComponent implements OnInit {
   constructor(
     private cartService: CartService,
     public utils: UtilsService,
-    private router: Router
+    private router: Router,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -58,9 +65,16 @@ export class ProductCardComponent implements OnInit {
       this.selectVariant(0); // Selecciona la primera variante por defecto
     } else if (this.product) {
       // Modo estándar - uso directo del producto
-      this.currentPrice = this.product.priceMinorista;
+      this.currentMinoristaPrice = this.product.priceMinorista;
+      this.currentMayoristaPrice = this.product.priceMayorista || this.product.priceMinorista;
       this.currentWeight = this.product.kg;
+      this.setPriceBasedOnRole();
     }
+    
+    // Suscribirse a cambios en el usuario para actualizar precios
+    this.authService.currentUser$.subscribe(() => {
+      this.setPriceBasedOnRole();
+    });
   }
 
   // Selecciona una variante de producto por su índice
@@ -69,8 +83,26 @@ export class ProductCardComponent implements OnInit {
     
     this.selectedVariantIndex = index;
     this.selectedVariant = this.productGroup.variants[index];
-    this.currentPrice = this.selectedVariant.priceMinorista;
+    this.currentMinoristaPrice = this.selectedVariant.priceMinorista;
+    this.currentMayoristaPrice = this.selectedVariant.priceMayorista || this.selectedVariant.priceMinorista;
     this.currentWeight = this.selectedVariant.kg;
+    this.setPriceBasedOnRole();
+  }
+  
+  // Establece el precio a mostrar basado en el rol del usuario
+  setPriceBasedOnRole(): void {
+    const userRole = this.authService.userRole;
+    const userType = this.authService.currentUser?.tipoUsuario;
+    
+    // Si es una empresa, mostrar precio mayorista
+    if (userType === 'EMPRESA') {
+      this.showMayoristaPrice = true;
+      this.currentPrice = this.currentMayoristaPrice;
+    } else {
+      // Cliente final muestra precio minorista
+      this.showMayoristaPrice = false;
+      this.currentPrice = this.currentMinoristaPrice;
+    }
   }
 
   // Navega al detalle del producto, usando el ID de la variante seleccionada si existe

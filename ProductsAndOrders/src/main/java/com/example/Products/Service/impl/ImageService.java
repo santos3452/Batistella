@@ -2,6 +2,7 @@ package com.example.Products.Service.impl;
 
 import com.example.Products.Dtos.ProductDTO;
 import com.example.Products.Dtos.ProductListDTO;
+import com.example.Products.Dtos.UpdateProductDto;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -105,7 +106,7 @@ public class ImageService {
     }
     
     // Método para actualizar imágenes con ProductListDTO
-    public String updateImage(MultipartFile image, ProductListDTO productListDTO) throws IOException {
+    public String updateImage(MultipartFile image, UpdateProductDto productListDTO) throws IOException {
         // Verificar que la imagen no sea nula y tenga contenido
         if (image == null || image.isEmpty()) {
             System.err.println("Error: La imagen está vacía o es nula");
@@ -189,7 +190,7 @@ public class ImageService {
     }
     
     // Método sobrecargado para ProductListDTO
-    private String generarNombreArchivo(ProductListDTO productListDTO) {
+    private String generarNombreArchivo(UpdateProductDto productListDTO) {
         // Construir un nombre descriptivo para el archivo
         StringBuilder nombre = new StringBuilder();
         

@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.annotation.JsonCreator;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
@@ -42,6 +43,10 @@ public class ProductDTO {
     private type animalType;
     
     private Boolean activo;
+
+
+
+
 
     public String getFullName() {
         if (tipoRaza != null) {

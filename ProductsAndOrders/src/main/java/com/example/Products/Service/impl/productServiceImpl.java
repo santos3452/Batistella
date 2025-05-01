@@ -3,6 +3,7 @@ package com.example.Products.Service.impl;
 import com.example.Products.Config.ModelMapperConfig;
 import com.example.Products.Dtos.ProductDTO;
 import com.example.Products.Dtos.ProductListDTO;
+import com.example.Products.Dtos.UpdateProductDto;
 import com.example.Products.Entity.Products;
 import com.example.Products.Entity.enums.Marca;
 import com.example.Products.Service.productService;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 import com.example.Products.Repository.productRepository;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
@@ -39,6 +41,8 @@ public class productServiceImpl implements productService {
         // Si no existe, creamos un nuevo producto
         Products product = modelMapper.modelMapper().map(producto, Products.class);
         product.setActivo(true);
+        product.setCreatedAt(LocalDateTime.now());
+        product.setUpdatedAt(LocalDateTime.now());
         Products savedProduct = productRepository.save(product);
         return modelMapper.modelMapper().map(savedProduct, ProductDTO.class);
     }
@@ -58,11 +62,12 @@ public class productServiceImpl implements productService {
     }
 
     @Override
-    public ProductDTO updateProduct(ProductListDTO product) {
+    public ProductDTO updateProduct(UpdateProductDto product) {
         Products existingProduct = productRepository.findById(product.getId())
                 .orElse(null);
 
         existingProduct = modelMapper.modelMapper().map(product, Products.class);
+        existingProduct.setUpdatedAt(LocalDateTime.now());
 
         productRepository.save(existingProduct);
 
@@ -122,6 +127,7 @@ public class productServiceImpl implements productService {
                 BigDecimal nuevoPrecioMayorista = producto.getPriceMayorista().multiply(BigDecimal.ONE.add(porcentajeDecimal));
                 producto.setPriceMinorista(nuevoPrecioMinorista);
                 producto.setPriceMayorista(nuevoPrecioMayorista);
+                producto.setUpdatedAt(LocalDateTime.now());
                 productRepository.save(producto);
             }
 
@@ -135,6 +141,7 @@ public class productServiceImpl implements productService {
                 BigDecimal nuevoPrecioMayorista = producto.getPriceMayorista().multiply(BigDecimal.ONE.add(porcentajeDecimal));
                 producto.setPriceMinorista(nuevoPrecioMinorista);
                 producto.setPriceMayorista(nuevoPrecioMayorista);
+                producto.setUpdatedAt(LocalDateTime.now());
                 productRepository.save(producto);
             }
         }

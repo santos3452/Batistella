@@ -19,6 +19,9 @@ export interface Product {
   fullName: string;
   // Campo local para manejar productos sin ID
   localId?: string;
+  // Fechas de creación y actualización
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 @Injectable({
@@ -203,17 +206,49 @@ export class ProductService {
 
   updateProductWithImage(id: string | number, formData: FormData): Observable<Product> {
     // El endpoint espera un objeto JSON en "product" y un archivo en "image" (opcional para actualizaciones)
+    
+    try {
+      // Verificar si el formData contiene un objeto "productData"
+      const productDataStr = formData.get('productData') as string;
+      if (productDataStr) {
+        // Parsear el JSON 
+        const productData = JSON.parse(productDataStr);
+        
+        // Eliminar createdAt y establecer updatedAt en formato ISO
+        delete productData.createdAt;
+        productData.updatedAt = new Date().toISOString();
+        
+        // Reemplazar el objeto en el FormData
+        formData.delete('productData');
+        formData.append('productData', JSON.stringify(productData));
+      }
+    } catch (error) {
+      console.error('Error al procesar formData en updateProductWithImage:', error);
+    }
+    
     return this.http.put<Product>(`${this.apiUrl}/UpdateProductWithImage`, formData);
   }
 
   updateProduct(id: string | number, product: Product): Observable<Product> {
     // Endpoint para actualizar un producto sin cambiar la imagen
     console.log('ProductService.updateProduct - ID:', id);
-    console.log('ProductService.updateProduct - Datos:', JSON.stringify(product, null, 2));
+    
+    // Preparar el objeto para enviar al backend
+    // Formatear la fecha en ISO para el backend y excluir createdAt
+    const now = new Date();
+    const isoDate = now.toISOString(); // Formato ISO 8601: YYYY-MM-DDTHH:mm:ss.sssZ
+    
+    // Crear una copia del producto sin incluir createdAt
+    const { createdAt, ...productToSend } = product;
+    
+    // Asignar la fecha de actualización en formato ISO
+    productToSend.updatedAt = isoDate;
+    
+    console.log('ProductService.updateProduct - Datos:', JSON.stringify(productToSend, null, 2));
     console.log('ProductService.updateProduct - URL:', `${this.apiUrl}/updateProduct`);
     
     // Usar responseType 'text' ya que el backend responde con texto plano
-    return this.http.put(`${this.apiUrl}/updateProduct`, product, { responseType: 'text' })
+    return this.http.put(`${this.apiUrl}/updateProduct`, productToSend, { responseType: 'text' })
       .pipe(
         map(response => {
           console.log('Respuesta del servidor:', response);

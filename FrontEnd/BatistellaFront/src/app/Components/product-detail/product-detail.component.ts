@@ -5,6 +5,7 @@ import { ProductService, Product } from '../../Services/Product/product.service'
 import { UtilsService } from '../../Services/Utils/utils.service';
 import { CartService } from '../../Services/Cart/cart.service';
 import { FormsModule } from '@angular/forms';
+import { AuthService } from '../../Services/Auth/auth.service';
 
 @Component({
   selector: 'app-product-detail',
@@ -24,6 +25,9 @@ export class ProductDetailComponent implements OnInit {
   showSuccessMessage = false;
   activeTab = 'descripcion'; // Pestaña activa por defecto
   
+  // Variables para mostrar precios según rol
+  showMayoristaPrice = false;
+  
   // Acordeón para secciones colapsables
   accordionState = {
     devoluciones: false,
@@ -40,7 +44,8 @@ export class ProductDetailComponent implements OnInit {
     private router: Router,
     private productService: ProductService,
     private cartService: CartService,
-    public utils: UtilsService
+    public utils: UtilsService,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -52,6 +57,22 @@ export class ProductDetailComponent implements OnInit {
         this.router.navigate(['/']);
       }
     });
+    
+    // Suscribirse a cambios en el usuario para actualizar precios
+    this.authService.currentUser$.subscribe(() => {
+      this.updatePriceDisplay();
+    });
+    
+    // Inicializar la visualización de precios según el rol actual
+    this.updatePriceDisplay();
+  }
+
+  // Método para actualizar la visualización de precios según el rol
+  updatePriceDisplay(): void {
+    const userType = this.authService.currentUser?.tipoUsuario;
+    
+    // Si es una empresa, mostrar precio mayorista
+    this.showMayoristaPrice = userType === 'EMPRESA';
   }
 
   loadProduct(id: string): void {
@@ -103,6 +124,15 @@ export class ProductDetailComponent implements OnInit {
     this.selectedVariant = variant;
     // Reiniciar cantidad al cambiar de variante
     this.quantity = 1;
+  }
+
+  // Obtener el precio a mostrar según el rol
+  getDisplayPrice(): number {
+    if (!this.selectedVariant) return 0;
+    
+    return this.showMayoristaPrice ? 
+      (this.selectedVariant.priceMayorista || this.selectedVariant.priceMinorista) : 
+      this.selectedVariant.priceMinorista;
   }
 
   incrementQuantity(): void {

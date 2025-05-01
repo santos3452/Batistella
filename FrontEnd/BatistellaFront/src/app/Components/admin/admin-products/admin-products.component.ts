@@ -239,4 +239,52 @@ export class AdminProductsComponent implements OnInit {
         }
       });
   }
+
+  // Formatea la fecha de última actualización de forma amigable
+  formatUpdatedAt(dateString: string): string {
+    if (!dateString) return 'No disponible';
+    
+    try {
+      // Parseamos la fecha (formato esperado: DD/MM/YYYY HH:MM:SS)
+      const parts = dateString.split(' ');
+      if (parts.length !== 2) return dateString;
+      
+      const dateParts = parts[0].split('/');
+      if (dateParts.length !== 3) return dateString;
+      
+      const day = parseInt(dateParts[0]);
+      const month = parseInt(dateParts[1]) - 1; // Los meses en JS van de 0 a 11
+      const year = parseInt(dateParts[2]);
+      
+      const timeParts = parts[1].split(':');
+      if (timeParts.length !== 3) return dateString;
+      
+      const hour = parseInt(timeParts[0]);
+      const minute = parseInt(timeParts[1]);
+      
+      const date = new Date(year, month, day, hour, minute);
+      const now = new Date();
+      
+      // Si es de hoy, mostrar solo la hora
+      if (date.toDateString() === now.toDateString()) {
+        return `Hoy a las ${hour}:${minute.toString().padStart(2, '0')}`;
+      }
+      
+      // Si es de ayer, mostrar "Ayer"
+      const yesterday = new Date(now);
+      yesterday.setDate(now.getDate() - 1);
+      if (date.toDateString() === yesterday.toDateString()) {
+        return `Ayer a las ${hour}:${minute.toString().padStart(2, '0')}`;
+      }
+      
+      // Para fechas más antiguas, mostrar el formato completo
+      const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 
+                          'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+      
+      return `${day} ${monthNames[month]}, ${hour}:${minute.toString().padStart(2, '0')}`;
+    } catch (error) {
+      console.error('Error al formatear fecha', error);
+      return dateString;
+    }
+  }
 } 

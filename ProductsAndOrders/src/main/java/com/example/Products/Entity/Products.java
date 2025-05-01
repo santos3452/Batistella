@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.NaturalId;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "productos", 
@@ -38,7 +40,6 @@ public class Products {
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-
     private Kilos kg;
 
     @Column(nullable = false, precision = 10, scale = 2)
@@ -59,6 +60,13 @@ public class Products {
 
     @Column(nullable = false)
     private Boolean activo = true;
+
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
+
 
     public String getFullName() {
         if (tipoRaza != null) {

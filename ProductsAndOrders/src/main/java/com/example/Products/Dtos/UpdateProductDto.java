@@ -1,19 +1,16 @@
 package com.example.Products.Dtos;
 
 import com.example.Products.Entity.enums.*;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ProductListDTO {
+public class UpdateProductDto {
 
     private Long id;
 
@@ -44,7 +41,5 @@ public class ProductListDTO {
 
     private Boolean activo;
 
-    private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-
 }

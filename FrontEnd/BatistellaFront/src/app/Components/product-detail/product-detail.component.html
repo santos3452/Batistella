@@ -26,29 +26,6 @@
 
   <!-- Detalle del producto -->
   <div *ngIf="!isLoading && product" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <!-- Navegación -->
-    <div class="flex items-center text-sm text-gray-500 mb-6">
-      <a routerLink="/" class="hover:text-emerald-600 transition">
-        Inicio
-      </a>
-      <svg class="h-4 w-4 mx-1" viewBox="0 0 20 20" fill="currentColor">
-        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
-      </svg>
-      <a [routerLink]="'/category/' + product.animalType" class="hover:text-emerald-600 transition">
-        {{ product.animalType }}
-      </a>
-      <svg class="h-4 w-4 mx-1" viewBox="0 0 20 20" fill="currentColor">
-        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
-      </svg>
-      <a routerLink="/alimentos" class="hover:text-emerald-600 transition">
-        Alimentos
-      </a>
-      <svg class="h-4 w-4 mx-1" viewBox="0 0 20 20" fill="currentColor">
-        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
-      </svg>
-      <span class="text-gray-900 font-medium">{{ product.marca }}</span>
-    </div>
-
     <div class="flex flex-col lg:flex-row gap-8">
       <!-- Columna izquierda - Imágenes -->
       <div class="lg:w-1/2">
@@ -115,8 +92,21 @@
           </div>
 
           <div class="flex items-baseline mb-6">
-            <span class="text-3xl font-bold text-gray-900">$ {{ Math.floor(selectedVariant?.priceMinorista || 0).toLocaleString('es-AR') }}</span>
-            <span class="text-lg ml-1 text-gray-900">{{ (selectedVariant && selectedVariant.priceMinorista % 1 > 0 ? Math.round((selectedVariant.priceMinorista % 1) * 100) : '00') }}</span>
+            <!-- Para empresas: mostrar precio mayorista y minorista tachado -->
+            <ng-container *ngIf="showMayoristaPrice && selectedVariant">
+              <span class="text-3xl font-bold text-emerald-600">$ {{ Math.floor(selectedVariant.priceMayorista || 0).toLocaleString('es-AR') }}</span>
+              <span class="text-lg ml-1 text-emerald-600">{{ (selectedVariant && selectedVariant.priceMayorista % 1 > 0 ? Math.round((selectedVariant.priceMayorista % 1) * 100) : '00') }}</span>
+              <div class="flex items-baseline ml-3">
+                <span class="text-lg text-gray-500 line-through">$ {{ Math.floor(selectedVariant.priceMinorista || 0).toLocaleString('es-AR') }}</span>
+                <span class="text-sm ml-1 text-gray-500 line-through">{{ (selectedVariant && selectedVariant.priceMinorista % 1 > 0 ? Math.round((selectedVariant.priceMinorista % 1) * 100) : '00') }}</span>
+              </div>
+            </ng-container>
+            
+            <!-- Para clientes finales: solo precio minorista -->
+            <ng-container *ngIf="!showMayoristaPrice && selectedVariant">
+              <span class="text-3xl font-bold text-gray-900">$ {{ Math.floor(selectedVariant.priceMinorista || 0).toLocaleString('es-AR') }}</span>
+              <span class="text-lg ml-1 text-gray-900">{{ (selectedVariant && selectedVariant.priceMinorista % 1 > 0 ? Math.round((selectedVariant.priceMinorista % 1) * 100) : '00') }}</span>
+            </ng-container>
           </div>
 
           <div class="mb-6">
