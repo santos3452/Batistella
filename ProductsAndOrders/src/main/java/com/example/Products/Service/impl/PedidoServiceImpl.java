@@ -1,4 +1,4 @@
-package com.example.Products.Service.impl;
+package com.example.Products.Service.Impl;
 
 import com.example.Products.Dtos.PedidosDto.CrearPedidoDTO;
 import com.example.Products.Dtos.PedidosDto.PedidoProductoDTO;
@@ -22,6 +22,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class PedidoServiceImpl implements PedidoService {
@@ -125,5 +126,38 @@ public class PedidoServiceImpl implements PedidoService {
         
         responseDTO.setProductos(productosResponse);
         return responseDTO;
+    }
+    
+    @Override
+    public List<PedidoResponseDTO> obtenerPedidosPorUsuario(Long usuarioId) {
+        List<Pedido> pedidos = pedidoRepository.findByUsuarioId(usuarioId);
+        return pedidos.stream().map(pedido -> {
+            PedidoResponseDTO responseDTO = new PedidoResponseDTO();
+            responseDTO.setId(pedido.getId());
+            responseDTO.setUsuarioId(pedido.getUsuarioId());
+            responseDTO.setFechaPedido(pedido.getFechaPedido());
+            responseDTO.setEstado(pedido.getEstado());
+            responseDTO.setTotal(pedido.getTotal());
+            responseDTO.setCreatedAt(pedido.getCreatedAt());
+            responseDTO.setUpdatedAt(pedido.getUpdatedAt());
+            
+            // Obtener los productos del pedido
+            List<PedidoProductoResponseDTO> productosResponse = pedido.getPedidoProductos().stream()
+                .map(pedidoProducto -> {
+                    PedidoProductoResponseDTO productoDTO = new PedidoProductoResponseDTO();
+                    productoDTO.setId(pedidoProducto.getId());
+                    productoDTO.setProductoId(pedidoProducto.getProducto().getId());
+                    productoDTO.setNombreProducto(pedidoProducto.getProducto().getDescription());
+                    productoDTO.setCantidad(pedidoProducto.getCantidad());
+                    productoDTO.setPrecioUnitario(pedidoProducto.getProducto().getPriceMinorista());
+                    BigDecimal cantidad = new BigDecimal(pedidoProducto.getCantidad());
+                    productoDTO.setSubtotal(pedidoProducto.getProducto().getPriceMinorista().multiply(cantidad));
+                    return productoDTO;
+                })
+                .collect(Collectors.toList());
+            
+            responseDTO.setProductos(productosResponse);
+            return responseDTO;
+        }).collect(Collectors.toList());
     }
 } 

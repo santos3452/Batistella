@@ -1,7 +1,9 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { ProductService } from '../../Services/Product/product.service';
+import { AuthService } from '../../Services/Auth/auth.service';
+import { Subscription } from 'rxjs';
 
 interface Category {
   id: string;
@@ -30,9 +32,12 @@ interface IconoMarca {
   standalone: true,
   imports: [CommonModule, RouterLink, RouterLinkActive]
 })
-export class SidebarComponent implements OnInit {
+export class SidebarComponent implements OnInit, OnDestroy {
   @Input() isOpen: boolean = false;
   @Output() onClose = new EventEmitter<void>();
+  
+  isLoggedIn: boolean = false;
+  private authSubscription: Subscription = new Subscription();
   
   animalCategories: Category[] = [
     { 
@@ -75,11 +80,24 @@ export class SidebarComponent implements OnInit {
   // Lista de marcas que tienen iconos disponibles (para uso rápido)
   private marcasConIcono: string[] = this.iconosMarcas.map(item => item.nombre);
   
-  constructor(private productService: ProductService) {}
+  constructor(
+    private productService: ProductService,
+    private authService: AuthService
+  ) {}
 
   ngOnInit(): void {
     // Cargar las marcas al iniciar el componente
     this.loadMarcas();
+    
+    // Suscripción al estado de autenticación
+    this.authSubscription = this.authService.currentUser$.subscribe(user => {
+      this.isLoggedIn = !!user;
+    });
+  }
+  
+  ngOnDestroy(): void {
+    // Cancelar suscripciones para evitar pérdidas de memoria
+    this.authSubscription.unsubscribe();
   }
 
   loadMarcas(): void {

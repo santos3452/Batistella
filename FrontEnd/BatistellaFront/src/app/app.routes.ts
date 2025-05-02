@@ -8,6 +8,7 @@ import { AdminProductsComponent } from './Components/admin/admin-products/admin-
 import { ProductFormComponent } from './Components/admin/product-form/product-form.component';
 import { SearchResultsComponent } from './Components/search-results/search-results.component';
 import { ProductDetailComponent } from './Components/product-detail/product-detail.component';
+import { MisPedidosComponent } from './Components/mis-pedidos/mis-pedidos.component';
 import { AuthGuard } from './Services/Auth/auth.guard';
 import { AdminGuard } from './Services/Auth/admin.guard';
 
@@ -19,6 +20,7 @@ export const routes: Routes = [
   { path: 'reset-password', component: ResetPasswordComponent },
   { path: 'search', component: SearchResultsComponent },
   { path: 'product/:id', component: ProductDetailComponent },
+  { path: 'mis-pedidos', component: MisPedidosComponent, canActivate: [AuthGuard] },
   { 
     path: 'admin/products', 
     component: AdminProductsComponent, 
