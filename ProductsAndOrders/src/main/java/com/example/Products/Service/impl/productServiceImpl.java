@@ -65,16 +65,20 @@ public class productServiceImpl implements productService {
     @Override
     public ProductDTO updateProduct(UpdateProductDto product) {
         Products existingProduct = productRepository.findById(product.getId())
-                .orElse(null);
-
-        existingProduct = modelMapper.modelMapper().map(product, Products.class);
+                .orElseThrow(() -> new IllegalArgumentException("No existe el producto con id: " + product.getId()));
+        
+        // Guardar temporalmente el valor createdAt original
+        LocalDateTime createdAtOriginal = existingProduct.getCreatedAt();
+        
+        // Hacer el mapeo del DTO al producto existente
+        modelMapper.modelMapper().map(product, existingProduct);
+        
+        // Asegurar que se mantenga el createdAt original
+        existingProduct.setCreatedAt(createdAtOriginal);
         existingProduct.setUpdatedAt(LocalDateTime.now());
 
-        productRepository.save(existingProduct);
-
-        return modelMapper.modelMapper().map(existingProduct, ProductDTO.class);
-
-
+        Products savedProduct = productRepository.save(existingProduct);
+        return modelMapper.modelMapper().map(savedProduct, ProductDTO.class);
     }
 
     @Override
