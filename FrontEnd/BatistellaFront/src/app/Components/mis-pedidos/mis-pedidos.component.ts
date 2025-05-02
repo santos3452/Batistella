@@ -94,18 +94,17 @@ export class MisPedidosComponent implements OnInit {
     this.cargando = true;
     this.error = null;
 
-    // Comentar este bloque en producción y descomentar el método real
-    // Simulación para desarrollo
-    setTimeout(() => {
-      this.procesarPedidosConImagenes(this.pedidosMuestra);
-    }, 1000); // Simulamos un segundo de carga
-
-    /* Descomentar esto en producción
     // Obtener el ID del usuario actual
     this.authService.currentUser$.subscribe(user => {
+      console.log('Usuario actual en MisPedidos:', user);
+      
       if (user && user.id) {
+        console.log('Cargando pedidos para el usuario con ID:', user.id);
         this.pedidosService.getPedidosUsuario(user.id).subscribe({
           next: (pedidos) => {
+            // Si hay pedidos o si el array está vacío, procesamos los resultados
+            // Un array vacío es válido - significa que el usuario está logueado pero no tiene pedidos
+            console.log('Pedidos recibidos:', pedidos?.length || 0);
             this.procesarPedidosConImagenes(pedidos);
           },
           error: (err) => {
@@ -115,15 +114,31 @@ export class MisPedidosComponent implements OnInit {
           }
         });
       } else {
+        console.log('Objeto usuario:', user);
+        console.log('Usuario sin ID válido:', user?.id);
+        // Solo si no hay usuario logueado mostramos este mensaje
         this.error = 'Debes iniciar sesión para ver tus pedidos.';
         this.cargando = false;
       }
     });
+
+    // Código de simulación para desarrollo (comentar en producción)
+    /*
+    setTimeout(() => {
+      this.procesarPedidosConImagenes(this.pedidosMuestra);
+    }, 1000); // Simulamos un segundo de carga
     */
   }
 
   // Método para procesar los pedidos y obtener las imágenes de los productos
   procesarPedidosConImagenes(pedidos: Pedido[]): void {
+    // Si no hay pedidos, simplemente terminamos la carga con un array vacío
+    if (!pedidos || pedidos.length === 0) {
+      this.pedidos = [];
+      this.cargando = false;
+      return;
+    }
+
     // Crear un arreglo para rastrear todas las solicitudes de productos
     const solicitudesProductos: any[] = [];
     
@@ -211,5 +226,13 @@ export class MisPedidosComponent implements OnInit {
       return partes[0];
     }
     return fecha;
+  }
+
+  calcularGastoTotal(): number {
+    return this.pedidos.reduce((total, pedido) => total + pedido.total, 0);
+  }
+
+  contarPedidosPendientes(): number {
+    return this.pedidos.filter(pedido => pedido.estado.toUpperCase() === 'PENDIENTE').length;
   }
 } 

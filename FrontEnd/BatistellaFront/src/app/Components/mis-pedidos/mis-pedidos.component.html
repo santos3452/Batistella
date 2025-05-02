@@ -1,146 +1,195 @@
-<div class="container mx-auto px-4 py-8">
-  <h1 class="text-2xl font-bold text-gray-800 mb-6">Mis Pedidos</h1>
-
-  <!-- Cargando -->
-  <div *ngIf="cargando" class="flex justify-center items-center p-10">
-    <svg class="animate-spin h-8 w-8 text-teal-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-    </svg>
-  </div>
-
-  <!-- Error -->
-  <div *ngIf="error" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
-    <p>{{ error }}</p>
-  </div>
-
-  <!-- Sin pedidos -->
-  <div *ngIf="!cargando && !error && pedidos.length === 0" class="bg-blue-50 p-8 rounded-lg text-center">
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-blue-400 mb-4" viewBox="0 0 20 20" fill="currentColor">
-      <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
-    </svg>
-    <h2 class="text-xl font-semibold mb-2">No tienes pedidos aún</h2>
-    <p class="text-gray-600 mb-4">Explora nuestros productos y realiza tu primer pedido</p>
-    <a routerLink="/" class="inline-block bg-teal-600 hover:bg-teal-700 text-white font-medium py-2 px-4 rounded transition-colors">
-      Ver productos
-    </a>
-  </div>
-
-  <!-- Lista de pedidos -->
-  <div *ngIf="!cargando && !error && pedidos.length > 0" class="space-y-6">
-    <!-- Tarjeta de pedido -->
-    <div *ngFor="let pedido of pedidos" class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
-      <!-- Cabecera del pedido -->
-      <div class="p-4 bg-gray-50 border-b border-gray-200 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-        <div>
-          <span class="text-sm text-gray-500">Pedido realizado el</span>
-          <span class="font-medium ml-1">{{ formatearFecha(pedido.fechaPedido) }}</span>
-        </div>
-        <div>
-          <span class="text-sm text-gray-500">Nº de Pedido:</span>
-          <span class="font-medium ml-1">{{ pedido.id }}</span>
-        </div>
-        <div>
-          <span class="text-sm text-gray-500">Total:</span>
-          <span class="font-medium ml-1">${{ pedido.total.toLocaleString('es-AR') }}</span>
-        </div>
-        <div>
-          <span [class]="'px-2 py-1 rounded-full text-xs font-medium ' + obtenerEstadoClase(pedido.estado)">
-            {{ pedido.estado }}
-          </span>
-        </div>
-      </div>
-
-      <!-- Resumen del pedido -->
-      <div class="p-4 flex justify-between items-center">
-        <div>
-          <p class="text-gray-700 mb-1">
-            <span class="font-medium">{{ pedido.productos.length }}</span> 
-            {{ pedido.productos.length === 1 ? 'producto' : 'productos' }}
-          </p>
-          <p class="text-sm text-gray-500">
-            {{ pedido.productos[0].nombreProducto }}
-            <span *ngIf="pedido.productos.length > 1"> y {{ pedido.productos.length - 1 }} más</span>
-          </p>
-        </div>
-        <button 
-          (click)="toggleDetallePedido(pedido.id)"
-          class="text-teal-600 hover:text-teal-800 font-medium flex items-center"
-        >
-          {{ pedidoExpandido === pedido.id ? 'Ocultar detalles' : 'Ver detalles' }}
-          <svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            [class]="pedidoExpandido === pedido.id ? 'rotate-180 transform' : ''" 
-            class="h-5 w-5 ml-1 transition-transform duration-200" 
-            viewBox="0 0 20 20" 
-            fill="currentColor"
-          >
-            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+<div class="min-h-screen bg-gradient-to-b from-teal-50 to-white">
+  <div class="container mx-auto px-4 py-8">
+    <!-- Breadcrumbs -->
+    <nav class="flex mb-6 text-sm">
+      <a routerLink="/" class="text-gray-500 hover:text-teal-600">Inicio</a>
+      <span class="mx-2 text-gray-400">/</span>
+      <span class="text-teal-600 font-medium">Mis Pedidos</span>
+    </nav>
+    
+    <!-- Page Title -->
+    <div class="flex justify-between items-center mb-8">
+      <h1 class="text-3xl font-bold text-gray-800">Mis Pedidos</h1>
+      <div class="flex space-x-2">
+        <button class="px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
           </svg>
+          Filtrar
+        </button>
+        <button class="px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          Exportar
         </button>
       </div>
+    </div>
 
-      <!-- Detalle del pedido (expandible) -->
-      <div 
-        *ngIf="pedidoExpandido === pedido.id" 
-        class="border-t border-gray-200 p-4 bg-gray-50"
-      >
-        <h3 class="font-semibold text-gray-800 mb-3">Detalle del pedido</h3>
-        <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-200">
-            <thead>
-              <tr>
-                <th class="px-4 py-3 bg-gray-100 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" width="70">
-                  Imagen
-                </th>
-                <th class="px-4 py-3 bg-gray-100 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Producto
-                </th>
-                <th class="px-4 py-3 bg-gray-100 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Cantidad
-                </th>
-                <th class="px-4 py-3 bg-gray-100 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Precio unitario
-                </th>
-                <th class="px-4 py-3 bg-gray-100 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Subtotal
-                </th>
-              </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-              <tr *ngFor="let producto of pedido.productos">
-                <td class="px-4 py-3 whitespace-normal text-sm">
-                  <img 
-                    [src]="producto.imagenUrl" 
-                    [alt]="producto.nombreProducto"
-                    class="w-14 h-14 object-contain border border-gray-200 rounded bg-white"
-                  >
-                </td>
-                <td class="px-4 py-3 whitespace-normal text-sm text-gray-800">
-                  {{ producto.nombreProducto }}
-                </td>
-                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600 text-right">
-                  {{ producto.cantidad }}
-                </td>
-                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600 text-right">
-                  ${{ producto.precioUnitario.toLocaleString('es-AR') }}
-                </td>
-                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-800 font-medium text-right">
-                  ${{ producto.subtotal.toLocaleString('es-AR') }}
-                </td>
-              </tr>
-            </tbody>
-            <tfoot>
-              <tr>
-                <td colspan="4" class="px-4 py-3 text-right font-medium text-gray-700">
-                  Total
-                </td>
-                <td class="px-4 py-3 text-right font-bold text-gray-900">
-                  ${{ pedido.total.toLocaleString('es-AR') }}
-                </td>
-              </tr>
-            </tfoot>
-          </table>
+    <!-- Orders Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+      <div class="bg-white rounded-xl shadow-sm p-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-gray-500 text-sm">Total de pedidos</p>
+            <p class="text-3xl font-bold text-gray-800">{{ pedidos.length }}</p>
+          </div>
+          <div class="h-12 w-12 rounded-full bg-teal-100 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+            </svg>
+          </div>
+        </div>
+      </div>
+      
+      <div class="bg-white rounded-xl shadow-sm p-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-gray-500 text-sm">Gasto total</p>
+            <p class="text-3xl font-bold text-gray-800">${{ calcularGastoTotal().toLocaleString('es-AR') }}</p>
+          </div>
+          <div class="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cargando -->
+    <div *ngIf="cargando" class="flex justify-center items-center p-10">
+      <svg class="animate-spin h-8 w-8 text-teal-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+    </div>
+
+    <!-- Error -->
+    <div *ngIf="error" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4 rounded-lg shadow-sm" role="alert">
+      <p class="font-medium">Error</p>
+      <p>{{ error }}</p>
+    </div>
+
+    <!-- Sin pedidos -->
+    <div *ngIf="!cargando && !error && pedidos.length === 0" class="bg-white p-8 rounded-xl shadow-sm text-center">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-teal-400 mb-4" viewBox="0 0 20 20" fill="currentColor">
+        <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
+      </svg>
+      <h2 class="text-xl font-semibold mb-2">Aún no has realizado ningún pedido</h2>
+      <p class="text-gray-600 mb-4">Te invitamos a explorar nuestro catálogo de productos y realizar tu primera compra</p>
+      <a routerLink="/" class="inline-block bg-teal-600 hover:bg-teal-700 text-white font-medium py-2 px-4 rounded-md transition-colors">
+        Ir al catálogo
+      </a>
+    </div>
+
+    <!-- Lista de pedidos -->
+    <div *ngIf="!cargando && !error && pedidos.length > 0" class="space-y-6">
+      <!-- Pedido -->
+      <div *ngFor="let pedido of pedidos" class="bg-white rounded-xl shadow-sm overflow-hidden">
+        <div class="p-6 border-b">
+          <div class="flex flex-wrap justify-between items-center gap-4">
+            <div class="flex items-center gap-4">
+              <div class="h-10 w-10 rounded-full bg-teal-100 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                </svg>
+              </div>
+              <div>
+                <p class="font-medium text-gray-900">Pedido #{{ pedido.id }}</p>
+                <p class="text-sm text-gray-500">Realizado el {{ formatearFecha(pedido.fechaPedido) }}</p>
+              </div>
+            </div>
+            
+            <div class="flex items-center gap-4">
+              <div class="text-right">
+                <p class="font-medium text-gray-900">Total</p>
+                <p class="text-lg font-bold text-teal-600">${{ pedido.total.toLocaleString('es-AR') }}</p>
+              </div>
+              
+              <div>
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium" 
+                      [ngClass]="obtenerEstadoClase(pedido.estado)">
+                  {{ pedido.estado }}
+                </span>
+              </div>
+              
+              <button 
+                (click)="toggleDetallePedido(pedido.id)"
+                class="text-gray-400 hover:text-teal-600 transition-colors"
+              >
+                <svg *ngIf="pedidoExpandido !== pedido.id" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+                <svg *ngIf="pedidoExpandido === pedido.id" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Order Details (Expanded) -->
+        <div *ngIf="pedidoExpandido === pedido.id" class="border-b">
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Producto
+                  </th>
+                  <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Cantidad
+                  </th>
+                  <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Precio Unitario
+                  </th>
+                  <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Subtotal
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                <tr *ngFor="let producto of pedido.productos">
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                      <div class="flex-shrink-0 h-16 w-16 bg-gray-100 rounded-md overflow-hidden">
+                        <img [src]="producto.imagenUrl" [alt]="producto.nombreProducto" class="h-full w-full object-contain p-1">
+                      </div>
+                      <div class="ml-4">
+                        <div class="text-sm font-medium text-gray-900">{{ producto.nombreProducto }}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-center">
+                    <div class="text-sm text-gray-900">{{ producto.cantidad }}</div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-right">
+                    <div class="text-sm text-gray-900">${{ producto.precioUnitario.toLocaleString('es-AR') }}</div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-right">
+                    <div class="text-sm font-medium text-gray-900">${{ producto.subtotal.toLocaleString('es-AR') }}</div>
+                  </td>
+                </tr>
+              </tbody>
+              <tfoot class="bg-gray-50">
+                <tr>
+                  <td colspan="3" class="px-6 py-4 text-right text-sm font-medium text-gray-900">Total</td>
+                  <td class="px-6 py-4 text-right text-sm font-bold text-teal-600">${{ pedido.total.toLocaleString('es-AR') }}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+        
+        <!-- Order Actions -->
+        <div class="p-4 bg-gray-50 flex justify-end space-x-3">
+          <button class="px-4 py-2 bg-teal-50 border border-teal-200 rounded-lg text-teal-600 hover:bg-teal-100 text-sm font-medium">
+            Seguir envío
+          </button>
+          <button class="px-4 py-2 bg-teal-600 rounded-lg text-white hover:bg-teal-700 text-sm font-medium">
+            Repetir pedido
+          </button>
         </div>
       </div>
     </div>

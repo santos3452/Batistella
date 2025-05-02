@@ -81,6 +81,7 @@ export class UserService {
 
           return this.http.get(`${this.usersUrl}/email/${email}`, { headers: authHeaders }).pipe(
             map(userData => {
+              console.log('Datos completos del usuario obtenidos:', userData);
               return {
                 ...loginResponse,
                 userData: userData
