@@ -1,9 +1,9 @@
 package com.example.Products.Service;
 
-import com.example.Products.Dtos.ProductDTO;
-import com.example.Products.Dtos.ProductListDTO;
-import com.example.Products.Dtos.UpdateProductDto;
-import org.springframework.stereotype.Service;
+import com.example.Products.Dtos.ProductosDto.ProductDTO;
+import com.example.Products.Dtos.ProductosDto.ProductListDTO;
+import com.example.Products.Dtos.ProductosDto.UpdateProductDto;
+import com.example.Products.Entity.enums.Marca;
 
 import java.util.List;
 
@@ -20,6 +20,8 @@ public interface productService {
     ProductDTO getProductById(long id);
 
     void aumentarPrecio(double porcentaje, String marca);
+
+    List<Marca> getAllMarcas();
 
 
 }

@@ -30,6 +30,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   products: Product[] = [];
   productGroups: ProductGroup[] = [];
   categoryFilter: string | null = null;
+  marcaFilter: string | null = null;
   categoryTitle = 'Todos los Alimentos';
   isAdmin = false;
   private subscription: Subscription = new Subscription();
@@ -47,13 +48,17 @@ export class HomeComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    // Suscribirse a los cambios de ruta para filtrar por categoría
+    // Suscribirse a los cambios de ruta para filtrar por categoría o marca
     this.subscription.add(
       this.route.queryParamMap.subscribe(params => {
         this.categoryFilter = params.get('category');
+        this.marcaFilter = params.get('marca');
         
+        // Actualizar el título según el filtro aplicado
         if (this.categoryFilter) {
           this.categoryTitle = this.categoryTitles[this.categoryFilter] || 'Productos';
+        } else if (this.marcaFilter) {
+          this.categoryTitle = `Productos de ${this.marcaFilter}`;
         } else {
           this.categoryTitle = 'Todos los Alimentos';
         }
@@ -79,12 +84,32 @@ export class HomeComponent implements OnInit, OnDestroy {
       // Filtrar productos por categoría
       this.productService.getProductsGroupedByWeightByCategory(this.categoryFilter).subscribe(groups => {
         this.productGroups = groups;
+        
+        // Si también hay filtro por marca, aplicarlo después
+        if (this.marcaFilter) {
+          this.filterGroupsByMarca();
+        }
+      });
+    } else if (this.marcaFilter) {
+      // Cargar todos los productos y filtrar por marca
+      this.productService.getProductsGroupedByWeight().subscribe(groups => {
+        this.productGroups = groups;
+        this.filterGroupsByMarca();
       });
     } else {
       // Cargar todos los productos activos agrupados
       this.productService.getProductsGroupedByWeight().subscribe(groups => {
         this.productGroups = groups;
       });
+    }
+  }
+
+  // Método para filtrar grupos de productos por marca
+  private filterGroupsByMarca(): void {
+    if (this.marcaFilter) {
+      this.productGroups = this.productGroups.filter(group => 
+        group.baseProduct.marca === this.marcaFilter
+      );
     }
   }
 }

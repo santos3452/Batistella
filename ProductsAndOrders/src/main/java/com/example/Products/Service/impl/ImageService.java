@@ -1,8 +1,7 @@
 package com.example.Products.Service.impl;
 
-import com.example.Products.Dtos.ProductDTO;
-import com.example.Products.Dtos.ProductListDTO;
-import com.example.Products.Dtos.UpdateProductDto;
+import com.example.Products.Dtos.ProductosDto.ProductDTO;
+import com.example.Products.Dtos.ProductosDto.UpdateProductDto;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;

@@ -1,14 +1,11 @@
-package com.example.Products.Dtos;
+package com.example.Products.Dtos.ProductosDto;
 
 import com.example.Products.Entity.enums.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
-import com.fasterxml.jackson.annotation.JsonValue;
-import com.fasterxml.jackson.annotation.JsonCreator;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor

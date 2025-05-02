@@ -22,3 +22,26 @@ CREATE TABLE IF NOT EXISTS productos (
     activo BOOLEAN NOT NULL DEFAULT true
 );
 
+-- Crear tabla de pedidos si no existe
+CREATE TABLE IF NOT EXISTS pedidos (
+    id SERIAL PRIMARY KEY,
+    usuario_id BIGINT NOT NULL,
+    fecha_pedido TIMESTAMP NOT NULL,
+    estado VARCHAR(20) NOT NULL,
+    total DECIMAL(10,2) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Crear tabla de pedidos_productos si no existe
+CREATE TABLE IF NOT EXISTS pedidos_productos (
+    id SERIAL PRIMARY KEY,
+    pedido_id BIGINT NOT NULL,
+    producto_id BIGINT NOT NULL,
+    cantidad INTEGER NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_pedido FOREIGN KEY (pedido_id) REFERENCES pedidos(id) ON DELETE CASCADE,
+    CONSTRAINT fk_producto FOREIGN KEY (producto_id) REFERENCES productos(id)
+);
+

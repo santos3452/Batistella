@@ -1,0 +1,129 @@
+package com.example.Products.Service.impl;
+
+import com.example.Products.Dtos.PedidosDto.CrearPedidoDTO;
+import com.example.Products.Dtos.PedidosDto.PedidoProductoDTO;
+import com.example.Products.Dtos.PedidosDto.PedidoProductoResponseDTO;
+import com.example.Products.Dtos.PedidosDto.PedidoResponseDTO;
+import com.example.Products.Entity.Pedido;
+import com.example.Products.Entity.PedidoProducto;
+import com.example.Products.Entity.Products;
+import com.example.Products.Entity.enums.EstadoPedido;
+import com.example.Products.Repository.PedidoProductoRepository;
+import com.example.Products.Repository.PedidoRepository;
+import com.example.Products.Repository.productRepository;
+import com.example.Products.Service.PedidoService;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+@Service
+public class PedidoServiceImpl implements PedidoService {
+
+    @Autowired
+    private PedidoRepository pedidoRepository;
+
+    @Autowired
+    private PedidoProductoRepository pedidoProductoRepository;
+
+    @Autowired
+    private productRepository productoRepository;
+    
+    @Autowired
+    private ModelMapper modelMapper;
+
+    @Override
+    @Transactional
+    public PedidoResponseDTO crearPedido(CrearPedidoDTO crearPedidoDTO) {
+        // Verificar que todos los productos existen y tienen stock suficiente
+        List<Products> productos = new ArrayList<>();
+        for (PedidoProductoDTO productoDTO : crearPedidoDTO.getProductos()) {
+            Products producto = productoRepository.findById(productoDTO.getProductoId())
+                    .orElseThrow(() -> new EntityNotFoundException("Producto no encontrado con ID: " + productoDTO.getProductoId()));
+
+            if (producto.getStock() < productoDTO.getCantidad()) {
+                throw new IllegalArgumentException("Stock insuficiente para el producto: " + producto.getMarca() + " " + producto.getTipoAlimento());
+            }
+
+            productos.add(producto);
+        }
+
+        // Calcular el total del pedido
+        BigDecimal total = BigDecimal.ZERO;
+        for (int i = 0; i < crearPedidoDTO.getProductos().size(); i++) {
+            PedidoProductoDTO productoDTO = crearPedidoDTO.getProductos().get(i);
+            Products producto = productos.get(i);
+
+            // Usamos el precio minorista
+            BigDecimal precioUnitario = producto.getPriceMinorista();
+            BigDecimal subtotal = precioUnitario.multiply(BigDecimal.valueOf(productoDTO.getCantidad()));
+            total = total.add(subtotal);
+        }
+
+        // Crear el pedido
+        Pedido pedido = new Pedido();
+        pedido.setUsuarioId(crearPedidoDTO.getUsuarioId());
+        pedido.setFechaPedido(LocalDateTime.now());
+        pedido.setEstado(EstadoPedido.PENDIENTE);
+        pedido.setTotal(total);
+
+        Pedido pedidoGuardado = pedidoRepository.save(pedido);
+
+        // Crear los items del pedido y actualizar stock
+        List<PedidoProducto> pedidoProductos = new ArrayList<>();
+        for (int i = 0; i < crearPedidoDTO.getProductos().size(); i++) {
+            PedidoProductoDTO productoDTO = crearPedidoDTO.getProductos().get(i);
+            Products producto = productos.get(i);
+
+            PedidoProducto pedidoProducto = new PedidoProducto();
+            pedidoProducto.setPedido(pedidoGuardado);
+            pedidoProducto.setProducto(producto);
+            pedidoProducto.setCantidad(productoDTO.getCantidad());
+
+            pedidoProductos.add(pedidoProducto);
+
+            // Actualizar stock
+            producto.setStock(producto.getStock() - productoDTO.getCantidad());
+            productoRepository.save(producto);
+        }
+
+        pedidoProductoRepository.saveAll(pedidoProductos);
+
+        // Construir la respuesta
+        PedidoResponseDTO responseDTO = new PedidoResponseDTO();
+        responseDTO.setId(pedidoGuardado.getId());
+        responseDTO.setUsuarioId(pedidoGuardado.getUsuarioId());
+        responseDTO.setFechaPedido(pedidoGuardado.getFechaPedido());
+        responseDTO.setEstado(pedidoGuardado.getEstado());
+        responseDTO.setTotal(pedidoGuardado.getTotal());
+        responseDTO.setCreatedAt(pedidoGuardado.getCreatedAt());
+        responseDTO.setUpdatedAt(pedidoGuardado.getUpdatedAt());
+        
+        // Agregar productos al pedido
+        List<PedidoProductoResponseDTO> productosResponse = new ArrayList<>();
+        for (int i = 0; i < pedidoProductos.size(); i++) {
+            PedidoProducto pedidoProducto = pedidoProductos.get(i);
+            Products producto = productos.get(i);
+            
+            PedidoProductoResponseDTO productoDTO = new PedidoProductoResponseDTO();
+            productoDTO.setId(pedidoProducto.getId());
+            productoDTO.setProductoId(producto.getId());
+            productoDTO.setNombreProducto(producto.getDescription());
+            productoDTO.setCantidad(pedidoProducto.getCantidad());
+            productoDTO.setPrecioUnitario(producto.getPriceMinorista());
+            BigDecimal cantidad = new BigDecimal(pedidoProducto.getCantidad());
+            productoDTO.setSubtotal(producto.getPriceMinorista().multiply(cantidad));
+            
+            productosResponse.add(productoDTO);
+        }
+        
+        responseDTO.setProductos(productosResponse);
+        return responseDTO;
+    }
+} 

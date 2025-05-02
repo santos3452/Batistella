@@ -1,9 +1,9 @@
 package com.example.Products.Service.impl;
 
 import com.example.Products.Config.ModelMapperConfig;
-import com.example.Products.Dtos.ProductDTO;
-import com.example.Products.Dtos.ProductListDTO;
-import com.example.Products.Dtos.UpdateProductDto;
+import com.example.Products.Dtos.ProductosDto.ProductDTO;
+import com.example.Products.Dtos.ProductosDto.ProductListDTO;
+import com.example.Products.Dtos.ProductosDto.UpdateProductDto;
 import com.example.Products.Entity.Products;
 import com.example.Products.Entity.enums.Marca;
 import com.example.Products.Service.productService;
@@ -13,6 +13,7 @@ import com.example.Products.Repository.productRepository;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -147,5 +148,11 @@ public class productServiceImpl implements productService {
         }
 
 
+    }
+
+    @Override
+    public List<Marca> getAllMarcas() {
+        // Devolvemos directamente todos los valores del enum Marca
+        return Arrays.asList(Marca.values());
     }
 }

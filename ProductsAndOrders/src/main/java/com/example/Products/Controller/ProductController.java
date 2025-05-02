@@ -1,9 +1,8 @@
 package com.example.Products.Controller;
 
 import com.example.Products.Dtos.Error.ErrorDto;
-import com.example.Products.Dtos.ProductDTO;
-import com.example.Products.Dtos.ProductListDTO;
-import com.example.Products.Dtos.UpdateProductDto;
+import com.example.Products.Dtos.ProductosDto.ProductDTO;
+import com.example.Products.Dtos.ProductosDto.UpdateProductDto;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,8 +16,6 @@ import java.io.IOException;
 
 import com.example.Products.Service.impl.ImageService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.File;
-import java.io.FileOutputStream;
 
 @RestController
 @RequestMapping("/api/products")
@@ -210,6 +207,26 @@ public class ProductController {
                             "Error al registrar producto: " + e.getMessage()
                     ));
         }
+    }
+
+    @GetMapping("/getAllMarcas")
+    public ResponseEntity<?> getAllMacrcas(){
+        try {
+            return ResponseEntity.ok(productService.getAllMarcas());
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ErrorDto.of(
+                            HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                            "Error Interno del Servidor",
+                            "Error al obtener marcas: " + e.getMessage()
+                    ));
+        }
+
+
+
+
+
     }
 
 
