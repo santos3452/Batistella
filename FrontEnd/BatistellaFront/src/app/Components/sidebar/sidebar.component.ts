@@ -70,11 +70,12 @@ export class SidebarComponent implements OnInit, OnDestroy {
     { nombre: 'Odwalla', archivo: 'Odwalla_color_logo-150x89-1.ico' },
     { nombre: '9Lives', archivo: '9live_color_logo.ico' },
     { nombre: 'Amici', archivo: 'CariAmici_color_logo.ico' },
-    { nombre: 'Zimpi', archivo: 'logo-zimpi.ico', necesitaBorde: true },
+    { nombre: 'Zimpi', archivo: 'zimpi.ico' },
     { nombre: 'Exact', archivo: 'exact_color_logo.ico' },
-    { nombre: 'Compinches', archivo: 'compinches_logo_new.ico', necesitaBorde: true },
+    { nombre: 'Compinches', archivo: 'compinches.ico' },
     { nombre: 'Ganacan', archivo: 'ganacan.ico' },
-    { nombre: 'Ganacat', archivo: 'ganacat.ico' }
+    { nombre: 'Ganacat', archivo: 'ganacat.ico' },
+    { nombre: 'Fishy', archivo: 'Fishy.ico' }
   ];
   
   // Lista de marcas que tienen iconos disponibles (para uso rápido)
