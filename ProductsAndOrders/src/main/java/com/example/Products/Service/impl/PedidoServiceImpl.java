@@ -82,10 +82,14 @@ public class PedidoServiceImpl implements PedidoService {
             PedidoProductoDTO productoDTO = crearPedidoDTO.getProductos().get(i);
             Products producto = productos.get(i);
 
+            // Obtener el precio unitario actual
+            BigDecimal precioUnitario = producto.getPriceMinorista();
+
             PedidoProducto pedidoProducto = new PedidoProducto();
             pedidoProducto.setPedido(pedidoGuardado);
             pedidoProducto.setProducto(producto);
             pedidoProducto.setCantidad(productoDTO.getCantidad());
+            pedidoProducto.setPrecioUnitario(precioUnitario); // Guardar el precio actual
 
             pedidoProductos.add(pedidoProducto);
 
@@ -117,9 +121,9 @@ public class PedidoServiceImpl implements PedidoService {
             productoDTO.setProductoId(producto.getId());
             productoDTO.setNombreProducto(producto.getDescription());
             productoDTO.setCantidad(pedidoProducto.getCantidad());
-            productoDTO.setPrecioUnitario(producto.getPriceMinorista());
+            productoDTO.setPrecioUnitario(pedidoProducto.getPrecioUnitario()); // Usar el precio guardado
             BigDecimal cantidad = new BigDecimal(pedidoProducto.getCantidad());
-            productoDTO.setSubtotal(producto.getPriceMinorista().multiply(cantidad));
+            productoDTO.setSubtotal(pedidoProducto.getPrecioUnitario().multiply(cantidad)); // Calcular subtotal con precio guardado
             
             productosResponse.add(productoDTO);
         }
@@ -149,9 +153,9 @@ public class PedidoServiceImpl implements PedidoService {
                     productoDTO.setProductoId(pedidoProducto.getProducto().getId());
                     productoDTO.setNombreProducto(pedidoProducto.getProducto().getDescription());
                     productoDTO.setCantidad(pedidoProducto.getCantidad());
-                    productoDTO.setPrecioUnitario(pedidoProducto.getProducto().getPriceMinorista());
+                    productoDTO.setPrecioUnitario(pedidoProducto.getPrecioUnitario()); // Usar el precio guardado en lugar del actual
                     BigDecimal cantidad = new BigDecimal(pedidoProducto.getCantidad());
-                    productoDTO.setSubtotal(pedidoProducto.getProducto().getPriceMinorista().multiply(cantidad));
+                    productoDTO.setSubtotal(pedidoProducto.getPrecioUnitario().multiply(cantidad)); // Calcular subtotal con precio guardado
                     return productoDTO;
                 })
                 .collect(Collectors.toList());

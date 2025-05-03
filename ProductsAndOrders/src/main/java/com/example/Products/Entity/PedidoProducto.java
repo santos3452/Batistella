@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -28,6 +29,9 @@ public class PedidoProducto {
 
     @Column(nullable = false)
     private Integer cantidad;
+    
+    @Column(name = "precio_unitario", nullable = false, precision = 10, scale = 2)
+    private BigDecimal precioUnitario;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
