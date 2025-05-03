@@ -96,27 +96,35 @@ export class MisPedidosComponent implements OnInit {
 
     // Obtener el ID del usuario actual
     this.authService.currentUser$.subscribe(user => {
-      console.log('Usuario actual en MisPedidos:', user);
-      
       if (user && user.id) {
-        console.log('Cargando pedidos para el usuario con ID:', user.id);
-        this.pedidosService.getPedidosUsuario(user.id).subscribe({
-          next: (pedidos) => {
-            // Si hay pedidos o si el array está vacío, procesamos los resultados
-            // Un array vacío es válido - significa que el usuario está logueado pero no tiene pedidos
-            console.log('Pedidos recibidos:', pedidos?.length || 0);
-            this.procesarPedidosConImagenes(pedidos);
-          },
-          error: (err) => {
-            console.error('Error al cargar pedidos:', err);
-            this.error = 'No se pudieron cargar tus pedidos. Por favor, intenta nuevamente más tarde.';
+        // Decodificar el token para obtener el ID del usuario
+        const token = localStorage.getItem('token');
+        if (token) {
+          try {
+            const tokenPayload = JSON.parse(atob(token.split('.')[1]));
+            const userIdFromToken = tokenPayload.userId;
+            
+            // Usar el ID del token en lugar del ID del usuario almacenado
+            this.pedidosService.getPedidosUsuario(userIdFromToken).subscribe({
+              next: (pedidos) => {
+                this.procesarPedidosConImagenes(pedidos);
+              },
+              error: (err) => {
+                console.error('Error al cargar pedidos:', err);
+                this.error = 'No se pudieron cargar tus pedidos. Por favor, intenta nuevamente más tarde.';
+                this.cargando = false;
+              }
+            });
+          } catch (error) {
+            console.error('Error al decodificar el token:', error);
+            this.error = 'Error al verificar tu sesión. Por favor, intenta nuevamente.';
             this.cargando = false;
           }
-        });
+        } else {
+          this.error = 'No se encontró el token de autenticación. Por favor, inicia sesión nuevamente.';
+          this.cargando = false;
+        }
       } else {
-        console.log('Objeto usuario:', user);
-        console.log('Usuario sin ID válido:', user?.id);
-        // Solo si no hay usuario logueado mostramos este mensaje
         this.error = 'Debes iniciar sesión para ver tus pedidos.';
         this.cargando = false;
       }

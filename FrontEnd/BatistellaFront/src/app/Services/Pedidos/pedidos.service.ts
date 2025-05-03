@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, throwError, of } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { Pedido } from '../../Models/pedido';
@@ -19,13 +19,20 @@ export class PedidosService {
   getPedidosUsuario(usuarioId: number): Observable<Pedido[]> {
     const now = Date.now();
     
+    // Obtener el token y crear los headers
+    const token = localStorage.getItem('token');
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'accept': 'application/hal+json'
+    });
+    
     // Si tenemos pedidos en caché y no han pasado más de 1 minuto, usamos la caché
     if (this.pedidosCache.length > 0 && now - this.lastFetchTime < this.cacheDuration) {
       return of(this.pedidosCache);
     }
     
     // Si no hay caché o está desactualizada, hacemos la petición
-    return this.http.get<Pedido[]>(`${this.apiUrl}/usuario/${usuarioId}`).pipe(
+    return this.http.get<Pedido[]>(`${this.apiUrl}/usuario/${usuarioId}`, { headers }).pipe(
       tap(pedidos => {
         this.pedidosCache = pedidos;
         this.lastFetchTime = Date.now();
