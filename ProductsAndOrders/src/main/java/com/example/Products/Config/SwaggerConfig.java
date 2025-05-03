@@ -9,6 +9,8 @@ import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.media.Content;
 import io.swagger.v3.oas.models.media.MediaType;
 import io.swagger.v3.oas.models.parameters.RequestBody;
+import io.swagger.v3.oas.models.security.SecurityScheme;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -17,6 +19,17 @@ public class SwaggerConfig {
 
     @Bean
     public OpenAPI customOpenAPI() {
+        // Configuración del esquema de seguridad para JWT
+        SecurityScheme securityScheme = new SecurityScheme()
+                .type(SecurityScheme.Type.HTTP)
+                .scheme("bearer")
+                .bearerFormat("JWT")
+                .in(SecurityScheme.In.HEADER)
+                .name("Authorization");
+
+        // Requerimiento de seguridad global
+        SecurityRequirement securityRequirement = new SecurityRequirement().addList("bearerAuth");
+
         // Crear un ejemplo de ProductDTO
         Example productExample = new Example();
         productExample.setValue("""
@@ -35,10 +48,12 @@ public class SwaggerConfig {
 
         // Crear el componente de ejemplo
         Components components = new Components()
-            .addExamples("productExample", productExample);
+            .addExamples("productExample", productExample)
+            .addSecuritySchemes("bearerAuth", securityScheme);
 
         return new OpenAPI()
                 .components(components)
+                .addSecurityItem(securityRequirement)
                 .info(new Info()
                         .title("Products API")
                         .version("1.0")
@@ -58,6 +73,12 @@ public class SwaggerConfig {
                               "type": "PERROS",
                               "activo": true
                             }
+                            ```
+                            
+                            ## Autenticación
+                            Para usar los endpoints protegidos, haz clic en el botón "Authorize" e ingresa tu JWT token con el formato:
+                            ```
+                            Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
                             ```
                             """));
     }
