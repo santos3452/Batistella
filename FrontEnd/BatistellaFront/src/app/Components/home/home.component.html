@@ -24,14 +24,21 @@
   </a>
 </div>
 
-<div *ngIf="productGroups.length > 0" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 mb-8">
-  <ng-container *ngFor="let group of productGroups; let i = index">
-    <app-product-card 
-      [productGroup]="group" 
-      [product]="group.baseProduct" 
-      [index]="i">
-    </app-product-card>
-  </ng-container>
+<div *ngIf="productGroups.length > 0">
+  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 mb-8">
+    <ng-container *ngFor="let group of pagedProductGroups; let i = index">
+      <app-product-card 
+        [productGroup]="group" 
+        [product]="group.baseProduct" 
+        [index]="i">
+      </app-product-card>
+    </ng-container>
+  </div>
+  <div *ngIf="totalPages > 1" class="flex justify-center space-x-2 mb-8">
+    <button (click)="prevPage()" [disabled]="page === 1" class="px-3 py-1 bg-gray-200 rounded disabled:opacity-50">Anterior</button>
+    <span class="self-center">Página {{page}} de {{totalPages}}</span>
+    <button (click)="nextPage()" [disabled]="page === totalPages" class="px-3 py-1 bg-gray-200 rounded disabled:opacity-50">Siguiente</button>
+  </div>
 </div>
 
 <div *ngIf="productGroups.length === 0" class="p-8 bg-white rounded-lg shadow-sm text-center">

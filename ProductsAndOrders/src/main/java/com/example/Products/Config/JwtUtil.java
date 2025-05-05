@@ -120,4 +120,16 @@ public class JwtUtil {
             return null;
         }
     }
+
+    // Extraer rol del token
+    public String extractRole(String token) {
+        try {
+            String role = extractClaim(token, claims -> claims.get("role", String.class));
+            logger.info("Rol extraído del token: {}", role);
+            return role;
+        } catch (Exception e) {
+            logger.error("Error al extraer rol del token", e);
+            return null;
+        }
+    }
 } 

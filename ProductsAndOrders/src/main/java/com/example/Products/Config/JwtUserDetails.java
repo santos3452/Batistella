@@ -10,19 +10,25 @@ import java.util.Collections;
 public class JwtUserDetails implements UserDetails {
     private String username;
     private Long userId;
+    private String role;
 
-    public JwtUserDetails(String username, Long userId) {
+    public JwtUserDetails(String username, Long userId, String role) {
         this.username = username;
         this.userId = userId;
+        this.role = role;
     }
 
     public Long getUserId() {
         return userId;
     }
 
+    public String getRole() {
+        return role;
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
+        return Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role));
     }
 
     @Override

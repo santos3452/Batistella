@@ -39,9 +39,12 @@ public class JwtUtils {
     public String generateToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
         
-        // Agregar el ID del usuario como claim
+        // Agregar el ID y el rol del usuario como claims
         userRepository.findByEmail(userDetails.getUsername())
-            .ifPresent(user -> claims.put("userId", user.getId()));
+            .ifPresent(user -> {
+                claims.put("userId", user.getId());
+                claims.put("role", user.getRol().name());
+            });
             
         return Jwts.builder()
                 .setClaims(claims)
@@ -59,6 +62,15 @@ public class JwtUtils {
                 .parseClaimsJws(token)
                 .getBody()
                 .get("userId", Long.class);
+    }
+
+    public String extractRole(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .get("role", String.class);
     }
 
     public String extractEmail(String token) {

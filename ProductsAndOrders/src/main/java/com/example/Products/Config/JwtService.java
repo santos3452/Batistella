@@ -50,4 +50,17 @@ public class JwtService {
             return null;
         }
     }
+
+    /**
+     * Obtiene el rol del usuario autenticado actual
+     * @return Rol del usuario o null si no está autenticado
+     */
+    public String getCurrentUserRole() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getPrincipal() instanceof JwtUserDetails) {
+            JwtUserDetails userDetails = (JwtUserDetails) auth.getPrincipal();
+            return userDetails.getRole();
+        }
+        return null;
+    }
 } 

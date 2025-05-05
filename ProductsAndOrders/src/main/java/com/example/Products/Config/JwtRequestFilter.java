@@ -99,13 +99,17 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             logger.info("¿Token expirado? " + (tokenExpirado ? "SÍ" : "NO"));
             
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null && !tokenExpirado) {
+                // Extraer el rol del token
+                String role = jwtUtil.extractRole(token);
+                logger.info("Rol extraído del token: " + role);
+                
                 // Crear objeto de usuario principal con la información del token
-                JwtUserDetails userDetails = new JwtUserDetails(username, userId);
-                logger.info("Creando objeto JwtUserDetails: " + username + ", userId: " + userId);
+                JwtUserDetails userDetails = new JwtUserDetails(username, userId, role);
+                logger.info("Creando objeto JwtUserDetails: " + username + ", userId: " + userId + ", role: " + role);
                 
                 // Crear token de autenticación
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        userDetails, null, Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")));
+                        userDetails, null, userDetails.getAuthorities());
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 
                 // Establecer autenticación en el contexto de seguridad
