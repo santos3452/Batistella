@@ -31,7 +31,7 @@ El sistema se estructura en **microservicios**, entre los cuales se encuentran:
 - **JWT**
 - **PostgreSQL**
 - **Maven**
-- **Swagger/OpenAPI**
+- **Swagger**
 - **H2** (para entorno de desarrollo)
 - **Mercado Pago API** (integración de pagos)
 
