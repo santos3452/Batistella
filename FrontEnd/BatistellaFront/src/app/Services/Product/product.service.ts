@@ -32,6 +32,8 @@ export class ProductService {
   private productsCache: Product[] = [];
   private lastFetchTime: number = 0;
   private cacheDuration: number = 60000; // 1 minuto en milisegundos
+  private marcasCache: string[] = [];
+  private lastMarcasFetchTime: number = 0;
 
   constructor(private http: HttpClient) { }
 
@@ -395,6 +397,24 @@ export class ProductService {
           p.tipoRaza === product.tipoRaza &&
           p.animalType === product.animalType
         );
+      })
+    );
+  }
+
+  // Método para obtener todas las marcas disponibles
+  getAllMarcas(): Observable<string[]> {
+    const now = Date.now();
+    
+    // Si tenemos marcas en caché y no han pasado más de 1 minuto, usamos la caché
+    if (this.marcasCache.length > 0 && now - this.lastMarcasFetchTime < this.cacheDuration) {
+      return of(this.marcasCache);
+    }
+    
+    // Si no hay caché o está desactualizada, hacemos la petición
+    return this.http.get<string[]>(`${this.apiUrl}/getAllMarcas`).pipe(
+      tap(marcas => {
+        this.marcasCache = marcas;
+        this.lastMarcasFetchTime = Date.now();
       })
     );
   }

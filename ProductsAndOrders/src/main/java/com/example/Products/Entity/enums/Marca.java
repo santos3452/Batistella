@@ -10,7 +10,7 @@ public enum Marca {
     NINELIVES("9Lives"),
     AMICI("Amici"),
     ZIMPI("Zimpi"),
-    FISHY("ProPlan"),
+    FISHY("Fishy"),
     GANACAT("Ganacat"),
     GANACAN("Ganacan"),
     COMPINCHES("Compinches"),

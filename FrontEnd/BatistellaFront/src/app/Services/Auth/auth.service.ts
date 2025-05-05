@@ -77,6 +77,8 @@ export class AuthService {
         
         // Si tenemos datos del usuario, usarlos directamente
         if (response.userData) {
+          console.log('Datos completos del usuario recibidos:', response.userData);
+          
           const user: UserInfo = {
             id: response.userData.id,
             nombre: response.userData.nombre || '',
@@ -85,6 +87,8 @@ export class AuthService {
             rol: response.userData.rol || 'ROLE_CLIENTE',
             tipoUsuario: response.userData.tipoUsuario || 'FINAL'
           };
+          
+          console.log('Objeto de usuario creado con ID:', user.id);
           
           // Guardar los datos del usuario
           localStorage.setItem('currentUser', JSON.stringify(user));

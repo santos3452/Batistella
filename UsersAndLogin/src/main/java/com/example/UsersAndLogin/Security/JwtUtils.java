@@ -12,6 +12,10 @@ import org.springframework.stereotype.Component;
 import java.security.Key;
 import java.util.Base64;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import com.example.UsersAndLogin.Entity.UserEntity;
+import com.example.UsersAndLogin.Repository.UserRepository;
 
 @Component
 public class JwtUtils {
@@ -19,6 +23,12 @@ public class JwtUtils {
     private String jwtSecret;
     
     private Key key;
+    
+    private final UserRepository userRepository;
+    
+    public JwtUtils(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     @PostConstruct
     public void init() {
@@ -27,12 +37,40 @@ public class JwtUtils {
     }
 
     public String generateToken(UserDetails userDetails) {
+        Map<String, Object> claims = new HashMap<>();
+        
+        // Agregar el ID y el rol del usuario como claims
+        userRepository.findByEmail(userDetails.getUsername())
+            .ifPresent(user -> {
+                claims.put("userId", user.getId());
+                claims.put("role", user.getRol().name());
+            });
+            
         return Jwts.builder()
+                .setClaims(claims)
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + 86400000)) // 24 hours
                 .signWith(key)
                 .compact();
+    }
+    
+    public Long extractUserId(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .get("userId", Long.class);
+    }
+
+    public String extractRole(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .get("role", String.class);
     }
 
     public String extractEmail(String token) {
