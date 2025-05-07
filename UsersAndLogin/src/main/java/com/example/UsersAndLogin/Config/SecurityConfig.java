@@ -64,6 +64,7 @@ public class SecurityConfig {
                         .requestMatchers(new AntPathRequestMatcher("/api/users/change-password")).authenticated()
                         .requestMatchers(new AntPathRequestMatcher("/api/users/updateUser", HttpMethod.POST.name())).authenticated()
                         .requestMatchers(new AntPathRequestMatcher("/api/users/deleteUser", HttpMethod.DELETE.name())).authenticated()
+                        .requestMatchers(new AntPathRequestMatcher("/api/users/deleteAdress")).permitAll()
                         .anyRequest().authenticated()
                 )
                 .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable()))

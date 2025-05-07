@@ -1,9 +1,11 @@
 package com.example.UsersAndLogin.Service;
 
+import com.example.UsersAndLogin.Dto.UpdateAdressDto;
 import com.example.UsersAndLogin.Dto.UpdateUserDto;
 import com.example.UsersAndLogin.Dto.UserDto;
 import com.example.UsersAndLogin.Entity.UserEntity;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface UserService {
@@ -25,14 +27,12 @@ public interface UserService {
 
     /**
      * Actualiza los datos de un usuario existente
-     * @param email Email del usuario a actualizar
-     * @param password Nueva contraseña del usuario
-     * @param nombre Nuevo nombre del usuario
-     * @param apellido Nuevo apellido del usuario
+
      * @return DTO con los datos actualizados del usuario
      * @throws IllegalArgumentException si no existe un usuario con el email proporcionado
      */
-    UpdateUserDto UpdateUser(String email, String password, String nombre, String apellido);
+    UpdateUserDto UpdateUser(UpdateUserDto userUpdateDto);
+
 
     /**
      * Cambia la contraseña de un usuario existente
@@ -42,6 +42,8 @@ public interface UserService {
      * @throws IllegalArgumentException si la contraseña actual es incorrecta o si hay otros errores de validación
      */
     void changePassword(String email, String oldPassword, String newPassword);
+
+    void deleteAdress(Long id);
 
     /**
      * Realiza la baja lógica de un usuario

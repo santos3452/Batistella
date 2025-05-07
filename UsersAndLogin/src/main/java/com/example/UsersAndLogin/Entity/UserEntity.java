@@ -5,6 +5,8 @@ import com.example.UsersAndLogin.Entity.enums.UserType;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
+
 @Entity
 @Table(name = "usuarios")
 @Getter
@@ -30,6 +32,16 @@ public class UserEntity {
 
     @Enumerated(EnumType.STRING)
     private UserType tipoUsuario;
+
+    @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<DomicilioEntity> domicilio;
+
+    /**
+     * Getter explícito para la lista de domicilios (lombok genera uno, pero lo definimos para evitar errores de compilación estática)
+     */
+    public List<DomicilioEntity> getDomicilio() {
+        return this.domicilio;
+    }
 
     @Column(nullable = false)
     private Boolean activo = true;

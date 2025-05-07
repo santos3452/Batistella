@@ -4,6 +4,8 @@ import com.example.UsersAndLogin.Entity.enums.Role;
 import com.example.UsersAndLogin.Entity.enums.UserType;
 import lombok.*;
 
+import java.util.List;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -16,4 +18,5 @@ public class UserDto {
     private String password;
     private Role rol;
     private UserType tipoUsuario;
+
 } 

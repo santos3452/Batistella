@@ -1,18 +1,27 @@
 package com.example.UsersAndLogin.Service.Impl;
 
+import com.example.UsersAndLogin.Config.ModelMapperConfig;
+import com.example.UsersAndLogin.Dto.UpdateAdressDto;
 import com.example.UsersAndLogin.Dto.UpdateUserDto;
 import com.example.UsersAndLogin.Dto.UserDto;
+import com.example.UsersAndLogin.Entity.DomicilioEntity;
 import com.example.UsersAndLogin.Entity.UserEntity;
 import com.example.UsersAndLogin.Entity.enums.Role;
+import com.example.UsersAndLogin.Repository.DomicilioRepository;
 import com.example.UsersAndLogin.Repository.UserRepository;
 import com.example.UsersAndLogin.Security.JwtUtils;
 import com.example.UsersAndLogin.Service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.ui.ModelMap;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -21,11 +30,17 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
+    private final DomicilioRepository domicilioRepository;
+    
+    @Autowired
+    private ModelMapperConfig modelMapperConfig;
 
-    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtUtils jwtUtils) {
+    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtUtils jwtUtils, ModelMapperConfig modelmapper, DomicilioRepository domicilioRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtils = jwtUtils;
+        this.modelMapperConfig = modelmapper;
+        this.domicilioRepository = domicilioRepository;
     }
 
     @Override
@@ -71,34 +86,75 @@ public class UserServiceImpl implements UserService {
         return userRepository.findByEmail(email);
     }
 
-    @Override
-    @Transactional
-    public UpdateUserDto UpdateUser(String email, String password, String nombre, String apellido) {
+    public UpdateUserDto UpdateUser(UpdateUserDto userUpdateDto) {
         try {
-            UserEntity user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new IllegalArgumentException("No existe un usuario con el email: " + email));
-            
-            // Actualizar los campos del usuario
-            if (password != null && !password.trim().isEmpty()) {
-                user.setPassword(passwordEncoder.encode(password));
-            }
-            user.setNombre(nombre);
-            user.setApellido(apellido);
-            
-            // Guardar los cambios en la base de datos
-            userRepository.save(user);
-            
-            // Devolver el usuario actualizado como DTO
-            UpdateUserDto updatedUserDto = new UpdateUserDto();
-            updatedUserDto.setNombre(user.getNombre());
-            updatedUserDto.setApellido(user.getApellido());
-            updatedUserDto.setPassword(user.getPassword());
+            UserEntity user = userRepository.findByEmail(userUpdateDto.getMail())
+                    .orElseThrow(() -> new IllegalArgumentException("No existe un usuario con el email: " + userUpdateDto.getMail()));
 
+
+            user.setNombre(userUpdateDto.getNombre());
+            user.setApellido(user.getApellido());
+            Long userId = user.getId();
+
+            // Gestionar domicilios
+            if (userUpdateDto.getAdresses() != null && !userUpdateDto.getAdresses().isEmpty()) {
+                updateAdress(userUpdateDto.getAdresses(), userId);
+
+            }
+
+            // Guardar el usuario actualizado
+            userRepository.save(user);
+
+            // Preparar la respuesta
+            UpdateUserDto updatedUserDto = modelMapperConfig.modelMapper().map(user, UpdateUserDto.class);
             return updatedUserDto;
         } catch (Exception e) {
             throw new IllegalArgumentException("Error al actualizar el usuario: " + e.getMessage());
         }
     }
+
+    public void updateAdress(List<UpdateAdressDto> addressDto, Long UserId) {
+
+        for (UpdateAdressDto address : addressDto) {
+            if (address.getId() == null) {
+                DomicilioEntity newAddress = DomicilioEntity.builder()
+                        .calle(address.getCalle())
+                        .numero(address.getNumero())
+                        .ciudad(address.getCiudad())
+                        .codigoPostal(address.getCodigoPostal())
+                        .usuario(userRepository.getReferenceById(UserId))
+                        .build();
+
+                domicilioRepository.save(newAddress);
+            }
+            else {
+                DomicilioEntity updateAdress = domicilioRepository.getReferenceById(address.getId());
+                updateAdress.setCalle(address.getCalle());
+                updateAdress.setNumero(address.getNumero());
+                updateAdress.setCiudad(address.getCiudad());
+                updateAdress.setCodigoPostal(address.getCodigoPostal());
+                domicilioRepository.save(updateAdress);
+            }
+        }
+
+    }
+
+    public void deleteAdress(Long id) {
+        try {
+            // Simplemente busca y elimina el domicilio sin verificaciones de seguridad (temporal)
+            DomicilioEntity address = domicilioRepository.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("No existe un domicilio con el ID: " + id));
+            
+            // Eliminar directamente
+            domicilioRepository.delete(address);
+            System.out.println("Domicilio eliminado con ID: " + id);
+        } catch (Exception e) {
+            System.err.println("Error al eliminar domicilio: " + e.getMessage());
+            e.printStackTrace();
+            throw e; // Re-lanzar para manejo en controlador
+        }
+    }
+
 
     @Override
     @Transactional
