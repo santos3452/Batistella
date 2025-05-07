@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, tap, catchError, of, throwError, switchMap } from 'rxjs';
 import { UserService, UserDto } from './user.service';
 import { Router } from '@angular/router';
+import { Address } from '../../Models/user';
 
 export interface UserInfo {
   id?: number;
@@ -10,6 +11,7 @@ export interface UserInfo {
   email: string;
   rol: string;
   tipoUsuario: string;
+  domicilio?: Address[];
 }
 
 export interface AuthResponse {
@@ -85,7 +87,8 @@ export class AuthService {
             apellido: response.userData.apellido || '',
             email: response.userData.email || email,
             rol: response.userData.rol || 'ROLE_CLIENTE',
-            tipoUsuario: response.userData.tipoUsuario || 'FINAL'
+            tipoUsuario: response.userData.tipoUsuario || 'FINAL',
+            domicilio: response.userData.domicilio || []
           };
           
           console.log('Objeto de usuario creado con ID:', user.id);
@@ -113,7 +116,10 @@ export class AuthService {
   private extractBasicUserInfo(response: any, email: string): UserInfo {
     if (response.user) {
       // Si hay un objeto user explícito
-      return response.user;
+      return {
+        ...response.user,
+        domicilio: response.user.domicilio || []
+      };
     } else if (response.nombre || response.apellido || response.email) {
       // Si los datos del usuario están en el nivel raíz
       return {
@@ -121,7 +127,8 @@ export class AuthService {
         apellido: response.apellido || '',
         email: response.email || email,
         rol: response.rol || 'ROLE_CLIENTE',
-        tipoUsuario: response.tipoUsuario || 'FINAL'
+        tipoUsuario: response.tipoUsuario || 'FINAL',
+        domicilio: response.domicilio || []
       };
     } else if (response.data && (response.data.nombre || response.data.email)) {
       // Si los datos vienen dentro de un objeto 'data'
@@ -130,7 +137,8 @@ export class AuthService {
         apellido: response.data.apellido || '',
         email: response.data.email || email,
         rol: response.data.rol || 'ROLE_CLIENTE',
-        tipoUsuario: response.data.tipoUsuario || 'FINAL'
+        tipoUsuario: response.data.tipoUsuario || 'FINAL',
+        domicilio: response.data.domicilio || []
       };
     } else {
       // Fallback: Si no podemos encontrar datos de usuario, usamos un objeto genérico
@@ -140,7 +148,8 @@ export class AuthService {
         apellido: '',
         email: email,
         rol: 'ROLE_CLIENTE',
-        tipoUsuario: 'FINAL'
+        tipoUsuario: 'FINAL',
+        domicilio: []
       };
     }
   }
@@ -201,7 +210,8 @@ export class AuthService {
           apellido: userData.apellido || '',
           email: userData.email || email,
           rol: userData.rol || 'ROLE_CLIENTE',
-          tipoUsuario: userData.tipoUsuario || 'FINAL'
+          tipoUsuario: userData.tipoUsuario || 'FINAL',
+          domicilio: userData.domicilio || []
         };
         
         // Guardar los datos actualizados en localStorage

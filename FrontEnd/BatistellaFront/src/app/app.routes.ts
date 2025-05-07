@@ -11,6 +11,8 @@ import { ProductDetailComponent } from './Components/product-detail/product-deta
 import { MisPedidosComponent } from './Components/mis-pedidos/mis-pedidos.component';
 import { AuthGuard } from './Services/Auth/auth.guard';
 import { AdminGuard } from './Services/Auth/admin.guard';
+import { OrderSummaryComponent } from './Pages/checkout/order-summary/order-summary.component';
+import { PaymentMethodComponent } from './Pages/checkout/payment-method/payment-method.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -35,6 +37,16 @@ export const routes: Routes = [
     path: 'admin/products/edit/:id', 
     component: ProductFormComponent, 
     canActivate: [AuthGuard, AdminGuard] 
+  },
+  { 
+    path: 'checkout/summary', 
+    component: OrderSummaryComponent, 
+    canActivate: [AuthGuard] 
+  },
+  { 
+    path: 'checkout/payment', 
+    component: PaymentMethodComponent, 
+    canActivate: [AuthGuard] 
   },
   { path: '**', redirectTo: '' }
 ];

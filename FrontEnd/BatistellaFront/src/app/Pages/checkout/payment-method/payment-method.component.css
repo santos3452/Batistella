@@ -1,0 +1,5 @@
+/* Estilos para el componente de método de pago */
+.sticky {
+  position: -webkit-sticky; /* Para Safari */
+  position: sticky;
+} 

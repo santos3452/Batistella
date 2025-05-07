@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { CartService, CartItem } from '../../Services/Cart/cart.service';
 import { UtilsService } from '../../Services/Utils/utils.service';
 import { Subscription } from 'rxjs';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 
 @Component({
   selector: 'app-cart-dropdown',
@@ -20,7 +20,8 @@ export class CartDropdownComponent implements OnInit, OnDestroy {
 
   constructor(
     private cartService: CartService,
-    public utils: UtilsService
+    public utils: UtilsService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -77,5 +78,13 @@ export class CartDropdownComponent implements OnInit, OnDestroy {
     if (item.quantity > 1) {
       this.updateQuantity(item, item.quantity - 1);
     }
+  }
+
+  goToCheckout(): void {
+    // Navegar a la página de resumen del pedido
+    this.router.navigate(['/checkout/summary']);
+    
+    // Si hay un método para cerrar el dropdown del carrito, llamarlo aquí
+    // Por ejemplo: this.cartService.closeCartDropdown();
   }
 }

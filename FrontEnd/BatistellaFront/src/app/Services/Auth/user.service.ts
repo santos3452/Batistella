@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError, of, switchMap } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
-import { User } from '../../Models/user';
+import { User, UpdateUserDto, UpdateAddressDto } from '../../Models/user';
 import { environment } from '../../../environments/environment';
 
 export type UserType = 'FINAL' | 'EMPRESA';
@@ -100,7 +100,7 @@ export class UserService {
       );
   }
 
-  updateUser(email: string, userData: { nombre?: string; apellido?: string; password?: string }): Observable<any> {
+  updateUser(userData: UpdateUserDto): Observable<any> {
     const token = localStorage.getItem('token');
     console.log('Token para actualización:', token);
 
@@ -113,14 +113,9 @@ export class UserService {
       .set('Content-Type', 'application/json')
       .set('Authorization', `Bearer ${token}`);
 
-    let url = `${this.usersUrl}/updateUser?mail=${encodeURIComponent(email)}`;
-    if (userData.nombre) url += `&nombre=${encodeURIComponent(userData.nombre)}`;
-    if (userData.apellido) url += `&apellido=${encodeURIComponent(userData.apellido)}`;
-    if (userData.password) url += `&password=${encodeURIComponent(userData.password)}`;
+    console.log('Datos para actualización:', userData);
 
-    console.log('URL de actualización:', url);
-
-    return this.http.post(url, {}, { 
+    return this.http.put(`${this.usersUrl}/updateUser`, userData, { 
       headers,
       responseType: 'text'
     }).pipe(

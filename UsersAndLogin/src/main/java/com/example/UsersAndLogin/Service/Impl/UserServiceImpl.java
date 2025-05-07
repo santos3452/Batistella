@@ -93,7 +93,7 @@ public class UserServiceImpl implements UserService {
 
 
             user.setNombre(userUpdateDto.getNombre());
-            user.setApellido(user.getApellido());
+            user.setApellido(userUpdateDto.getApellido());
             Long userId = user.getId();
 
             // Gestionar domicilios

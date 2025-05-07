@@ -78,7 +78,9 @@
         <span class="font-medium">Subtotal</span>
         <span>{{utils.formatCurrency(totalPrice)}}</span>
       </div>
-      <button class="w-full bg-teal-600 hover:bg-teal-700 text-white py-2 px-4 rounded-md font-medium">
+      <button 
+        class="w-full bg-teal-600 hover:bg-teal-700 text-white py-2 px-4 rounded-md font-medium"
+        (click)="goToCheckout()">
         Finalizar Compra
       </button>
     </div>
