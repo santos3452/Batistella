@@ -4,6 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import java.util.concurrent.ConcurrentHashMap;
+import io.jsonwebtoken.Claims;
 
 /**
  * Servicio centralizado para operaciones relacionadas con JWT
@@ -14,6 +16,9 @@ public class JwtService {
 
     @Autowired
     private JwtUtil jwtUtil;
+    
+    // Caché para almacenar los nombres completos de los usuarios
+    private ConcurrentHashMap<Long, String> userFullNameCache = new ConcurrentHashMap<>();
 
     /**
      * Extrae el ID del usuario del token JWT en el contexto de seguridad actual
@@ -49,6 +54,65 @@ public class JwtService {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    /**
+     * Extrae y almacena en caché el nombre completo de un usuario a partir de su token JWT
+     * @param token Token JWT del usuario
+     * @return true si la operación fue exitosa, false en caso contrario
+     */
+    public boolean cacheUserFullName(String token) {
+        try {
+            // Obtener y registrar todos los claims para depuración
+            Claims claims = jwtUtil.extractAllClaims(token);
+            System.out.println("DEBUG - Claims extraídos del token: " + claims);
+            
+            Long userId = jwtUtil.extractUserId(token);
+            System.out.println("DEBUG - UserId extraído: " + userId);
+            
+            String name = jwtUtil.extractName(token);
+            System.out.println("DEBUG - Name extraído: " + name);
+            
+            String lastname = jwtUtil.extractLastname(token);
+            System.out.println("DEBUG - Lastname extraído: " + lastname);
+            
+            if (userId != null) {
+                if (name != null || lastname != null) {
+                    String fullName = "";
+                    if (name != null) {
+                        fullName += name;
+                    }
+                    if (lastname != null) {
+                        if (!fullName.isEmpty()) {
+                            fullName += " ";
+                        }
+                        fullName += lastname;
+                    }
+                    
+                    System.out.println("DEBUG - Nombre completo construido: " + fullName);
+                    userFullNameCache.put(userId, fullName);
+                    return true;
+                } else {
+                    System.out.println("DEBUG - No se encontraron claims de nombre o apellido");
+                }
+            } else {
+                System.out.println("DEBUG - No se pudo extraer el ID de usuario");
+            }
+            return false;
+        } catch (Exception e) {
+            System.out.println("DEBUG - Error al procesar el token: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    /**
+     * Obtiene el nombre completo de un usuario desde la caché
+     * @param userId ID del usuario
+     * @return Nombre completo o "Usuario {userId}" si no está en caché
+     */
+    public String getUserFullNameFromCache(Long userId) {
+        return userFullNameCache.getOrDefault(userId, "Usuario " + userId);
     }
 
     /**

@@ -151,6 +151,9 @@ public class PedidoServiceImpl implements PedidoService {
         // Preparar respuesta con los productos que acabamos de guardar para evitar problemas de carga perezosa
         PedidoResponseDTO responseDTO = modelMapperConfig.modelMapper().map(pedidoGuardado, PedidoResponseDTO.class);
         
+        // Establecer el nombre completo del usuario desde la caché
+        responseDTO.setNombreCompletoUsuario(jwtService.getUserFullNameFromCache(pedidoGuardado.getUsuarioId()));
+        
         // Mapear manualmente los productos del pedido porque aún no están asociados en la entidad pedidoGuardado
         List<PedidoProductoResponseDTO> productosResponse = pedidoProductos.stream()
             .map(pedidoProducto -> {
@@ -203,6 +206,9 @@ public class PedidoServiceImpl implements PedidoService {
     private PedidoResponseDTO mapPedidoToDTO(Pedido pedido) {
         ModelMapper mapper = modelMapperConfig.modelMapper();
         PedidoResponseDTO responseDTO = mapper.map(pedido, PedidoResponseDTO.class);
+        
+        // Obtener el nombre completo del usuario desde la caché
+        responseDTO.setNombreCompletoUsuario(jwtService.getUserFullNameFromCache(pedido.getUsuarioId()));
         
         // Mapear productos del pedido
         List<PedidoProductoResponseDTO> productosResponse = pedido.getPedidoProductos().stream()

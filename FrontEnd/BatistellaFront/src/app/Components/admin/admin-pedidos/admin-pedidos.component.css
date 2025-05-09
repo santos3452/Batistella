@@ -1,0 +1,24 @@
+/* Estilos específicos para el componente de administración de pedidos */
+
+/* Estilos para que la tabla sea más legible */
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Transiciones para modales */
+.modal-enter-active, .modal-leave-active {
+  transition: opacity 0.3s;
+}
+
+.modal-enter, .modal-leave-to {
+  opacity: 0;
+}
+
+/* Ajustes para dispositivos pequeños */
+@media (max-width: 640px) {
+  .px-6 {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+} 

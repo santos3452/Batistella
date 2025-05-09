@@ -1,0 +1,26 @@
+/* Estilos específicos para el panel de administración */
+
+/* Estilos para animaciones en las tarjetas */
+.transition-shadow {
+  transition: box-shadow 0.3s ease;
+}
+
+/* Transiciones para botones */
+button {
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+button:hover {
+  transform: translateY(-2px);
+}
+
+/* Mejoras en estilos para dispositivos pequeños */
+@media (max-width: 767px) {
+  .gap-6 {
+    gap: 1rem;
+  }
+  
+  h1 {
+    font-size: 1.5rem;
+  }
+} 

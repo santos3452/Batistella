@@ -37,6 +37,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   @Output() onClose = new EventEmitter<void>();
   
   isLoggedIn: boolean = false;
+  isAdmin: boolean = false;
   private authSubscription: Subscription = new Subscription();
   
   animalCategories: Category[] = [
@@ -93,6 +94,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
     // Suscripción al estado de autenticación
     this.authSubscription = this.authService.currentUser$.subscribe(user => {
       this.isLoggedIn = !!user;
+      // Verificar si el usuario es administrador
+      this.isAdmin = user?.rol === 'ROLE_ADMIN';
     });
   }
   

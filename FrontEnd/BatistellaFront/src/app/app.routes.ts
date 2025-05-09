@@ -13,6 +13,8 @@ import { AuthGuard } from './Services/Auth/auth.guard';
 import { AdminGuard } from './Services/Auth/admin.guard';
 import { OrderSummaryComponent } from './Pages/checkout/order-summary/order-summary.component';
 import { PaymentMethodComponent } from './Pages/checkout/payment-method/payment-method.component';
+import { AdminPanelComponent } from './Components/admin/admin-panel/admin-panel.component';
+import { AdminPedidosComponent } from './Components/admin/admin-pedidos/admin-pedidos.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -24,8 +26,18 @@ export const routes: Routes = [
   { path: 'product/:id', component: ProductDetailComponent },
   { path: 'mis-pedidos', component: MisPedidosComponent, canActivate: [AuthGuard] },
   { 
+    path: 'admin', 
+    component: AdminPanelComponent, 
+    canActivate: [AuthGuard, AdminGuard] 
+  },
+  { 
     path: 'admin/products', 
     component: AdminProductsComponent, 
+    canActivate: [AuthGuard, AdminGuard] 
+  },
+  { 
+    path: 'admin/pedidos', 
+    component: AdminPedidosComponent, 
     canActivate: [AuthGuard, AdminGuard] 
   },
   { 

@@ -1,0 +1,327 @@
+<div class="container mx-auto px-4 py-6">
+  <div class="bg-white shadow-md rounded-lg p-6">
+    <!-- Título y botón de recargar -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+      <h1 class="text-2xl font-bold text-gray-800 mb-4 md:mb-0">Administración de Pedidos</h1>
+      <button 
+        (click)="loadPedidos()" 
+        class="bg-teal-600 hover:bg-teal-700 text-white font-medium py-2 px-4 rounded-md flex items-center"
+        [disabled]="isLoading"
+      >
+        <svg *ngIf="isLoading" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <svg *ngIf="!isLoading" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+        Actualizar
+      </button>
+    </div>
+
+    <!-- Filtros -->
+    <div class="bg-gray-50 p-4 rounded-md mb-6">
+      <h2 class="text-lg font-semibold text-gray-700 mb-3">Filtros</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Filtro por código de pedido -->
+        <div>
+          <label for="filterCodigo" class="block text-sm font-medium text-gray-700 mb-1">Código de Pedido</label>
+          <input 
+            type="text" 
+            id="filterCodigo" 
+            [(ngModel)]="filterCodigo"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500"
+            placeholder="Buscar por código..."
+          >
+        </div>
+
+        <!-- Filtro por nombre de usuario -->
+        <div>
+          <label for="filterNombreUsuario" class="block text-sm font-medium text-gray-700 mb-1">Nombre de Cliente</label>
+          <input 
+            type="text" 
+            id="filterNombreUsuario" 
+            [(ngModel)]="filterNombreUsuario"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500"
+            placeholder="Filtrar por nombre de cliente..."
+          >
+        </div>
+
+        <!-- Filtro por estado -->
+        <div>
+          <label for="filterEstado" class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+          <select 
+            id="filterEstado" 
+            [(ngModel)]="filterEstado"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500"
+          >
+            <option value="">Todos los estados</option>
+            <option *ngFor="let estado of estados" [value]="estado">{{ estado }}</option>
+          </select>
+        </div>
+      </div>
+      
+      <!-- Botones de filtro -->
+      <div class="flex justify-end mt-4 space-x-2">
+        <button 
+          (click)="resetFilters()" 
+          class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 font-medium"
+        >
+          Limpiar filtros
+        </button>
+        <button 
+          (click)="applyFilters()" 
+          class="px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 font-medium"
+        >
+          Aplicar filtros
+        </button>
+      </div>
+    </div>
+
+    <!-- Mensaje de error -->
+    <div *ngIf="errorMessage" class="mb-4 p-4 bg-red-50 border-l-4 border-red-500 text-red-700">
+      <p class="font-medium">Error</p>
+      <p>{{ errorMessage }}</p>
+    </div>
+
+    <!-- Tabla de pedidos -->
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Código
+            </th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Cliente
+            </th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Fecha
+            </th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Estado
+            </th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Total
+            </th>
+            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Acciones
+            </th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <tr *ngIf="isLoading" class="text-center">
+            <td colspan="6" class="px-6 py-4">
+              <div class="flex justify-center">
+                <svg class="animate-spin h-6 w-6 text-teal-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="!isLoading && filteredPedidos.length === 0" class="text-center">
+            <td colspan="6" class="px-6 py-4 text-gray-500">
+              No se encontraron pedidos
+            </td>
+          </tr>
+          <tr *ngFor="let pedido of filteredPedidos" class="hover:bg-gray-50">
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+              {{ pedido.codigoPedido }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              {{ pedido.nombreCompletoUsuario }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              {{ pedido.fechaPedido }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <span [class]="'px-2 py-1 text-xs font-medium rounded-full ' + getEstadoClass(pedido.estado)">
+                {{ pedido.estado }}
+              </span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              ${{ pedido.total.toLocaleString('es-AR') }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+              <div class="flex justify-end space-x-2">
+                <button 
+                  (click)="openDetailsModal(pedido)" 
+                  class="text-teal-600 hover:text-teal-900 bg-teal-50 hover:bg-teal-100 p-1.5 rounded-md"
+                  title="Ver detalles"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                </button>
+                <button 
+                  (click)="openUpdateStatusModal(pedido)" 
+                  class="text-blue-600 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 p-1.5 rounded-md"
+                  title="Cambiar estado"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Detalles del Pedido -->
+<div *ngIf="showDetailsModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center">
+  <div class="relative mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white">
+    <div class="flex justify-between items-center border-b pb-3">
+      <h3 class="text-xl font-semibold text-gray-900">Detalles del Pedido</h3>
+      <button (click)="closeDetailsModal()" class="text-gray-400 hover:text-gray-500">
+        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+    <div class="mt-4">
+      <div *ngIf="selectedPedido" class="space-y-6">
+        <!-- Información general del pedido -->
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <p class="text-sm font-medium text-gray-500">Código de Pedido</p>
+            <p class="text-base">{{ selectedPedido.codigoPedido }}</p>
+          </div>
+          <div>
+            <p class="text-sm font-medium text-gray-500">Cliente</p>
+            <p class="text-base">{{ selectedPedido.nombreCompletoUsuario }}</p>
+          </div>
+          <div>
+            <p class="text-sm font-medium text-gray-500">Fecha</p>
+            <p class="text-base">{{ selectedPedido.fechaPedido }}</p>
+          </div>
+          <div>
+            <p class="text-sm font-medium text-gray-500">Estado</p>
+            <p>
+              <span [class]="'px-2 py-1 text-xs font-medium rounded-full ' + getEstadoClass(selectedPedido.estado)">
+                {{ selectedPedido.estado }}
+              </span>
+            </p>
+          </div>
+        </div>
+
+        <!-- Productos del pedido -->
+        <div>
+          <h4 class="font-medium text-gray-900 mb-2">Productos</h4>
+          <div class="border rounded-md overflow-hidden">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Producto
+                  </th>
+                  <th scope="col" class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Cantidad
+                  </th>
+                  <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Precio
+                  </th>
+                  <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Subtotal
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                <tr *ngFor="let producto of selectedPedido.productos">
+                  <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                    {{ producto.nombreProducto }}
+                  </td>
+                  <td class="px-4 py-3 whitespace-nowrap text-sm text-center text-gray-500">
+                    {{ producto.cantidad }}
+                  </td>
+                  <td class="px-4 py-3 whitespace-nowrap text-sm text-right text-gray-500">
+                    ${{ producto.precioUnitario.toLocaleString('es-AR') }}
+                  </td>
+                  <td class="px-4 py-3 whitespace-nowrap text-sm text-right text-gray-500">
+                    ${{ producto.subtotal.toLocaleString('es-AR') }}
+                  </td>
+                </tr>
+              </tbody>
+              <tfoot class="bg-gray-50">
+                <tr>
+                  <td colspan="3" class="px-4 py-3 text-right text-sm font-medium text-gray-700">Total:</td>
+                  <td class="px-4 py-3 text-right text-sm font-bold text-gray-900">
+                    ${{ selectedPedido.total.toLocaleString('es-AR') }}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="mt-6 border-t pt-3 flex justify-end">
+      <button 
+        (click)="closeDetailsModal()" 
+        class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 font-medium"
+      >
+        Cerrar
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Actualización de Estado -->
+<div *ngIf="showUpdateStatusModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center">
+  <div class="relative mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white">
+    <div class="flex justify-between items-center border-b pb-3">
+      <h3 class="text-xl font-semibold text-gray-900">Actualizar Estado del Pedido</h3>
+      <button (click)="closeUpdateStatusModal()" class="text-gray-400 hover:text-gray-500">
+        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+    <div class="mt-4">
+      <div *ngIf="selectedPedido" class="space-y-4">
+        <div>
+          <p class="text-sm font-medium text-gray-500">Código de Pedido</p>
+          <p class="text-base">{{ selectedPedido.codigoPedido }}</p>
+        </div>
+        <div>
+          <p class="text-sm font-medium text-gray-500">Cliente</p>
+          <p class="text-base">{{ selectedPedido.nombreCompletoUsuario }}</p>
+        </div>
+        <div>
+          <label for="nuevoEstado" class="block text-sm font-medium text-gray-700 mb-1">Nuevo Estado</label>
+          <select 
+            id="nuevoEstado" 
+            [(ngModel)]="nuevoEstado"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500"
+          >
+            <option *ngFor="let estado of estados" [value]="estado">{{ estado }}</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="mt-6 border-t pt-3 flex justify-end space-x-2">
+      <button 
+        (click)="closeUpdateStatusModal()" 
+        class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 font-medium"
+      >
+        Cancelar
+      </button>
+      <button 
+        (click)="updatePedidoStatus()" 
+        class="px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 font-medium"
+        [disabled]="isLoading"
+      >
+        <svg *ngIf="isLoading" class="animate-spin inline -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        Guardar Cambios
+      </button>
+    </div>
+  </div>
+</div> 

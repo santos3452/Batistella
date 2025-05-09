@@ -65,12 +65,20 @@ public class JwtUtil {
 
     // Extraer información (claims) del token
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
-        final Claims claims = extractAllClaims(token);
-        return claimsResolver.apply(claims);
+        try {
+            final Claims claims = extractAllClaims(token);
+            logger.info("Extrayendo claim específico de: {}", claims);
+            T result = claimsResolver.apply(claims);
+            logger.info("Resultado de la extracción del claim: {}", result);
+            return result;
+        } catch (Exception e) {
+            logger.error("Error al extraer claim del token: {}", e.getMessage());
+            return null;
+        }
     }
 
     // Obtener todos los claims del token
-    private Claims extractAllClaims(String token) {
+    public Claims extractAllClaims(String token) {
         try {
             logger.info("Decodificando token JWT");
             Claims claims = Jwts.parserBuilder()
@@ -129,6 +137,61 @@ public class JwtUtil {
             return role;
         } catch (Exception e) {
             logger.error("Error al extraer rol del token", e);
+            return null;
+        }
+    }
+
+    // Extraer nombre del token
+    public String extractName(String token) {
+        try {
+            // Intenta extraer el claim "name"
+            String name = extractClaim(token, claims -> claims.get("name", String.class));
+            if (name == null) {
+                // Si no existe "name", intenta extraer "nombre" (por si acaso está en español)
+                name = extractClaim(token, claims -> claims.get("nombre", String.class));
+            }
+            logger.info("Nombre extraído del token: {}", name);
+            return name;
+        } catch (Exception e) {
+            logger.error("Error al extraer nombre del token", e);
+            return null;
+        }
+    }
+
+    // Extraer apellido del token
+    public String extractLastname(String token) {
+        try {
+            // Intenta extraer el claim "lastname"
+            String lastname = extractClaim(token, claims -> claims.get("lastname", String.class));
+            if (lastname == null) {
+                // Si no existe "lastname", intenta extraer "apellido" (por si acaso está en español)
+                lastname = extractClaim(token, claims -> claims.get("apellido", String.class));
+            }
+            logger.info("Apellido extraído del token: {}", lastname);
+            return lastname;
+        } catch (Exception e) {
+            logger.error("Error al extraer apellido del token", e);
+            return null;
+        }
+    }
+    
+    // Extraer nombre completo del token
+    public String extractFullName(String token) {
+        try {
+            String name = extractName(token);
+            String lastname = extractLastname(token);
+            
+            if (name != null && lastname != null) {
+                return name + " " + lastname;
+            } else if (name != null) {
+                return name;
+            } else if (lastname != null) {
+                return lastname;
+            } else {
+                return null;
+            }
+        } catch (Exception e) {
+            logger.error("Error al extraer nombre completo del token", e);
             return null;
         }
     }

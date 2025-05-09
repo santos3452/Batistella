@@ -20,6 +20,9 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
     @Autowired
     private JwtUtil jwtUtil;
+    
+    @Autowired
+    private JwtService jwtService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
@@ -69,18 +72,33 @@ public class JwtRequestFilter extends OncePerRequestFilter {
      */
     private String extractTokenFromRequest(HttpServletRequest request) {
         final String authorizationHeader = request.getHeader("Authorization");
+        logger.info("Authorization header original: " + authorizationHeader);
         
-        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            String token = authorizationHeader.substring(7).trim();
+        if (authorizationHeader != null) {
+            String token = authorizationHeader;
             
-            // Eliminar "bearer" adicional si existe (para manejar el caso "Bearer bearer ...")
+            // Eliminar "Bearer " si existe
             if (token.toLowerCase().startsWith("bearer ")) {
-                logger.info("Detectado formato 'Bearer bearer' - Corrigiendo formato del token");
                 token = token.substring(7).trim();
+                logger.info("Token después de eliminar 'Bearer ': " + token);
             }
             
-            return token;
+            // Eliminar otro posible "bearer " adicional
+            if (token.toLowerCase().startsWith("bearer ")) {
+                token = token.substring(7).trim();
+                logger.info("Token después de eliminar segundo 'bearer ': " + token);
+            }
+            
+            // Verificar si es un token JWT válido (debería comenzar con "eyJ")
+            if (token.startsWith("eyJ")) {
+                logger.info("Token JWT válido extraído: " + token);
+                return token;
+            } else {
+                logger.warn("Token extraído no parece ser un JWT válido: " + token);
+            }
         }
+        
+        logger.info("No se encontró token JWT válido en la solicitud");
         return null;
     }
     
@@ -95,6 +113,12 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             Long userId = jwtUtil.extractUserId(token);
             logger.info("UserId extraído del token: " + userId);
             
+            String name = jwtUtil.extractName(token);
+            logger.info("Name extraído del token: " + name);
+            
+            String lastname = jwtUtil.extractLastname(token);
+            logger.info("Lastname extraído del token: " + lastname);
+            
             boolean tokenExpirado = jwtUtil.isTokenExpired(token);
             logger.info("¿Token expirado? " + (tokenExpirado ? "SÍ" : "NO"));
             
@@ -102,6 +126,16 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                 // Extraer el rol del token
                 String role = jwtUtil.extractRole(token);
                 logger.info("Rol extraído del token: " + role);
+                
+                // Guardar el nombre completo en caché
+                boolean cached = jwtService.cacheUserFullName(token);
+                logger.info("Nombre completo guardado en caché: " + (cached ? "SÍ" : "NO"));
+                
+                // Para depuración, verificamos si el nombre se guardó correctamente
+                if (userId != null) {
+                    String cachedName = jwtService.getUserFullNameFromCache(userId);
+                    logger.info("Nombre completo en caché para userId " + userId + ": " + cachedName);
+                }
                 
                 // Crear objeto de usuario principal con la información del token
                 JwtUserDetails userDetails = new JwtUserDetails(username, userId, role);
@@ -122,6 +156,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             }
         } catch (Exception e) {
             logger.error("Error durante la autenticación del usuario", e);
+            e.printStackTrace();
         }
     }
 } 

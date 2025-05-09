@@ -6,6 +6,7 @@ import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -44,6 +45,8 @@ public class JwtUtils {
             .ifPresent(user -> {
                 claims.put("userId", user.getId());
                 claims.put("role", user.getRol().name());
+                claims.put("name", user.getNombre());
+                claims.put("lastname", user.getApellido());
             });
             
         return Jwts.builder()
@@ -81,6 +84,7 @@ public class JwtUtils {
                 .getBody()
                 .getSubject();
     }
+
 
     public boolean validateToken(String token, UserDetails userDetails) {
         String username = extractEmail(token);
