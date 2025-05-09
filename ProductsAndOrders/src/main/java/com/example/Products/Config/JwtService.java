@@ -57,10 +57,52 @@ public class JwtService {
      */
     public String getCurrentUserRole() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.getPrincipal() instanceof JwtUserDetails) {
-            JwtUserDetails userDetails = (JwtUserDetails) auth.getPrincipal();
-            return userDetails.getRole();
+        if (auth == null) {
+            System.out.println("DEBUG - No hay autenticación en el contexto de seguridad");
+            return null;
         }
+        
+        System.out.println("DEBUG - Tipo de autenticación: " + auth.getClass().getName());
+        System.out.println("DEBUG - Principal: " + (auth.getPrincipal() != null ? auth.getPrincipal().getClass().getName() : "null"));
+        System.out.println("DEBUG - Autoridades: " + auth.getAuthorities());
+        
+        if (auth.getPrincipal() instanceof JwtUserDetails) {
+            JwtUserDetails userDetails = (JwtUserDetails) auth.getPrincipal();
+            String role = userDetails.getRole();
+            System.out.println("DEBUG - Rol extraído del JwtUserDetails: " + role);
+            return role;
+        }
+        
+        // Si el principal no es JwtUserDetails, intentamos extraer el rol de las autoridades
+        if (!auth.getAuthorities().isEmpty()) {
+            String authority = auth.getAuthorities().iterator().next().getAuthority();
+            System.out.println("DEBUG - Autoridad extraída: " + authority);
+            return authority;
+        }
+        
+        System.out.println("DEBUG - No se pudo extraer el rol");
         return null;
+    }
+
+    /**
+     * Verifica si el usuario autenticado tiene rol de administrador
+     * @return true si el usuario tiene rol "admin" o "ROLE_ADMIN", false en caso contrario
+     */
+    public boolean isAdmin() {
+        String role = getCurrentUserRole();
+        return role != null && (role.equalsIgnoreCase("admin") || role.equalsIgnoreCase("ROLE_ADMIN"));
+    }
+    
+    /**
+     * Verifica si el usuario está autorizado para acceder a recursos de otro usuario
+     * Un usuario está autorizado si:
+     * 1. Es el mismo usuario (su ID coincide con el solicitado)
+     * 2. Tiene rol de administrador
+     * 
+     * @param requestedUserId ID del usuario que se está solicitando
+     * @return true si está autorizado, false en caso contrario
+     */
+    public boolean isUserAuthorizedOrAdmin(Long requestedUserId) {
+        return isUserAuthorized(requestedUserId) || isAdmin();
     }
 } 

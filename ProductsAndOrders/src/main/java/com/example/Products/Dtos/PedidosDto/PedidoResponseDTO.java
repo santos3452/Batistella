@@ -14,6 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 public class PedidoResponseDTO {
     private Long id;
+    private String codigoPedido;
     private Long usuarioId;
     private LocalDateTime fechaPedido;
     private EstadoPedido estado;

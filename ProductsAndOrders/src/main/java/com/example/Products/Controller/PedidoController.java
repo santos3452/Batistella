@@ -23,6 +23,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/pedidos")
@@ -37,27 +38,60 @@ public class PedidoController {
     private JwtService jwtService;
 
     @PostMapping
-    @Operation(summary = "Crear un nuevo pedido")
-    public ResponseEntity<PedidoResponseDTO> crearPedido(@Valid @RequestBody CrearPedidoDTO crearPedidoDTO) {
-        PedidoResponseDTO response = pedidoService.crearPedido(crearPedidoDTO);
-        return new ResponseEntity<>(response, HttpStatus.CREATED);
+    @Operation(
+        summary = "Crear un nuevo pedido", 
+        description = "Crea un nuevo pedido. El usuario solo puede crear pedidos para sí mismo, mientras que los administradores pueden crear pedidos para cualquier usuario.",
+        security = { @SecurityRequirement(name = "bearerAuth") }
+    )
+    public ResponseEntity<?> crearPedido(@Valid @RequestBody CrearPedidoDTO crearPedidoDTO) {
+        logger.info("==== Solicitud recibida: crearPedido para usuarioId: " + crearPedidoDTO.getUsuarioId() + " ====");
+        
+        try {
+            // Verificar que el usuario autenticado coincida con el usuario para el que se crea el pedido o sea admin
+            Long currentUserId = jwtService.getCurrentUserId();
+            boolean isAdmin = jwtService.isAdmin();
+
+            if (!jwtService.isUserAuthorizedOrAdmin(crearPedidoDTO.getUsuarioId())) {
+                logger.warn("ACCESO DENEGADO: El usuario autenticado no puede crear pedidos para otro usuario");
+                return ResponseEntity
+                        .status(HttpStatus.FORBIDDEN)
+                        .body(ErrorDto.of(
+                                HttpStatus.FORBIDDEN.value(),
+                                "Acceso denegado",
+                                "No tienes permiso para crear pedidos para este usuario"
+                        ));
+            }
+            
+            PedidoResponseDTO response = pedidoService.crearPedido(crearPedidoDTO);
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
+        } catch (IllegalArgumentException e) {
+            logger.error("Error al procesar el pedido: " + e.getMessage(), e);
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(ErrorDto.of(
+                            HttpStatus.BAD_REQUEST.value(),
+                            "Error en los datos del pedido",
+                            e.getMessage()
+                    ));
+        } catch (Exception e) {
+            logger.error("Error interno al procesar el pedido: " + e.getMessage(), e);
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ErrorDto.of(
+                            HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                            "Error Interno del Servidor",
+                            "Error al crear el pedido: " + e.getMessage()
+                    ));
+        }
     }
     
     @GetMapping("/usuario/{usuarioId}")
     @Operation(
         summary = "Obtener pedidos por ID de usuario", 
-        description = "Obtiene todos los pedidos realizados por un usuario específico. El usuario solo puede ver sus propios pedidos.",
+        description = "Obtiene todos los pedidos realizados por un usuario específico. El usuario solo puede ver sus propios pedidos, mientras que los administradores pueden ver los pedidos de cualquier usuario.",
         security = { @SecurityRequirement(name = "bearerAuth") }
     )
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Pedidos encontrados correctamente"),
-        @ApiResponse(responseCode = "401", description = "No autenticado",
-                    content = @Content(schema = @Schema(implementation = ErrorDto.class))),
-        @ApiResponse(responseCode = "403", description = "Acceso denegado - No puedes ver pedidos de otros usuarios",
-                    content = @Content(schema = @Schema(implementation = ErrorDto.class))),
-        @ApiResponse(responseCode = "500", description = "Error interno del servidor",
-                    content = @Content(schema = @Schema(implementation = ErrorDto.class)))
-    })
+
     public ResponseEntity<?> obtenerPedidosPorUsuario(@PathVariable Long usuarioId) {
         logger.info("==== Solicitud recibida: obtenerPedidosPorUsuario para ID: " + usuarioId + " ====");
         
@@ -73,13 +107,15 @@ public class PedidoController {
         }
         
         try {
-            // Verificar que el usuario autenticado coincida con el ID solicitado
+            // Verificar que el usuario autenticado coincida con el ID solicitado o sea admin
             Long currentUserId = jwtService.getCurrentUserId();
+            boolean isAdmin = jwtService.isAdmin();
             logger.info("ID de usuario autenticado: " + currentUserId);
             logger.info("ID de usuario solicitado: " + usuarioId);
+            logger.info("¿Es administrador?: " + (isAdmin ? "SÍ" : "NO"));
             
-            if (!jwtService.isUserAuthorized(usuarioId)) {
-                logger.warn("ACCESO DENEGADO: El usuario autenticado no coincide con el ID solicitado");
+            if (!jwtService.isUserAuthorizedOrAdmin(usuarioId)) {
+                logger.warn("ACCESO DENEGADO: El usuario autenticado no tiene permisos para ver estos pedidos");
                 return ResponseEntity
                         .status(HttpStatus.FORBIDDEN)
                         .body(ErrorDto.of(
@@ -101,6 +137,102 @@ public class PedidoController {
                             HttpStatus.INTERNAL_SERVER_ERROR.value(),
                             "Error Interno del Servidor",
                             "Error al obtener pedidos: " + e.getMessage()
+                    ));
+        }
+    }
+
+    @GetMapping("/todosLosPedidos")
+    @Operation(
+            summary = "Obtener todos los pedidos",
+            description = "Obtiene todos los pedidos en el sistema. Solo accesible para administradores.",
+            security = { @SecurityRequirement(name = "bearerAuth") }
+    )
+    public ResponseEntity<?> getAllPedidos() {
+        logger.info("==== Solicitud recibida: getAllPedidos ====");
+        
+        try {
+
+            String role = jwtService.getCurrentUserRole();
+            boolean isAdmin = jwtService.isAdmin();
+            
+
+            
+            if (!isAdmin) {
+                logger.warn("ACCESO DENEGADO: El usuario no tiene rol de administrador");
+                return ResponseEntity
+                        .status(HttpStatus.FORBIDDEN)
+                        .body(ErrorDto.of(
+                                HttpStatus.FORBIDDEN.value(),
+                                "Acceso denegado",
+                                "Solo los administradores pueden acceder a esta función"
+                        ));
+            }
+            
+
+            List<PedidoResponseDTO> pedidos = pedidoService.obtenerTodosLosPedidos();
+
+            
+            return ResponseEntity.ok(pedidos);
+        } catch (Exception e) {
+            logger.error("Error al procesar la solicitud", e);
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ErrorDto.of(
+                            HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                            "Error Interno del Servidor",
+                            "Error al obtener todos los pedidos: " + e.getMessage()
+                    ));
+        }
+    }
+
+    
+    @GetMapping("/codigo/{codigoPedido}")
+    @Operation(
+        summary = "Buscar pedido por código", 
+        description = "Busca un pedido específico por su código único generado automáticamente. El pedido puede ser consultado por su propietario o por un administrador.",
+        security = { @SecurityRequirement(name = "bearerAuth") }
+    )
+    public ResponseEntity<?> buscarPorCodigoPedido(@PathVariable String codigoPedido) {
+        logger.info("==== Solicitud recibida: buscarPorCodigoPedido: " + codigoPedido + " ====");
+        
+        try {
+            Optional<PedidoResponseDTO> pedidoOpt = pedidoService.buscarPorCodigoPedido(codigoPedido);
+            
+            if (pedidoOpt.isEmpty()) {
+                return ResponseEntity
+                        .status(HttpStatus.NOT_FOUND)
+                        .body(ErrorDto.of(
+                                HttpStatus.NOT_FOUND.value(),
+                                "Pedido no encontrado",
+                                "No se encontró un pedido con el código: " + codigoPedido
+                        ));
+            }
+            
+            PedidoResponseDTO pedido = pedidoOpt.get();
+            
+            // Verificar que el usuario autenticado tiene permisos para ver este pedido
+            // Se permite acceso si es el propietario O si tiene rol de admin
+            if (!jwtService.isUserAuthorizedOrAdmin(pedido.getUsuarioId())) {
+                logger.warn("ACCESO DENEGADO: El usuario autenticado no tiene permisos para ver este pedido");
+                return ResponseEntity
+                        .status(HttpStatus.FORBIDDEN)
+                        .body(ErrorDto.of(
+                                HttpStatus.FORBIDDEN.value(),
+                                "Acceso denegado",
+                                "No tienes permiso para acceder a este pedido"
+                        ));
+            }
+            
+            return ResponseEntity.ok(pedido);
+            
+        } catch (Exception e) {
+            logger.error("Error al procesar la solicitud", e);
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ErrorDto.of(
+                            HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                            "Error Interno del Servidor",
+                            "Error al buscar el pedido: " + e.getMessage()
                     ));
         }
     }

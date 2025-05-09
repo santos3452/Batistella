@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS productos (
 -- Crear tabla de pedidos si no existe
 CREATE TABLE IF NOT EXISTS pedidos (
     id SERIAL PRIMARY KEY,
+    codigo_pedido VARCHAR(20) NOT NULL UNIQUE,
     usuario_id BIGINT NOT NULL,
     fecha_pedido TIMESTAMP NOT NULL,
     estado VARCHAR(20) NOT NULL,
