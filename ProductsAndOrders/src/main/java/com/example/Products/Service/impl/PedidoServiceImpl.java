@@ -1,6 +1,6 @@
 package com.example.Products.Service.impl;
 
-import com.example.Products.Config.JwtService;
+import com.example.Products.Config.Secutiry.JwtService;
 import com.example.Products.Config.ModelMapperConfig;
 import com.example.Products.Dtos.PedidosDto.CrearPedidoDTO;
 import com.example.Products.Dtos.PedidosDto.PedidoProductoDTO;

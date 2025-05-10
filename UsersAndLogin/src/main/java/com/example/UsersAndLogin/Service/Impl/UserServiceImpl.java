@@ -210,4 +210,15 @@ public class UserServiceImpl implements UserService {
     public UserEntity save(UserEntity user) {
         return userRepository.save(user);
     }
+
+    @Override
+    public UserDto getUserById(Long id) {
+       UserEntity user = userRepository.findById(id)
+               .orElseThrow(()-> new IllegalArgumentException("No existe un usuario con el ID: " + id));
+         UserDto userDto = new UserDto();
+         userDto.setNombre(user.getNombre());
+         userDto.setApellido(user.getApellido());
+
+         return userDto;
+    }
 } 

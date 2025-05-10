@@ -3,6 +3,7 @@ package com.example.UsersAndLogin.Controller;
 import com.example.UsersAndLogin.Dto.Error.ErrorDto;
 import com.example.UsersAndLogin.Dto.UpdateAdressDto;
 import com.example.UsersAndLogin.Dto.UpdateUserDto;
+import com.example.UsersAndLogin.Dto.UserDto;
 import com.example.UsersAndLogin.Dto.UserResponseDto;
 import com.example.UsersAndLogin.Entity.UserEntity;
 import com.example.UsersAndLogin.Security.JwtUtils;
@@ -49,6 +50,42 @@ public class UserController {
                     ));
         }
     }
+
+    @GetMapping("/getUserByID/{id}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "bearerAuth")
+    public ResponseEntity<?> getUserByID(@PathVariable Long id) {
+
+        try{
+            UserDto userOpt = userService.getUserById(id);
+            return ResponseEntity.ok(userOpt);
+        }
+        catch (IllegalArgumentException e) {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(ErrorDto.of(
+                            HttpStatus.NOT_FOUND.value(),
+                            "Usuario No Encontrado",
+                            e.getMessage()
+                    ));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ErrorDto.of(
+                            HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                            "Error Interno del Servidor",
+                            "Error al obtener el usuario: " + e.getMessage()
+                    ));
+        }
+
+
+
+
+    }
+
+
+
+
     @DeleteMapping("/deleteAdress")
     // Temporalmente desactivamos el requisito de token para pruebas
     public ResponseEntity<?> deleteAdress(@RequestParam Long id){

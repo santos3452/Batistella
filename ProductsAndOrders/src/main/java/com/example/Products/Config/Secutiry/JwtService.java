@@ -1,11 +1,18 @@
-package com.example.Products.Config;
+package com.example.Products.Config.Secutiry;
 
+import com.example.Products.Dtos.UsuarioDto.UsuarioDTO;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Logger;
+import org.springframework.beans.factory.annotation.Value;
+
 import io.jsonwebtoken.Claims;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
 
 /**
  * Servicio centralizado para operaciones relacionadas con JWT
@@ -14,8 +21,16 @@ import io.jsonwebtoken.Claims;
 @Service
 public class JwtService {
 
+
+
     @Autowired
     private JwtUtil jwtUtil;
+
+    @Autowired
+    private RestTemplate restTemplate;
+
+    @Value("${microservice.usuarios.url}")
+    private String usuariosServiceUrl;
     
     // Caché para almacenar los nombres completos de los usuarios
     private ConcurrentHashMap<Long, String> userFullNameCache = new ConcurrentHashMap<>();
@@ -105,14 +120,41 @@ public class JwtService {
             return false;
         }
     }
-    
+
     /**
      * Obtiene el nombre completo de un usuario desde la caché
+     * Si no está en caché, intenta obtenerlo del microservicio de usuarios
      * @param userId ID del usuario
-     * @return Nombre completo o "Usuario {userId}" si no está en caché
+     * @return Nombre completo o "Usuario {userId}" si no se puede obtener
      */
     public String getUserFullNameFromCache(Long userId) {
-        return userFullNameCache.getOrDefault(userId, "Usuario " + userId);
+        // Primero intentamos obtener el nombre de la caché
+        String nombreUsuario = userFullNameCache.get(userId);
+
+        // Si no está en caché, intentamos obtenerlo del microservicio de usuarios
+        if (nombreUsuario == null) {
+            try {
+                String url = usuariosServiceUrl + "/" + userId;
+
+
+                UsuarioDTO usuario = restTemplate.getForObject(url, UsuarioDTO.class);
+
+                if (usuario != null) {
+                    nombreUsuario = usuario.getNombreCompleto();
+                    // Guardamos en caché para futuras consultas
+                    userFullNameCache.put(userId, nombreUsuario);
+
+                } else {
+
+                    nombreUsuario = "Usuario " + userId;
+                }
+            } catch (RestClientException e) {
+
+                nombreUsuario = "Usuario " + userId;
+            }
+        }
+
+        return nombreUsuario;
     }
 
     /**

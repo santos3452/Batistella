@@ -1,4 +1,4 @@
-package com.example.Products.Config;
+package com.example.Products.Config.Secutiry;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

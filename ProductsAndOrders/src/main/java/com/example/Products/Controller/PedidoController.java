@@ -1,6 +1,6 @@
 package com.example.Products.Controller;
 
-import com.example.Products.Config.JwtService;
+import com.example.Products.Config.Secutiry.JwtService;
 import com.example.Products.Dtos.Error.ErrorDto;
 import com.example.Products.Dtos.PedidosDto.CrearPedidoDTO;
 import com.example.Products.Dtos.PedidosDto.PedidoResponseDTO;
@@ -8,10 +8,6 @@ import com.example.Products.Service.PedidoService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 
 import org.slf4j.Logger;

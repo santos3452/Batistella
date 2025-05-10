@@ -10,6 +10,7 @@ import com.example.Products.Service.productService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.example.Products.Repository.productRepository;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

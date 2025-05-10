@@ -1,4 +1,4 @@
-package com.example.Products.Config;
+package com.example.Products.Config.Secutiry;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

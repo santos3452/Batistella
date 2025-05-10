@@ -66,4 +66,6 @@ public interface UserService {
      */
     UserEntity save(UserEntity user);
 
+    UserDto getUserById(Long id);
+
 } 

@@ -1,4 +1,4 @@
-package com.example.Products.Config;
+package com.example.Products.Config.Secutiry;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
