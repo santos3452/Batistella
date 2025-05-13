@@ -101,15 +101,36 @@ public class PedidoServiceImpl implements PedidoService {
 
         // Calcular el total del pedido
         BigDecimal total = BigDecimal.ZERO;
-        for (int i = 0; i < crearPedidoDTO.getProductos().size(); i++) {
-            PedidoProductoDTO productoDTO = crearPedidoDTO.getProductos().get(i);
-            Products producto = productos.get(i);
+        String role = jwtService.getCurrentUserRole();
 
-            // Usamos el precio minorista
-            BigDecimal precioUnitario = producto.getPriceMinorista();
-            BigDecimal subtotal = precioUnitario.multiply(BigDecimal.valueOf(productoDTO.getCantidad()));
-            total = total.add(subtotal);
+
+        if(role.equals("ROLE_EMPRESA")){
+            for (int i = 0; i < crearPedidoDTO.getProductos().size(); i++) {
+                PedidoProductoDTO productoDTO = crearPedidoDTO.getProductos().get(i);
+                Products producto = productos.get(i);
+
+                // Usamos el precio minorista
+                BigDecimal precioUnitario = producto.getPriceMayorista();
+                BigDecimal subtotal = precioUnitario.multiply(BigDecimal.valueOf(productoDTO.getCantidad()));
+                total = total.add(subtotal);
+            }
+
+
+
         }
+        else{
+            for (int i = 0; i < crearPedidoDTO.getProductos().size(); i++) {
+                PedidoProductoDTO productoDTO = crearPedidoDTO.getProductos().get(i);
+                Products producto = productos.get(i);
+
+                // Usamos el precio minorista
+                BigDecimal precioUnitario = producto.getPriceMinorista();
+                BigDecimal subtotal = precioUnitario.multiply(BigDecimal.valueOf(productoDTO.getCantidad()));
+                total = total.add(subtotal);
+            }
+
+        }
+
 
         // Crear el pedido
         Pedido pedido = new Pedido();

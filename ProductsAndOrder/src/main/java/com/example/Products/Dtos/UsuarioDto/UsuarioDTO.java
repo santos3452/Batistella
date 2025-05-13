@@ -2,7 +2,6 @@ package com.example.Products.Dtos.UsuarioDto;
 
 
 import lombok.*;
-import org.springframework.beans.factory.annotation.Autowired;
 
 @Data
 @Getter
@@ -26,4 +25,6 @@ public class UsuarioDTO {
         }
         return "Usuario " + id;
     }
+
+
 }

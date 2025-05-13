@@ -20,7 +20,7 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
     
-    private static final Logger logger = LoggerFactory.getLogger(JwtUtil.class);
+    public static final Logger logger = LoggerFactory.getLogger(JwtUtil.class);
 
     @Value("${jwt.secret}")
     private String secret;

@@ -32,8 +32,6 @@ public class UserController {
     }
     
     @GetMapping("/email/{email}")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<?> getUserByEmail(@PathVariable String email) {
         Optional<UserEntity> userOpt = userService.findByEmail(email);
         
