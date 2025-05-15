@@ -142,8 +142,8 @@
         </tr>
       </thead>
       <tbody class="bg-white divide-y divide-gray-200">
-        <ng-container *ngIf="filteredProducts.length > 0">
-          <tr *ngFor="let product of filteredProducts">
+        <ng-container *ngIf="pagedProducts.length > 0">
+          <tr *ngFor="let product of pagedProducts">
             <td class="px-6 py-4 whitespace-nowrap">
               <img [src]="product.imageUrl" [alt]="product.fullName" class="h-10 w-10 object-cover rounded">
             </td>
@@ -193,12 +193,64 @@
         </ng-container>
         <!-- Mensaje cuando no hay resultados de filtrado -->
         <tr *ngIf="filteredProducts.length === 0 && products.length > 0">
-          <td colspan="10" class="px-6 py-8 text-center text-gray-500">
+          <td colspan="11" class="px-6 py-8 text-center text-gray-500">
             No se encontraron productos que coincidan con los filtros seleccionados.
           </td>
         </tr>
       </tbody>
     </table>
+  </div>
+  
+  <!-- Paginación (ahora fuera del overflow-x-auto, alineada a la derecha) -->
+  <div *ngIf="filteredProducts.length > 0" class="w-full flex justify-between mt-2">
+    <div class="px-6 py-4 bg-white border-t border-gray-200 rounded-b-lg flex items-center w-full shadow justify-between">
+      <div class="text-sm text-gray-700">
+        Mostrando <span class="font-medium">{{ (page - 1) * pageSize + 1 }}</span> a 
+        <span class="font-medium">{{ Math.min(page * pageSize, filteredProducts.length) }}</span> de 
+        <span class="font-medium">{{ filteredProducts.length }}</span> productos
+      </div>
+      <div class="flex items-center space-x-2">
+        <button 
+          (click)="prevPage()" 
+          [disabled]="page === 1" 
+          class="px-3 py-1 bg-gray-200 rounded disabled:opacity-50 hover:bg-gray-300"
+        >
+          Anterior
+        </button>
+        <!-- Números de página -->
+        <div class="flex space-x-1">
+          <ng-container *ngFor="let pageNum of [].constructor(totalPages > 5 ? 5 : totalPages); let i = index">
+            <button 
+              *ngIf="showPageNumber(i + 1)"
+              (click)="goToPage(getPageNumberToShow(i))" 
+              [class.bg-teal-600]="page === getPageNumberToShow(i)"
+              [class.text-white]="page === getPageNumberToShow(i)"
+              [class.bg-gray-200]="page !== getPageNumberToShow(i)"
+              class="px-3 py-1 rounded hover:bg-gray-300"
+            >
+              {{ getPageNumberToShow(i) }}
+            </button>
+          </ng-container>
+          <!-- Indicador de más páginas -->
+          <span *ngIf="totalPages > 5 && page < totalPages - 2" class="self-center">...</span>
+          <!-- Última página siempre visible si hay más de 5 -->
+          <button 
+            *ngIf="totalPages > 5 && page < totalPages - 1"
+            (click)="goToPage(totalPages)" 
+            class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300"
+          >
+            {{ totalPages }}
+          </button>
+        </div>
+        <button 
+          (click)="nextPage()" 
+          [disabled]="page === totalPages" 
+          class="px-3 py-1 bg-gray-200 rounded disabled:opacity-50 hover:bg-gray-300"
+        >
+          Siguiente
+        </button>
+      </div>
+    </div>
   </div>
 
   <!-- No hay productos en absoluto -->

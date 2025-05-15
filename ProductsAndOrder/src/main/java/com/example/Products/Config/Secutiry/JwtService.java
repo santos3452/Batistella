@@ -35,6 +35,8 @@ public class JwtService {
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(JwtService.class);
     @Autowired
     private JwtUtil jwtUtil;
+    @Autowired
+    private HttpServletRequest request;
 
     @Autowired
     private RestTemplate restTemplate;
@@ -149,7 +151,7 @@ public class JwtService {
                 if (isAdmin() || isUserAuthorized(userId)) {
                     String url = "http://localhost:8081/api/users/getUserByID/" + userId;
                     logger.info("Consultando usuario en: {}", url);
-
+                    String token = extractJwtFromRequest(request);
 
 
 
@@ -157,7 +159,7 @@ public class JwtService {
                     headers.set("Authorization", "Bearer "+ token);
                     headers.set("accept", "application/hal+json");
 
-                    System.out.println("DEBUG - Token de autorización: " + headers.get("Authorization"));
+                   System.out.println("DEBUG - Token de autorización: " + headers.get("Authorization"));
 
                     HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
 
@@ -188,7 +190,18 @@ public class JwtService {
         return nombreUsuario;
     }
 
+    /**
+     * Extrae el token JWT del contexto de seguridad actual
+     * @return Token JWT o null si no está autenticado
+     */
 
+    public String extractJwtFromRequest(HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            return authHeader.substring(7); // Quita el "Bearer "
+        }
+        return null;
+    }
 
     /**
      * Obtiene un token fijo para comunicaciones entre servicios

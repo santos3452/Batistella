@@ -5,11 +5,11 @@ import com.example.Products.Dtos.Error.ErrorDto;
 import com.example.Products.Dtos.PedidosDto.CrearPedidoDTO;
 import com.example.Products.Dtos.PedidosDto.PedidoResponseDTO;
 import com.example.Products.Service.PedidoService;
-
+import com.example.Products.Entity.enums.EstadoPedido;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +17,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.format.annotation.DateTimeFormat;
 
+import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Optional;
 
@@ -140,18 +145,30 @@ public class PedidoController {
     @GetMapping("/todosLosPedidos")
     @Operation(
             summary = "Obtener todos los pedidos",
-            description = "Obtiene todos los pedidos en el sistema. Solo accesible para administradores.",
+            description = "Obtiene todos los pedidos en el sistema con posibilidad de filtros y paginación. Solo accesible para administradores.",
             security = { @SecurityRequirement(name = "bearerAuth") }
     )
-    public ResponseEntity<?> getAllPedidos() {
+    public ResponseEntity<?> getAllPedidos(
+            @Parameter(description = "Código de pedido (opcional, búsqueda parcial).")
+            @RequestParam(value = "codigoPedido", required = false) String codigoPedido,
+            
+            @Parameter(description = "Fecha del pedido en formato DD/MM/AAAA o DD/MM/AAAA HH:MM:SS (opcional).")
+            @RequestParam(value = "fecha", required = false) String fechaStr,
+            
+            @Parameter(description = "Estado del pedido (opcional).")
+            @RequestParam(value = "estado", required = false) EstadoPedido estado,
+            
+            @Parameter(description = "Cantidad de datos por página. Valor por defecto: 50")
+            @RequestParam(value = "cantDatos", required = false, defaultValue = "50") Integer cantDatos,
+            
+            @Parameter(description = "Número de página. Valor por defecto: 1")
+            @RequestParam(value = "pagina", required = false, defaultValue = "1") Integer pagina
+    ) {
         logger.info("==== Solicitud recibida: getAllPedidos ====");
         
         try {
-
             String role = jwtService.getCurrentUserRole();
             boolean isAdmin = jwtService.isAdmin();
-            
-
             
             if (!isAdmin) {
                 logger.warn("ACCESO DENEGADO: El usuario no tiene rol de administrador");
@@ -164,9 +181,33 @@ public class PedidoController {
                         ));
             }
             
-
-            List<PedidoResponseDTO> pedidos = pedidoService.obtenerTodosLosPedidos();
-
+            // Convertir la fecha si se proporciona
+            LocalDateTime fechaDateTime = null;
+            if (fechaStr != null && !fechaStr.isEmpty()) {
+                try {
+                    // Intentar primero con formato DD/MM/AAAA HH:MM:SS
+                    DateTimeFormatter formatterConHora = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+                    try {
+                        fechaDateTime = LocalDateTime.parse(fechaStr, formatterConHora);
+                    } catch (DateTimeParseException e) {
+                        // Si falla, intentar con formato DD/MM/AAAA (sin hora)
+                        DateTimeFormatter formatterSinHora = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                        LocalDate fechaDate = LocalDate.parse(fechaStr, formatterSinHora);
+                        // Convertir a LocalDateTime con hora 00:00:00
+                        fechaDateTime = fechaDate.atStartOfDay();
+                    }
+                } catch (Exception e) {
+                    return ResponseEntity
+                            .status(HttpStatus.BAD_REQUEST)
+                            .body(ErrorDto.of(
+                                    HttpStatus.BAD_REQUEST.value(),
+                                    "Formato de fecha incorrecto",
+                                    "El formato de fecha debe ser DD/MM/AAAA o DD/MM/AAAA HH:MM:SS"
+                            ));
+                }
+            }
+            
+            List<PedidoResponseDTO> pedidos = pedidoService.obtenerTodosLosPedidos(codigoPedido, fechaDateTime, estado, cantDatos, pagina);
             
             return ResponseEntity.ok(pedidos);
         } catch (Exception e) {
@@ -177,6 +218,50 @@ public class PedidoController {
                             HttpStatus.INTERNAL_SERVER_ERROR.value(),
                             "Error Interno del Servidor",
                             "Error al obtener todos los pedidos: " + e.getMessage()
+                    ));
+        }
+    }
+    @PutMapping("/actualizarEstado/")
+    @Operation(
+            summary = "Actualizar Estado de pedido",
+            description = "Actualiza el estado de pedido, solo lo peude hacer un administrador.",
+            security = { @SecurityRequirement(name = "bearerAuth") }
+    )
+
+    public ResponseEntity<?> updateEstado(@RequestParam Long pedidoId, @RequestParam String nuevoEstado) {
+
+
+        try {
+
+            String role = jwtService.getCurrentUserRole();
+            boolean isAdmin = jwtService.isAdmin();
+
+
+
+            if (!isAdmin) {
+                logger.warn("ACCESO DENEGADO: El usuario no tiene rol de administrador");
+                return ResponseEntity
+                        .status(HttpStatus.FORBIDDEN)
+                        .body(ErrorDto.of(
+                                HttpStatus.FORBIDDEN.value(),
+                                "Acceso denegado",
+                                "Solo los administradores pueden acceder a esta función"
+                        ));
+            }
+
+
+             pedidoService.cambiarEstadoPedido(pedidoId, nuevoEstado);
+
+
+            return ResponseEntity.ok("Estado del pedido actualizado correctamente");
+        } catch (Exception e) {
+            logger.error("Error al procesar la solicitud", e);
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ErrorDto.of(
+                            HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                            "Error Interno del Servidor",
+                            "Error al actualizar el pedido: " + e.getMessage()
                     ));
         }
     }

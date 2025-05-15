@@ -38,6 +38,9 @@ public class Pedido {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal total;
 
+    @Column(name= "Domicilio", nullable = true)
+    private String domicilioDeEtrega;
+
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PedidoProducto> pedidoProductos = new ArrayList<>();
 

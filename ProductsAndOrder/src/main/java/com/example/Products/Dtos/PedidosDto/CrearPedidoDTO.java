@@ -20,4 +20,6 @@ public class CrearPedidoDTO {
     @NotEmpty(message = "Debe incluir al menos un producto en el pedido")
     @Valid
     private List<PedidoProductoDTO> productos;
+
+    private String domicilioDeEtrega;
 } 

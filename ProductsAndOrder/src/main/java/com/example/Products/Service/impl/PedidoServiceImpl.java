@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -138,6 +139,7 @@ public class PedidoServiceImpl implements PedidoService {
         pedido.setFechaPedido(LocalDateTime.now());
         pedido.setEstado(EstadoPedido.PENDIENTE);
         pedido.setTotal(total);
+        pedido.setDomicilioDeEtrega(crearPedidoDTO.getDomicilioDeEtrega());
         
         // Generar y asignar el código de pedido único
         pedido.setCodigoPedido(generarCodigoPedido());
@@ -150,14 +152,23 @@ public class PedidoServiceImpl implements PedidoService {
             PedidoProductoDTO productoDTO = crearPedidoDTO.getProductos().get(i);
             Products producto = productos.get(i);
 
+            BigDecimal precio = producto.getPriceMinorista(); // Usar el precio unitario según el rol del usuario
+
+            // Usar el precio unitario según el rol del usuario
+
             // Obtener el precio unitario actual
-            BigDecimal precioUnitario = producto.getPriceMinorista();
+            if(role.equals("ROLE_EMPRESA")){
+                precio = producto.getPriceMayorista();
+                producto.setPriceMinorista(precio);
+            }
+
+
 
             PedidoProducto pedidoProducto = new PedidoProducto();
             pedidoProducto.setPedido(pedidoGuardado);
             pedidoProducto.setProducto(producto);
             pedidoProducto.setCantidad(productoDTO.getCantidad());
-            pedidoProducto.setPrecioUnitario(precioUnitario); // Guardar el precio actual
+            pedidoProducto.setPrecioUnitario(precio); // Guardar el precio actual
 
             pedidoProductos.add(pedidoProducto);
 
@@ -165,7 +176,6 @@ public class PedidoServiceImpl implements PedidoService {
             producto.setStock(producto.getStock() - productoDTO.getCantidad());
             productoRepository.save(producto);
         }
-
         // Guardar los productos del pedido
         pedidoProductoRepository.saveAll(pedidoProductos);
         
@@ -214,11 +224,75 @@ public class PedidoServiceImpl implements PedidoService {
     }
 
     @Override
-    public List<PedidoResponseDTO> obtenerTodosLosPedidos() {
+    public List<PedidoResponseDTO> obtenerTodosLosPedidos(String codigoPedido, LocalDateTime fecha, EstadoPedido estado, Integer cantDatos, Integer pagina) {
         List<Pedido> pedidos = pedidoRepository.findAll();
+        
+        // Aplicar filtros si se proporcionan
+        if (codigoPedido != null) {
+            pedidos = pedidos.stream()
+                .filter(p -> p.getCodigoPedido().contains(codigoPedido))
+                .collect(Collectors.toList());
+        }
+        
+        if (fecha != null) {
+            pedidos = pedidos.stream()
+                .filter(p -> {
+                    // Si se proporcionó fecha con hora, comparar fecha y hora
+                    // Si la hora es 00:00:00, entonces solo comparar la fecha
+                    if (fecha.getHour() == 0 && fecha.getMinute() == 0 && fecha.getSecond() == 0) {
+                        // Solo comparar la fecha
+                        return p.getFechaPedido().toLocalDate().equals(fecha.toLocalDate());
+                    } else {
+                        // Comparar fecha y hora
+                        return p.getFechaPedido().equals(fecha);
+                    }
+                })
+                .collect(Collectors.toList());
+        }
+        
+        if (estado != null) {
+            pedidos = pedidos.stream()
+                .filter(p -> p.getEstado() == estado)
+                .collect(Collectors.toList());
+        }
+        
+        // Ordenar por fecha de pedido descendente (más recientes primero)
+        pedidos = pedidos.stream()
+            .sorted((p1, p2) -> p2.getFechaPedido().compareTo(p1.getFechaPedido()))
+            .collect(Collectors.toList());
+        
+        // Aplicar paginación si se proporcionan los parámetros
+        if (cantDatos != null && pagina != null) {
+            int startIndex = (pagina - 1) * cantDatos;
+            int endIndex = Math.min(startIndex + cantDatos, pedidos.size());
+            
+            // Validar índices
+            if (startIndex >= 0 && startIndex < pedidos.size()) {
+                pedidos = pedidos.subList(startIndex, endIndex);
+            } else if (startIndex >= pedidos.size()) {
+                pedidos = List.of(); // Lista vacía si la página está fuera de rango
+            }
+        }
+        
         return pedidos.stream()
             .map(this::mapPedidoToDTO)
             .collect(Collectors.toList());
+    }
+
+    @Override
+    public void cambiarEstadoPedido(Long pedidoId, String nuevoEstado) {
+        Pedido pedido = pedidoRepository.findById(pedidoId)
+            .orElseThrow(() -> new EntityNotFoundException("Pedido no encontrado con ID: " + pedidoId));
+
+        // Verificar si el nuevo estado es válido
+        try {
+            EstadoPedido estado = EstadoPedido.valueOf(nuevoEstado.toUpperCase());
+            pedido.setEstado(estado);
+            pedido.setUpdatedAt(LocalDateTime.now());
+            pedidoRepository.save(pedido);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Estado de pedido inválido: " + nuevoEstado);
+        }
     }
 
     /**

@@ -22,7 +22,7 @@
     <!-- Filtros -->
     <div class="bg-gray-50 p-4 rounded-md mb-6">
       <h2 class="text-lg font-semibold text-gray-700 mb-3">Filtros</h2>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
         <!-- Filtro por código de pedido -->
         <div>
           <label for="filterCodigo" class="block text-sm font-medium text-gray-700 mb-1">Código de Pedido</label>
@@ -44,6 +44,17 @@
             [(ngModel)]="filterNombreUsuario"
             class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500"
             placeholder="Filtrar por nombre de cliente..."
+          >
+        </div>
+
+        <!-- Filtro por fecha -->
+        <div>
+          <label for="filterFecha" class="block text-sm font-medium text-gray-700 mb-1">Fecha</label>
+          <input 
+            type="date" 
+            id="filterFecha" 
+            [(ngModel)]="filterFecha"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500"
           >
         </div>
 
@@ -120,12 +131,12 @@
               </div>
             </td>
           </tr>
-          <tr *ngIf="!isLoading && filteredPedidos.length === 0" class="text-center">
+          <tr *ngIf="!isLoading && (!filteredPedidos || filteredPedidos.length === 0)" class="text-center">
             <td colspan="6" class="px-6 py-4 text-gray-500">
               No se encontraron pedidos
             </td>
           </tr>
-          <tr *ngFor="let pedido of filteredPedidos" class="hover:bg-gray-50">
+          <tr *ngFor="let pedido of filteredPedidos || []" class="hover:bg-gray-50">
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
               {{ pedido.codigoPedido }}
             </td>
@@ -161,7 +172,7 @@
                   title="Cambiar estado"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                   </svg>
                 </button>
               </div>
@@ -169,6 +180,82 @@
           </tr>
         </tbody>
       </table>
+    </div>
+
+    <!-- Paginación -->
+    <div *ngIf="totalItems > 0" class="mt-6 flex items-center justify-between border-t border-gray-200 px-4 py-3 sm:px-6">
+      <div class="flex flex-1 justify-between sm:hidden">
+        <button 
+          type="button"
+          (click)="changePage(currentPage - 1); $event.preventDefault();" 
+          [disabled]="currentPage === 1"
+          [class]="currentPage === 1 ? 'cursor-not-allowed bg-gray-100 text-gray-400' : 'bg-white text-gray-700 hover:bg-gray-50 cursor-pointer'"
+          class="relative inline-flex items-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium"
+        >
+          Anterior
+        </button>
+        <span class="mx-2 text-sm text-gray-700">
+          Página {{ currentPage }} de {{ availablePages.length || 1 }}
+        </span>
+        <button 
+          type="button"
+          (click)="changePage(currentPage + 1); $event.preventDefault();" 
+          [disabled]="!availablePages.includes(currentPage + 1)"
+          [class]="!availablePages.includes(currentPage + 1) ? 'cursor-not-allowed bg-gray-100 text-gray-400' : 'bg-white text-gray-700 hover:bg-gray-50 cursor-pointer'"
+          class="relative ml-3 inline-flex items-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium"
+        >
+          Siguiente
+        </button>
+      </div>
+      <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+        <div>
+          <p class="text-sm text-gray-700">
+            Mostrando <span class="font-medium">{{ (filteredPedidos && filteredPedidos.length > 0) ? ((currentPage - 1) * itemsPerPage + 1) : 0 }}</span> a <span class="font-medium">{{ (filteredPedidos && filteredPedidos.length > 0) ? ((currentPage - 1) * itemsPerPage + filteredPedidos.length) : 0 }}</span> de <span class="font-medium">{{ totalItems || 'desconocido' }}</span> resultados
+            <span *ngIf="availablePages.length > 0"> | Páginas disponibles: {{ availablePages.length }}</span>
+          </p>
+        </div>
+        <div>
+          <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+            <!-- Paginación con números dinámicos -->
+            <button 
+              type="button"
+              (click)="changePage(currentPage - 1); $event.preventDefault();" 
+              [disabled]="currentPage === 1"
+              [class]="currentPage === 1 ? 'cursor-not-allowed bg-gray-100 text-gray-400' : 'bg-white text-gray-700 hover:bg-gray-50 cursor-pointer'"
+              class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 focus:z-20 focus:outline-offset-0"
+            >
+              <span class="sr-only">Anterior</span>
+              <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" />
+              </svg>
+            </button>
+            
+            <!-- Números de página que tienen datos -->
+            <ng-container *ngFor="let page of availablePages">
+              <button 
+                type="button"
+                (click)="changePage(page); $event.preventDefault();"
+                [class]="page === currentPage ? 'relative z-10 inline-flex items-center bg-teal-600 px-4 py-2 text-sm font-semibold text-white focus:z-20' : 'relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 cursor-pointer'"
+              >
+                {{ page }}
+              </button>
+            </ng-container>
+            
+            <button 
+              type="button"
+              (click)="changePage(currentPage + 1); $event.preventDefault();" 
+              [disabled]="!availablePages.includes(currentPage + 1)"
+              [class]="!availablePages.includes(currentPage + 1) ? 'cursor-not-allowed bg-gray-100 text-gray-400' : 'bg-white text-gray-700 hover:bg-gray-50 cursor-pointer'"
+              class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 focus:z-20 focus:outline-offset-0"
+            >
+              <span class="sr-only">Siguiente</span>
+              <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
+              </svg>
+            </button>
+          </nav>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -206,7 +293,12 @@
               <span [class]="'px-2 py-1 text-xs font-medium rounded-full ' + getEstadoClass(selectedPedido.estado)">
                 {{ selectedPedido.estado }}
               </span>
+              <span class="block text-xs text-gray-500 mt-1">Última actualización: {{ selectedPedido.updatedAt }}</span>
             </p>
+          </div>
+          <div class="col-span-2">
+            <p class="text-sm font-medium text-gray-500">Domicilio de entrega</p>
+            <p class="text-base">{{ selectedPedido.domicilio || 'No especificado' }}</p>
           </div>
         </div>
 

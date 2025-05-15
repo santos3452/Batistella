@@ -77,8 +77,13 @@
         <div *ngIf="orderSummary" class="space-y-3 mb-6">
           <div class="text-sm text-gray-600 mb-4">
             <p class="font-medium">Detalles del envío:</p>
-            <p>{{ orderSummary.address.calle }} {{ orderSummary.address.numero }}</p>
-            <p>{{ orderSummary.address.ciudad }}, CP: {{ orderSummary.address.codigoPostal }}</p>
+            <ng-container *ngIf="!orderSummary.isPickupSelected; else pickupTemplate">
+              <p>{{ orderSummary.address.calle }} {{ orderSummary.address.numero }}</p>
+              <p>{{ orderSummary.address.ciudad }}, CP: {{ orderSummary.address.codigoPostal }}</p>
+            </ng-container>
+            <ng-template #pickupTemplate>
+              <p>Retiro en el local</p>
+            </ng-template>
           </div>
           
           <div class="flex justify-between">
@@ -111,6 +116,55 @@
           <span *ngIf="!isLoading">Confirmar pedido</span>
         </button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de confirmación de pedido creado -->
+<div *ngIf="orderCreated" class="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-50">
+  <div class="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
+    <div class="text-center">
+      <!-- Icono del reloj -->
+      <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-teal-100 mb-4">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      <h3 class="text-lg font-medium text-gray-900 mb-2">¡Pedido Registrado Correctamente!</h3>
+      <p class="text-gray-600 mb-4">Su pedido ha sido registrado en el sistema con estado PENDIENTE. Será redirigido a WhatsApp para coordinar el pago y la entrega.</p>
+      
+      <!-- Resumen del pedido -->
+      <div class="bg-gray-50 rounded-md p-4 mb-4 text-left">
+        <h4 class="font-medium text-gray-800 mb-2">Resumen del pedido:</h4>
+        
+        <div class="space-y-2">
+          <div *ngIf="orderSummary">
+            <p class="font-medium text-sm text-gray-700">Productos:</p>
+            <ul class="pl-2 text-sm text-gray-600">
+              <li *ngFor="let item of orderSummary.items" class="flex justify-between mb-1">
+                <span>{{ item.product.fullName }} ({{ item.quantity }})</span>
+                <span>{{ utils.formatCurrency(item.product.priceMinorista * item.quantity) }}</span>
+              </li>
+            </ul>
+          </div>
+          
+          <div class="border-t border-gray-200 pt-2 mt-2 flex justify-between">
+            <span class="font-medium text-gray-700">Total:</span>
+            <span class="font-medium">{{ utils.formatCurrency(orderSummary?.totalAmount || 0) }}</span>
+          </div>
+          
+          <div class="mt-2">
+            <p class="font-medium text-sm text-gray-700">Dirección de entrega:</p>
+            <p class="text-sm text-gray-600">{{ orderSummary?.direccionCompleta }}</p>
+          </div>
+        </div>
+      </div>
+      
+      <button 
+        (click)="continuarAWhatsApp()" 
+        class="w-full py-3 px-4 bg-green-600 text-white rounded-md font-medium hover:bg-green-700 focus:outline-none">
+        Continuar a WhatsApp
+      </button>
     </div>
   </div>
 </div> 

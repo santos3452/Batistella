@@ -30,13 +30,16 @@ export class HomeComponent implements OnInit, OnDestroy {
   products: Product[] = [];
   productGroups: ProductGroup[] = [];
   page = 1;
-  pageSize = 12;
+  pageSize = 15;
   totalPages = 0;
   categoryFilter: string | null = null;
   marcaFilter: string | null = null;
   categoryTitle = 'Todos los Alimentos';
   isAdmin = false;
   private subscription: Subscription = new Subscription();
+  
+  // Para usar Math en la plantilla
+  Math = Math;
 
   private categoryTitles: Record<string, string> = {
     'PERROS': 'Alimentos para Perros',
@@ -137,5 +140,42 @@ export class HomeComponent implements OnInit, OnDestroy {
     if (n >= 1 && n <= this.totalPages) {
       this.page = n;
     }
+  }
+  
+  // Determina si un número de página debe mostrarse basado en la página actual
+  showPageNumber(pageNum: number): boolean {
+    // Si hay 5 o menos páginas, mostrar todas
+    if (this.totalPages <= 5) return true;
+    
+    // Siempre mostrar la primera página
+    if (pageNum === 1) return true;
+    
+    // Para páginas cercanas a la actual
+    if (pageNum >= this.page - 1 && pageNum <= this.page + 1) return true;
+    
+    // No mostrar otras páginas
+    return false;
+  }
+
+  // Obtiene el número de página que se debe mostrar en cada posición
+  getPageNumberToShow(index: number): number {
+    // Si hay 5 o menos páginas, mostrar secuencialmente
+    if (this.totalPages <= 5) return index + 1;
+    
+    // Para la primera posición siempre mostrar página 1
+    if (index === 0) return 1;
+    
+    // Si estamos en las primeras páginas
+    if (this.page <= 3) {
+      return index + 1;
+    }
+    
+    // Si estamos cerca del final
+    if (this.page >= this.totalPages - 2) {
+      return this.totalPages - 4 + index;
+    }
+    
+    // En medio del rango
+    return this.page - 2 + index;
   }
 }

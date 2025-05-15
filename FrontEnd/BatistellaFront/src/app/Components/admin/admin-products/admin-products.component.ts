@@ -16,8 +16,17 @@ import { Product } from '../../../Services/Product/product.service';
 export class AdminProductsComponent implements OnInit {
   products: Product[] = [];
   filteredProducts: Product[] = [];
+  pagedProducts: Product[] = [];
   isLoading = false;
   errorMessage: string | null = null;
+  
+  // Para usar Math en la plantilla
+  Math = Math;
+  
+  // Paginación
+  page = 1;
+  pageSize = 10;
+  totalPages = 0;
   
   // Filtros
   filterName: string = '';
@@ -61,6 +70,7 @@ export class AdminProductsComponent implements OnInit {
           this.products = products;
           this.filteredProducts = [...products];
           this.extractFilterOptions();
+          this.updatePagination();
           this.isLoading = false;
         },
         error: (error) => {
@@ -107,6 +117,10 @@ export class AdminProductsComponent implements OnInit {
       
       return nameMatch && brandMatch && typeMatch && weightMatch && statusMatch;
     });
+    
+    // Actualizar la paginación después de aplicar los filtros
+    this.page = 1;
+    this.updatePagination();
   }
 
   resetFilters(): void {
@@ -116,6 +130,41 @@ export class AdminProductsComponent implements OnInit {
     this.filterWeight = '';
     this.filterStatus = '';
     this.filteredProducts = [...this.products];
+    this.page = 1;
+    this.updatePagination();
+  }
+
+  // Métodos de paginación
+  updatePagination(): void {
+    this.totalPages = Math.ceil(this.filteredProducts.length / this.pageSize);
+    this.loadPagedProducts();
+  }
+
+  loadPagedProducts(): void {
+    const start = (this.page - 1) * this.pageSize;
+    const end = start + this.pageSize;
+    this.pagedProducts = this.filteredProducts.slice(start, end);
+  }
+
+  prevPage(): void {
+    if (this.page > 1) {
+      this.page--;
+      this.loadPagedProducts();
+    }
+  }
+
+  nextPage(): void {
+    if (this.page < this.totalPages) {
+      this.page++;
+      this.loadPagedProducts();
+    }
+  }
+
+  goToPage(n: number): void {
+    if (n >= 1 && n <= this.totalPages) {
+      this.page = n;
+      this.loadPagedProducts();
+    }
   }
 
   confirmToggleProductStatus(product: Product): void {
@@ -243,48 +292,68 @@ export class AdminProductsComponent implements OnInit {
   // Formatea la fecha de última actualización de forma amigable
   formatUpdatedAt(dateString: string): string {
     if (!dateString) return 'No disponible';
-    
     try {
-      // Parseamos la fecha (formato esperado: DD/MM/YYYY HH:MM:SS)
+      // Parsear el formato MM/DD/YYYY HH:mm:ss
       const parts = dateString.split(' ');
       if (parts.length !== 2) return dateString;
-      
       const dateParts = parts[0].split('/');
       if (dateParts.length !== 3) return dateString;
-      
-      const day = parseInt(dateParts[0]);
-      const month = parseInt(dateParts[1]) - 1; // Los meses en JS van de 0 a 11
+      const month = parseInt(dateParts[0]) - 1; // Mes en JS (0-11)
+      const day = parseInt(dateParts[1]);
       const year = parseInt(dateParts[2]);
-      
       const timeParts = parts[1].split(':');
-      if (timeParts.length !== 3) return dateString;
-      
+      if (timeParts.length < 2) return dateString;
       const hour = parseInt(timeParts[0]);
       const minute = parseInt(timeParts[1]);
-      
+      // Crear el objeto Date correctamente
       const date = new Date(year, month, day, hour, minute);
-      const now = new Date();
-      
-      // Si es de hoy, mostrar solo la hora
-      if (date.toDateString() === now.toDateString()) {
-        return `Hoy a las ${hour}:${minute.toString().padStart(2, '0')}`;
-      }
-      
-      // Si es de ayer, mostrar "Ayer"
-      const yesterday = new Date(now);
-      yesterday.setDate(now.getDate() - 1);
-      if (date.toDateString() === yesterday.toDateString()) {
-        return `Ayer a las ${hour}:${minute.toString().padStart(2, '0')}`;
-      }
-      
-      // Para fechas más antiguas, mostrar el formato completo
-      const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 
-                          'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-      
-      return `${day} ${monthNames[month]}, ${hour}:${minute.toString().padStart(2, '0')}`;
+      // Mostrar como DD/MM/YYYY HH:mm
+      const dd = day.toString().padStart(2, '0');
+      const mm = (month + 1).toString().padStart(2, '0');
+      const yyyy = year;
+      const hh = hour.toString().padStart(2, '0');
+      const min = minute.toString().padStart(2, '0');
+      return `${dd}/${mm}/${yyyy} ${hh}:${min}`;
     } catch (error) {
       console.error('Error al formatear fecha', error);
       return dateString;
     }
+  }
+
+  // Determina si un número de página debe mostrarse basado en la página actual
+  showPageNumber(pageNum: number): boolean {
+    // Si hay 5 o menos páginas, mostrar todas
+    if (this.totalPages <= 5) return true;
+    
+    // Siempre mostrar la primera página
+    if (pageNum === 1) return true;
+    
+    // Para páginas cercanas a la actual
+    if (pageNum >= this.page - 1 && pageNum <= this.page + 1) return true;
+    
+    // No mostrar otras páginas
+    return false;
+  }
+
+  // Obtiene el número de página que se debe mostrar en cada posición
+  getPageNumberToShow(index: number): number {
+    // Si hay 5 o menos páginas, mostrar secuencialmente
+    if (this.totalPages <= 5) return index + 1;
+    
+    // Para la primera posición siempre mostrar página 1
+    if (index === 0) return 1;
+    
+    // Si estamos en las primeras páginas
+    if (this.page <= 3) {
+      return index + 1;
+    }
+    
+    // Si estamos cerca del final
+    if (this.page >= this.totalPages - 2) {
+      return this.totalPages - 4 + index;
+    }
+    
+    // En medio del rango
+    return this.page - 2 + index;
   }
 } 

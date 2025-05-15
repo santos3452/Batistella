@@ -1,8 +1,40 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, throwError, of } from 'rxjs';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { Observable, throwError, of, map } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
-import { Pedido } from '../../Models/pedido';
+import { Pedido as PedidoModel } from '../../Models/pedido';
+import { environment } from '../../../environments/environment';
+
+interface DetallePedido {
+  id: number;
+  productoId: number;
+  nombreProducto: string;
+  cantidad: number;
+  precioUnitario: number;
+  subtotal: number;
+}
+
+interface Pedido {
+  id: number;
+  codigoPedido: string;
+  usuarioId: number;
+  nombreCompletoUsuario: string;
+  fechaPedido: string;
+  estado: string;
+  total: number;
+  productos: DetallePedido[];
+  createdAt: string;
+  updatedAt: string;
+  domicilio?: string;
+}
+
+export interface PedidoResponse {
+  content: Pedido[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -14,6 +46,138 @@ export class PedidosService {
   private cacheDuration: number = 60000; // 1 minuto en milisegundos
 
   constructor(private http: HttpClient) { }
+
+  // Obtener todos los pedidos con paginación
+  getPedidosPaginados(page: number = 1, size: number = 12, codigoPedido?: string, estado?: string, fecha?: string): Observable<PedidoResponse> {
+    // Obtener token desde localStorage directamente
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.error('Token no disponible para la petición de pedidos');
+      return throwError(() => new Error('No se pudo autenticar la solicitud. Por favor, inicie sesión nuevamente.'));
+    }
+
+    // Logging detallado del token (solo las primeras y últimas 10 caracteres)
+    const tokenLength = token.length;
+    const tokenFirstPart = token.substring(0, 10);
+    const tokenLastPart = token.substring(tokenLength - 10, tokenLength);
+    console.log(`Token disponible (longitud ${tokenLength}): ${tokenFirstPart}...${tokenLastPart}`);
+
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    });
+
+    // Asegurar que tenemos valores por defecto para la paginación
+    const pagina = page || 1;
+    const cantDatos = size || 12;
+
+    console.log(`Preparando petición con parámetros de paginación: pagina=${pagina}, cantDatos=${cantDatos}`);
+
+    let params = new HttpParams()
+      .set('cantDatos', cantDatos.toString())
+      .set('pagina', pagina.toString());
+
+    // Añadir parámetros opcionales solo si tienen valor
+    if (codigoPedido && codigoPedido.trim() !== '') {
+      params = params.set('codigoPedido', codigoPedido.trim());
+      console.log(`Añadido filtro: codigoPedido=${codigoPedido.trim()}`);
+    }
+    
+    if (estado && estado.trim() !== '') {
+      params = params.set('estado', estado.trim());
+      console.log(`Añadido filtro: estado=${estado.trim()}`);
+    }
+    
+    if (fecha && fecha.trim() !== '') {
+      params = params.set('fecha', fecha.trim());
+      console.log(`Añadido filtro: fecha=${fecha.trim()}`);
+    }
+
+    const url = `${environment.pedidosUrl}/todosLosPedidos`;
+    console.log(`Realizando petición a: ${url} con parámetros:`, params.toString());
+    console.log('Headers de la petición:', {
+      'Authorization': 'Bearer xxxx...xxxx',
+      'Content-Type': headers.get('Content-Type'),
+      'Accept': headers.get('Accept')
+    });
+
+    // Primero intentamos detectar si la respuesta es un objeto paginado o un array
+    return this.http.get<any>(url, { 
+      headers, 
+      params,
+      observe: 'response' // Para poder acceder a los headers de la respuesta
+    })
+    .pipe(
+      map(response => {
+        // Verificar si hay headers con información de paginación
+        const totalCountHeader = response.headers.get('X-Total-Count') || 
+                                response.headers.get('total-count') || 
+                                response.headers.get('totalCount') || null;
+        
+        const totalPagesHeader = response.headers.get('X-Total-Pages') || 
+                                response.headers.get('total-pages') || 
+                                response.headers.get('totalPages') || null;
+        
+        const body = response.body;
+
+        // Verificar si el body es un array o un objeto con propiedad content
+        let pedidos: Pedido[];
+        let totalItems: number;
+        let totalPages: number;
+
+        if (Array.isArray(body)) {
+          // Si es un array directo
+          console.log('Respuesta del backend es un array de pedidos');
+          pedidos = body;
+          totalItems = totalCountHeader ? parseInt(totalCountHeader) : pedidos.length;
+          totalPages = totalPagesHeader ? parseInt(totalPagesHeader) : Math.ceil(totalItems / cantDatos);
+        } 
+        else if (body && Array.isArray(body.content)) {
+          // Si ya es un objeto paginado con propiedad content
+          console.log('Respuesta del backend es un objeto paginado');
+          pedidos = body.content;
+          totalItems = body.totalElements || (totalCountHeader ? parseInt(totalCountHeader) : pedidos.length);
+          totalPages = body.totalPages || (totalPagesHeader ? parseInt(totalPagesHeader) : Math.ceil(totalItems / cantDatos));
+        }
+        else {
+          // Formato inesperado, asumimos array vacío
+          console.warn('Formato de respuesta no reconocido:', body);
+          pedidos = [];
+          totalItems = 0;
+          totalPages = 0;
+        }
+
+        // Creamos un objeto que cumple con nuestra interfaz PedidoResponse
+        const result: PedidoResponse = {
+          content: pedidos,
+          totalElements: totalItems,
+          totalPages: totalPages,
+          size: cantDatos,
+          number: pagina
+        };
+
+        return result;
+      }),
+      tap(response => {
+        console.log('Respuesta procesada:');
+        console.log('Datos en la respuesta:', {
+          totalElements: response.totalElements,
+          totalPages: response.totalPages,
+          size: response.size,
+          number: response.number,
+          contentLength: response.content?.length || 0
+        });
+      }),
+      catchError(error => {
+        console.error('Error al obtener pedidos paginados:', error);
+        console.error('Status:', error.status);
+        console.error('Message:', error.message);
+        console.error('Error body:', error.error);
+        return throwError(() => new Error('No se pudieron obtener los pedidos. Intente nuevamente más tarde.'));
+      })
+    );
+  }
 
   // Obtener todos los pedidos de un usuario
   getPedidosUsuario(usuarioId: number): Observable<Pedido[]> {
@@ -65,5 +229,64 @@ export class PedidosService {
   clearPedidosCache(): void {
     this.pedidosCache = [];
     this.lastFetchTime = 0;
+  }
+
+  // Actualizar el estado de un pedido
+  actualizarEstadoPedido(pedidoId: number, nuevoEstado: string): Observable<any> {
+    const token = localStorage.getItem('token');
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`
+    });
+    
+    return this.http.put(
+      `${environment.pedidosUrl}/actualizarEstado/?pedidoId=${pedidoId}&nuevoEstado=${nuevoEstado}`, 
+      {}, 
+      { 
+        headers,
+        responseType: 'text' // Especificamos que esperamos texto plano, no JSON
+      }
+    ).pipe(
+      tap(() => {
+        // Actualizar el estado en la caché si existe
+        const pedidoIndex = this.pedidosCache.findIndex(p => p.id === pedidoId);
+        if (pedidoIndex !== -1) {
+          this.pedidosCache[pedidoIndex].estado = nuevoEstado;
+        }
+      }),
+      catchError(error => {
+        console.error('Error al actualizar estado del pedido:', error);
+        return throwError(() => new Error('No se pudo actualizar el estado del pedido. Intente nuevamente más tarde.'));
+      })
+    );
+  }
+
+  // Crear un nuevo pedido
+  crearPedido(usuarioId: number, productos: {productoId: number, cantidad: number}[], domicilioDeEntrega: string): Observable<any> {
+    const token = localStorage.getItem('token');
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    });
+
+    const payload = {
+      usuarioId,
+      productos,
+      domicilioDeEtrega: domicilioDeEntrega  // Nombre exacto según el backend
+    };
+    
+    return this.http.post(
+      `http://localhost:8083/api/pedidos`, 
+      payload,
+      { headers }
+    ).pipe(
+      tap(() => {
+        // Limpiar la caché para que se actualice en la próxima solicitud
+        this.clearPedidosCache();
+      }),
+      catchError(error => {
+        console.error('Error al crear pedido:', error);
+        return throwError(() => new Error('No se pudo crear el pedido. Intente nuevamente más tarde.'));
+      })
+    );
   }
 } 

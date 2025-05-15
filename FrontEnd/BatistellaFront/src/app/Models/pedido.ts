@@ -16,4 +16,5 @@ export interface Pedido {
   productos: ProductoPedido[];
   createdAt: string;
   updatedAt: string;
+  domicilio?: string;
 } 

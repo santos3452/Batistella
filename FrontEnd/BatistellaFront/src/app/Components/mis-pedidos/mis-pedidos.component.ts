@@ -30,6 +30,12 @@ export class MisPedidosComponent implements OnInit {
   pedidoExpandido: number | null = null;
   imagenPorDefecto: string = 'assets/Images/BatistellaLogo.jpg';
 
+  // Variables de paginación
+  page = 1;
+  pageSize = 8;
+  totalPages = 0;
+  Math = Math; // Para usar en la plantilla
+
   // Datos de muestra para desarrollo
   private pedidosMuestra: Pedido[] = [
     {
@@ -193,6 +199,9 @@ export class MisPedidosComponent implements OnInit {
             productos: productosConImagen
           };
         });
+        // Configurar la paginación después de cargar los pedidos
+        this.totalPages = Math.ceil(this.pedidos.length / this.pageSize);
+        this.page = 1; // Resetear a la primera página
         this.cargando = false;
       },
       error: (err) => {
@@ -216,12 +225,12 @@ export class MisPedidosComponent implements OnInit {
     switch (estado.toUpperCase()) {
       case 'PENDIENTE':
         return 'bg-yellow-100 text-yellow-800';
-      case 'COMPLETADO':
+      case 'CONFIRMADO':
+        return 'bg-blue-100 text-blue-800';
+      case 'ENTREGADO':
         return 'bg-green-100 text-green-800';
       case 'CANCELADO':
         return 'bg-red-100 text-red-800';
-      case 'EN_PROCESO':
-        return 'bg-blue-100 text-blue-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -242,5 +251,67 @@ export class MisPedidosComponent implements OnInit {
 
   contarPedidosPendientes(): number {
     return this.pedidos.filter(pedido => pedido.estado.toUpperCase() === 'PENDIENTE').length;
+  }
+
+  // Método para obtener los pedidos paginados
+  get pagedPedidos(): PedidoConImagenes[] {
+    const start = (this.page - 1) * this.pageSize;
+    return this.pedidos.slice(start, start + this.pageSize);
+  }
+
+  // Métodos de paginación
+  prevPage(): void {
+    if (this.page > 1) {
+      this.page--;
+    }
+  }
+
+  nextPage(): void {
+    if (this.page < this.totalPages) {
+      this.page++;
+    }
+  }
+
+  goToPage(n: number): void {
+    if (n >= 1 && n <= this.totalPages) {
+      this.page = n;
+    }
+  }
+
+  // Determina si un número de página debe mostrarse basado en la página actual
+  showPageNumber(pageNum: number): boolean {
+    // Si hay 5 o menos páginas, mostrar todas
+    if (this.totalPages <= 5) return true;
+    
+    // Siempre mostrar la primera página
+    if (pageNum === 1) return true;
+    
+    // Para páginas cercanas a la actual
+    if (pageNum >= this.page - 1 && pageNum <= this.page + 1) return true;
+    
+    // No mostrar otras páginas
+    return false;
+  }
+
+  // Obtiene el número de página que se debe mostrar en cada posición
+  getPageNumberToShow(index: number): number {
+    // Si hay 5 o menos páginas, mostrar secuencialmente
+    if (this.totalPages <= 5) return index + 1;
+    
+    // Para la primera posición siempre mostrar página 1
+    if (index === 0) return 1;
+    
+    // Si estamos en las primeras páginas
+    if (this.page <= 3) {
+      return index + 1;
+    }
+    
+    // Si estamos cerca del final
+    if (this.page >= this.totalPages - 2) {
+      return this.totalPages - 4 + index;
+    }
+    
+    // En medio del rango
+    return this.page - 2 + index;
   }
 } 

@@ -25,6 +25,7 @@ export class OrderSummaryComponent implements OnInit, OnDestroy {
   currentUser: User | null = null;
   selectedAddress: Address | null = null;
   deliveryNotes: string = '';
+  isPickupSelected: boolean = false;
   
   isLoading = false;
   errorMessage = '';
@@ -78,10 +79,29 @@ export class OrderSummaryComponent implements OnInit, OnDestroy {
     this.subscriptions.unsubscribe();
   }
   
+  // Seleccionar la opción de retiro en local
+  selectPickup(): void {
+    this.isPickupSelected = true;
+    this.selectedAddress = null;
+  }
+  
+  // Seleccionar una dirección específica
+  selectAddress(address: Address): void {
+    this.selectedAddress = address;
+    this.isPickupSelected = false;
+  }
+  
   proceedToPayment(): void {
-    if (!this.selectedAddress) {
-      this.errorMessage = 'Por favor seleccione una dirección de entrega';
+    if (!this.isPickupSelected && !this.selectedAddress) {
+      this.errorMessage = 'Por favor seleccione una dirección de entrega o la opción de retiro en local';
       return;
+    }
+    
+    // Construir la dirección como string según la selección
+    let direccionCompleta = 'Retiro en el local';
+    
+    if (!this.isPickupSelected && this.selectedAddress) {
+      direccionCompleta = `${this.selectedAddress.calle} ${this.selectedAddress.numero}, ${this.selectedAddress.ciudad}, CP: ${this.selectedAddress.codigoPostal}`;
     }
     
     // Guardar información del pedido en un servicio o localStorage para acceder en la página de pago
@@ -91,7 +111,9 @@ export class OrderSummaryComponent implements OnInit, OnDestroy {
       taxAmount: this.taxAmount,
       totalAmount: this.totalAmount,
       address: this.selectedAddress,
-      deliveryNotes: this.deliveryNotes
+      deliveryNotes: this.deliveryNotes,
+      isPickupSelected: this.isPickupSelected,
+      direccionCompleta: direccionCompleta
     }));
     
     // Navegar a la página de selección de método de pago

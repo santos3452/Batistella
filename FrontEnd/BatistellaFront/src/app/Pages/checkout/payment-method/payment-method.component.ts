@@ -4,6 +4,8 @@ import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CartService } from '../../../Services/Cart/cart.service';
 import { UtilsService } from '../../../Services/Utils/utils.service';
+import { PedidosService } from '../../../Services/Pedidos/pedidos.service';
+import { AuthService } from '../../../Services/Auth/auth.service';
 
 interface OrderSummary {
   items: any[];
@@ -12,6 +14,8 @@ interface OrderSummary {
   totalAmount: number;
   address: any;
   deliveryNotes: string;
+  isPickupSelected?: boolean;
+  direccionCompleta?: string;
 }
 
 @Component({
@@ -26,11 +30,15 @@ export class PaymentMethodComponent implements OnInit {
   selectedPaymentMethod: 'mercadopago' | 'whatsapp' | null = null;
   isLoading = false;
   errorMessage = '';
-
+  orderCreated = false;
+  whatsappUrl = '';
+  
   constructor(
     private router: Router, 
     private cartService: CartService,
-    public utils: UtilsService
+    public utils: UtilsService,
+    private pedidosService: PedidosService,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -66,56 +74,111 @@ export class PaymentMethodComponent implements OnInit {
       return;
     }
     
+    if (!this.orderSummary) {
+      this.errorMessage = 'Error al cargar la información del pedido';
+      return;
+    }
+    
     this.isLoading = true;
     
     try {
-      // Implementación según el método de pago seleccionado
-      if (this.selectedPaymentMethod === 'mercadopago') {
-        // Implementar lógica para pago con MercadoPago
-        // Por ahora simulamos una redirección
-        setTimeout(() => {
-          // Aquí iría la integración real con MercadoPago
-          alert('Redirigiendo a MercadoPago...');
-          this.completeOrder();
-        }, 1500);
-      } else if (this.selectedPaymentMethod === 'whatsapp') {
-        // Crear el mensaje para WhatsApp
-        let message = `*Nuevo Pedido de Batistella*\n\n`;
-        message += `*Productos:*\n`;
-        
-        this.orderSummary?.items.forEach(item => {
-          message += `- ${item.product.fullName} x${item.quantity}: ${this.utils.formatCurrency(item.product.priceMinorista * item.quantity)}\n`;
-        });
-        
-        message += `\n*Total:* ${this.utils.formatCurrency(this.orderSummary?.totalAmount || 0)}\n\n`;
-        message += `*Dirección de entrega:*\n`;
-        message += `${this.orderSummary?.address.calle} ${this.orderSummary?.address.numero}, ${this.orderSummary?.address.ciudad}, CP: ${this.orderSummary?.address.codigoPostal}\n\n`;
-        
-        if (this.orderSummary?.deliveryNotes) {
-          message += `*Notas:* ${this.orderSummary.deliveryNotes}\n\n`;
-        }
-        
-        message += `Hola, quisiera realizar este pedido para pagar en efectivo/transferencia.`;
-        
-        // Codificar el mensaje para la URL
-        const encodedMessage = encodeURIComponent(message);
-        
-        // Número de WhatsApp formateado (reemplazar con el número real)
-        const phoneNumber = '5493516750801'; // Ejemplo: +54 9 3541 123456
-        
-        // URL para abrir WhatsApp con el mensaje
-        const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
-        
-        // Completar el pedido y luego abrir WhatsApp
-        this.completeOrder();
-        
-        // Abrir WhatsApp en una nueva pestaña
-        window.open(whatsappUrl, '_blank');
+      // Obtener el ID de usuario del token o del servicio de autenticación
+      const currentUser = this.authService.currentUser;
+      
+      if (!currentUser || !currentUser.id) {
+        this.errorMessage = 'Error de autenticación, por favor inicie sesión nuevamente.';
+        this.isLoading = false;
+        return;
       }
+      
+      // Preparar los datos del pedido para la API
+      const productos = this.orderSummary.items.map(item => ({
+        productoId: item.product.id,
+        cantidad: item.quantity
+      }));
+      
+      // Obtener la dirección completa del pedido
+      const domicilioDeEntrega = this.orderSummary.direccionCompleta || 'Retiro en el local';
+      
+      // Crear el pedido en la base de datos
+      this.pedidosService.crearPedido(currentUser.id, productos, domicilioDeEntrega)
+        .subscribe({
+          next: (response) => {
+            console.log('Pedido creado correctamente:', response);
+            this.isLoading = false;
+            
+            // Preparar mensaje para WhatsApp si es necesario
+            if (this.selectedPaymentMethod === 'whatsapp') {
+              this.prepareWhatsAppMessage();
+            }
+            
+            // Mostrar el modal de confirmación
+            this.orderCreated = true;
+            
+            // Si es MercadoPago, seguimos el flujo después de un tiempo
+            if (this.selectedPaymentMethod === 'mercadopago') {
+              setTimeout(() => {
+                alert('Redirigiendo a MercadoPago...');
+                this.completeOrder();
+              }, 1500);
+            }
+          },
+          error: (error) => {
+            console.error('Error al crear el pedido:', error);
+            this.errorMessage = 'Error al crear el pedido. Por favor intente nuevamente.';
+            this.isLoading = false;
+          }
+        });
+      
     } catch (error) {
       console.error('Error al procesar el pago:', error);
       this.errorMessage = 'Error al procesar el pago. Por favor intente nuevamente.';
       this.isLoading = false;
+    }
+  }
+  
+  // Preparar el mensaje para WhatsApp y la URL
+  private prepareWhatsAppMessage(): void {
+    if (!this.orderSummary) return;
+    
+    // Crear el mensaje para WhatsApp
+    let message = `*Nuevo Pedido de Batistella*\n\n`;
+    message += `*Productos:*\n`;
+    
+    this.orderSummary.items.forEach(item => {
+      message += `- ${item.product.fullName} x${item.quantity}: ${this.utils.formatCurrency(item.product.priceMinorista * item.quantity)}\n`;
+    });
+    
+    message += `\n*Total:* ${this.utils.formatCurrency(this.orderSummary.totalAmount || 0)}\n\n`;
+    message += `*Dirección de entrega:*\n`;
+    
+    // Usar la dirección completa que viene en el formato adecuado
+    message += `${this.orderSummary.direccionCompleta}\n\n`;
+    
+    if (this.orderSummary.deliveryNotes) {
+      message += `*Notas:* ${this.orderSummary.deliveryNotes}\n\n`;
+    }
+    
+    message += `Hola, quisiera confirmar este pedido para pagar en efectivo/transferencia. El pedido ya fue registrado en el sistema con estado PENDIENTE. ¡Gracias!`;
+    
+    // Codificar el mensaje para la URL
+    const encodedMessage = encodeURIComponent(message);
+    
+    // Número de WhatsApp formateado
+    const phoneNumber = '5493516750801'; // Reemplazar con el número real
+    
+    // URL para abrir WhatsApp con el mensaje
+    this.whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+  }
+  
+  // Método para continuar a WhatsApp después de ver el resumen
+  continuarAWhatsApp(): void {
+    // Completar el flujo de compra
+    this.completeOrder();
+    
+    // Abrir WhatsApp en una nueva pestaña
+    if (this.whatsappUrl) {
+      window.open(this.whatsappUrl, '_blank');
     }
   }
   

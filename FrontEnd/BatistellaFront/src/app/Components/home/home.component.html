@@ -34,10 +34,54 @@
       </app-product-card>
     </ng-container>
   </div>
-  <div *ngIf="totalPages > 1" class="flex justify-center space-x-2 mb-8">
-    <button (click)="prevPage()" [disabled]="page === 1" class="px-3 py-1 bg-gray-200 rounded disabled:opacity-50">Anterior</button>
-    <span class="self-center">Página {{page}} de {{totalPages}}</span>
-    <button (click)="nextPage()" [disabled]="page === totalPages" class="px-3 py-1 bg-gray-200 rounded disabled:opacity-50">Siguiente</button>
+  
+  <!-- Paginación mejorada -->
+  <div *ngIf="totalPages > 1" class="flex justify-center mb-8">
+    <div class="flex items-center space-x-2">
+      <button 
+        (click)="prevPage()" 
+        [disabled]="page === 1" 
+        class="px-3 py-1 bg-gray-200 rounded disabled:opacity-50 hover:bg-gray-300"
+      >
+        Anterior
+      </button>
+      
+      <!-- Números de página -->
+      <div class="flex space-x-1">
+        <ng-container *ngFor="let pageNum of [].constructor(totalPages > 5 ? 5 : totalPages); let i = index">
+          <button 
+            *ngIf="showPageNumber(i + 1)"
+            (click)="goToPage(getPageNumberToShow(i))" 
+            [class.bg-teal-600]="page === getPageNumberToShow(i)"
+            [class.text-white]="page === getPageNumberToShow(i)"
+            [class.bg-gray-200]="page !== getPageNumberToShow(i)"
+            class="px-3 py-1 rounded hover:bg-gray-300"
+          >
+            {{ getPageNumberToShow(i) }}
+          </button>
+        </ng-container>
+        
+        <!-- Indicador de más páginas -->
+        <span *ngIf="totalPages > 5 && page < totalPages - 2" class="self-center">...</span>
+        
+        <!-- Última página siempre visible si hay más de 5 -->
+        <button 
+          *ngIf="totalPages > 5 && page < totalPages - 1"
+          (click)="goToPage(totalPages)" 
+          class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300"
+        >
+          {{ totalPages }}
+        </button>
+      </div>
+      
+      <button 
+        (click)="nextPage()" 
+        [disabled]="page === totalPages" 
+        class="px-3 py-1 bg-gray-200 rounded disabled:opacity-50 hover:bg-gray-300"
+      >
+        Siguiente
+      </button>
+    </div>
   </div>
 </div>
 

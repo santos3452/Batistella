@@ -33,6 +33,8 @@ public class PedidoProducto {
     @Column(name = "precio_unitario", nullable = false, precision = 10, scale = 2)
     private BigDecimal precioUnitario;
 
+
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 

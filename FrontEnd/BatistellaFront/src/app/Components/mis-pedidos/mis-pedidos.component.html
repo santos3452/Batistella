@@ -91,7 +91,7 @@
     <!-- Lista de pedidos -->
     <div *ngIf="!cargando && !error && pedidos.length > 0" class="space-y-6">
       <!-- Pedido -->
-      <div *ngFor="let pedido of pedidos" class="bg-white rounded-xl shadow-sm overflow-hidden border hover:shadow-md transition-shadow">
+      <div *ngFor="let pedido of pagedPedidos" class="bg-white rounded-xl shadow-sm overflow-hidden border hover:shadow-md transition-shadow">
         <div class="p-4 md:p-6">
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div class="flex items-center gap-4">
@@ -102,8 +102,8 @@
               </div>
               <div>
                 <h3 class="font-semibold text-lg">Pedido #{{ pedido.id }}</h3>
-                <div class="flex items-center text-sm text-gray-500">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div class="flex items-center gap-2 text-sm text-gray-500">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   Realizado el {{ formatearFecha(pedido.fechaPedido) }}
@@ -113,25 +113,15 @@
 
             <div class="flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-6">
               <div class="flex flex-col items-end">
+                <span class="text-sm text-gray-500">Estado</span>
+                <span [class]="'px-2 py-1 text-xs font-medium rounded-full ' + obtenerEstadoClase(pedido.estado)">
+                  {{ pedido.estado }}
+                </span>
+              </div>
+              <div class="flex flex-col items-end">
                 <span class="text-sm text-gray-500">Total</span>
                 <span class="font-bold text-xl text-emerald-600">${{ pedido.total.toLocaleString('es-AR') }}</span>
               </div>
-
-              <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
-                {{ pedido.estado }}
-              </span>
-
-              <button 
-                (click)="toggleDetallePedido(pedido.id)"
-                class="text-gray-400 hover:text-emerald-600 transition-colors"
-              >
-                <svg *ngIf="pedidoExpandido !== pedido.id" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                </svg>
-                <svg *ngIf="pedidoExpandido === pedido.id" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
-                </svg>
-              </button>
             </div>
           </div>
 
@@ -202,6 +192,55 @@
               </button>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- Paginación -->
+      <div *ngIf="totalPages > 1" class="flex justify-center mt-8">
+        <div class="flex items-center space-x-2">
+          <button 
+            (click)="prevPage()" 
+            [disabled]="page === 1" 
+            class="px-3 py-1 bg-gray-200 rounded disabled:opacity-50 hover:bg-gray-300"
+          >
+            Anterior
+          </button>
+          
+          <!-- Números de página -->
+          <div class="flex space-x-1">
+            <ng-container *ngFor="let pageNum of [].constructor(totalPages > 5 ? 5 : totalPages); let i = index">
+              <button 
+                *ngIf="showPageNumber(i + 1)"
+                (click)="goToPage(getPageNumberToShow(i))" 
+                [class.bg-emerald-600]="page === getPageNumberToShow(i)"
+                [class.text-white]="page === getPageNumberToShow(i)"
+                [class.bg-gray-200]="page !== getPageNumberToShow(i)"
+                class="px-3 py-1 rounded hover:bg-gray-300"
+              >
+                {{ getPageNumberToShow(i) }}
+              </button>
+            </ng-container>
+            
+            <!-- Indicador de más páginas -->
+            <span *ngIf="totalPages > 5 && page < totalPages - 2" class="self-center">...</span>
+            
+            <!-- Última página siempre visible si hay más de 5 -->
+            <button 
+              *ngIf="totalPages > 5 && page < totalPages - 1"
+              (click)="goToPage(totalPages)" 
+              class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300"
+            >
+              {{ totalPages }}
+            </button>
+          </div>
+          
+          <button 
+            (click)="nextPage()" 
+            [disabled]="page === totalPages" 
+            class="px-3 py-1 bg-gray-200 rounded disabled:opacity-50 hover:bg-gray-300"
+          >
+            Siguiente
+          </button>
         </div>
       </div>
     </div>
