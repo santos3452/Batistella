@@ -1,0 +1,37 @@
+/* Animación para los iconos de animales */
+.animal-icon {
+  animation: floatAndFade 20s infinite ease-in-out;
+  transform-origin: center;
+  font-size: 3.5rem;
+  opacity: 0;
+  z-index: 0;
+  pointer-events: none;
+  color: rgba(20, 184, 166, 0.2);  /* Color teal semitransparente (teal-500) con menos opacidad */
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Animación de flotación y desvanecimiento */
+@keyframes floatAndFade {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.8) rotate(0deg);
+  }
+  20% {
+    opacity: 0.5;
+    transform: translateY(0) scale(1) rotate(10deg);
+  }
+  80% {
+    opacity: 0.5;
+    transform: translateY(-10px) scale(1.1) rotate(-5deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.9) rotate(0deg);
+  }
+}
+
+/* Asegurar que los contenidos de la aplicación estén por encima del fondo */
+.flex-1, .container, .bg-white, app-navbar, app-sidebar {
+  position: relative;
+  z-index: 1;
+}

@@ -265,7 +265,6 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.showCart = !this.showCart;
     if (this.showCart) {
       this.showUserMenu = false;
-      this.showSearchResults = false;
     }
   }
   
@@ -273,15 +272,13 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.showUserMenu = !this.showUserMenu;
     if (this.showUserMenu) {
       this.showCart = false;
-      this.showSearchResults = false;
     }
   }
 
   logout(): void {
-    this.authService.logout();
     this.showUserMenu = false;
-    this.isLoggedIn = false;
-    this.userName = '';
-    this.isAdmin = false;
+    this.showCart = false;
+    this.authService.logout();
+    this.router.navigate(['/login']);
   }
 }
