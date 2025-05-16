@@ -41,8 +41,27 @@ export class ProductFormComponent implements OnInit {
 
   tipoAlimentoOptions = [
     { value: 'ADULTO', label: 'Adulto' },
-    { value: 'SENIOR', label: 'Senior' },
-    { value: 'CACHORRO', label: 'Cachorro' }
+    { value: 'CACHORRO', label: 'Cachorro' },
+    { value: 'ADULTO_SENIOR', label: 'Adulto Senior' },
+    { value: 'LIGHT', label: 'Light' },
+    { value: 'PIEL_SENSIBLE', label: 'Piel Sensible' },
+    { value: 'PREMIUM', label: 'Premium' },
+    { value: 'CARNE', label: 'Carne' },
+    { value: 'MIX_CARNE_HIGADO_POLLO', label: 'Mix Carne, Hígado y Pollo' },
+    { value: 'PESCADO', label: 'Pescado' },
+    { value: 'CARNE_POLLO_ATUN', label: 'Carne, Pollo y Atún' },
+    { value: 'CARNE_POLLO_VERDURAS', label: 'Carne, Pollo y Verduras' },
+    { value: 'PEQUEÑAS', label: 'Pequeñas' },
+    { value: 'CARNE_Y_LECHE', label: 'Carne y Leche' },
+    { value: 'SALMON_Y_ATUN', label: 'Salmón y Atún' },
+    { value: 'CARNES_SELECCIONADAS', label: 'Carnes Seleccionadas' },
+    { value: 'HOGAREÑOS_ESTERILIZADOS', label: 'Hogareños/Esterilizados' },
+    { value: 'GATITO_KITTEN', label: 'Gatito Kitten' },
+    { value: 'PERRO_CACHORRO', label: 'Perro Cachorro' },
+    { value: 'PERRO_ADULTO', label: 'Perro Adulto' },
+    { value: 'PREMIUM_PERRO_CACHORRO', label: 'Premium Perro Cachorro' },
+    { value: 'PREMIUM_PERRO_ADULTO', label: 'Premium Perro Adulto' },
+    { value: 'PREMIUM_GATO_ADULTO_URINARIO', label: 'Premium Gato Adulto Urinario' }
   ];
 
   tipoRazaOptions = [
@@ -66,7 +85,19 @@ export class ProductFormComponent implements OnInit {
   animalTypeOptions = [
     { value: 'PERROS', label: 'Perros' },
     { value: 'GATOS', label: 'Gatos' },
-    { value: 'GRANJA', label: 'Granja' }
+    { value: 'GRANJA', label: 'Granja' },
+    { value: 'CEREALES', label: 'Cereales' }
+  ];
+
+  // Opciones para los tipos de animales de granja
+  animalGranjaOptions = [
+    { value: 'AVES', label: 'Aves' },
+    { value: 'PONEDORAS', label: 'Ponedoras' },
+    { value: 'CONEJOS', label: 'Conejos' },
+    { value: 'PORCINOS', label: 'Porcinos' },
+    { value: 'EQUINOS', label: 'Equinos' },
+    { value: 'VACUNOS', label: 'Vacunos' },
+    { value: 'VARIOS', label: 'Varios' }
   ];
 
   constructor(
@@ -104,7 +135,15 @@ export class ProductFormComponent implements OnInit {
       priceMayorista: ['', [Validators.required, Validators.min(0)]],
       stock: ['', [Validators.required, Validators.min(0)]],
       animalType: ['', Validators.required],
+      tipoGranja: [''],
       activo: [true]
+    });
+
+    // Escuchar cambios en animalType para resetear tipoGranja cuando no es GRANJA
+    this.productForm.get('animalType')?.valueChanges.subscribe(value => {
+      if (value !== 'GRANJA') {
+        this.productForm.get('tipoGranja')?.setValue('');
+      }
     });
   }
 
@@ -223,6 +262,7 @@ export class ProductFormComponent implements OnInit {
           priceMayorista: product.priceMayorista || 0,
           stock: product.stock || 0,
           animalType: product.animalType || '',
+          tipoGranja: product.tipoGranja || '',
           activo: product.activo !== undefined ? product.activo : true
         });
         

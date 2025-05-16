@@ -248,6 +248,23 @@
               </div>
             </div>
 
+            <!-- Variedades de Animales de Granja (solo aparece cuando animalType es GRANJA) -->
+            <div *ngIf="productForm.get('animalType')?.value === 'GRANJA'" class="space-y-2 mt-3 p-3 bg-amber-50 border border-amber-200 rounded-md">
+              <label for="tipoGranja" class="text-base font-medium flex items-center">
+                Variedad de Animal de Granja
+              </label>
+              <select
+                id="tipoGranja"
+                formControlName="tipoGranja"
+                class="w-full rounded-md border border-gray-300 shadow-sm py-2 px-3 bg-white text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              >
+                <option value="">Selecciona una variedad</option>
+                <option *ngFor="let option of animalGranjaOptions" [value]="option.value">
+                  {{ option.label }}
+                </option>
+              </select>
+            </div>
+
             <!-- Imagen del producto -->
             <div class="space-y-2">
               <label for="product-image" class="text-base font-medium flex items-center">

@@ -1,0 +1,15 @@
+# Variables de entorno para Products and Order
+SPRING_PROFILES_ACTIVE=prod
+APP_BASE_URL=http://localhost:8083
+JWT_SECRET=NmQ4YzJhMjEtZjc2NC00MTM3LWI2ZTgtNDJiMmZiNjM5YzBk
+
+# Configuración de la base de datos
+DB_HOST=host.docker.internal
+DB_PORT=5434
+DB_NAME=ProductsAndOrders
+DB_USERNAME=postgres
+DB_PASSWORD=ensalada123
+
+# Configuración del microservicio de usuarios
+USER_SERVICE_URL=http://host.docker.internal:8081/api/users
+USER_SERVICE_TOKEN=eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9BRE1JTiIsIm5hbWUiOiJTYW50b3MiLCJ1c2VySWQiOjYsImxhc3RuYW1lIjoidmlyZ2FhYWEiLCJzdWIiOiJzYW50b3MudmlyZ2E4QGdtYWlsLmNvbSIsImlhdCI6MTc0NzEwNDkzOCwiZXhwIjoxNzQ3MTkxMzM4fQ.gp7UAO-5KFSW9931TRAfV4YhZ4Cz8faC4PZTVOCLXzs 

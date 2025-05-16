@@ -1,18 +1,11 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { ProductService, Product } from '../../Services/Product/product.service';
-import { UtilsService } from '../../Services/Utils/utils.service';
-import { CartService } from '../../Services/Cart/cart.service';
-import { FormsModule } from '@angular/forms';
-import { AuthService } from '../../Services/Auth/auth.service';
+import { Component, OnInit } from '@angular/core';import { CommonModule } from '@angular/common';import { ActivatedRoute, Router, RouterLink } from '@angular/router';import { ProductService, Product } from '../../Services/Product/product.service';import { UtilsService } from '../../Services/Utils/utils.service';import { CartService } from '../../Services/Cart/cart.service';import { FormsModule } from '@angular/forms';import { AuthService } from '../../Services/Auth/auth.service';import { FormatTextPipe } from '../../Pipes/format-text.pipe';
 
 @Component({
   selector: 'app-product-detail',
   templateUrl: './product-detail.component.html',
   styleUrl: './product-detail.component.css',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule]
+  imports: [CommonModule, RouterLink, FormsModule, FormatTextPipe]
 })
 export class ProductDetailComponent implements OnInit {
   product: Product | null = null;

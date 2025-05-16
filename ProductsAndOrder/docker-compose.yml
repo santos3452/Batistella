@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  products-and-order:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: products-and-order
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
+      - APP_BASE_URL=${APP_BASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      # Pasar las variables de base de datos a spring
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
+      - SPRING_DATASOURCE_USERNAME=${DB_USERNAME}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
+      # Microservicio de usuarios
+      - MICROSERVICE_USUARIOS_URL=${USER_SERVICE_URL}
+      - TOKEN=${USER_SERVICE_TOKEN}
+    volumes:
+      - product-images:/app/images
+    networks:
+      - batistella-network
+    restart: always
+    env_file:
+      - .env
+
+volumes:
+  product-images:
+    name: product-images
+
+networks:
+  batistella-network:
+    name: batistella-network
+    driver: bridge 

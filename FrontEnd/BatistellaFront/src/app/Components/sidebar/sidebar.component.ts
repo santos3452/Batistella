@@ -25,6 +25,13 @@ interface IconoMarca {
   necesitaBorde?: boolean;
 }
 
+// Nueva interfaz para las variedades de animales de granja
+interface VariedadGranja {
+  id: string;
+  name: string;
+  icon: string;
+}
+
 @Component({
   selector: 'app-sidebar',
   templateUrl: './sidebar.component.html',
@@ -58,6 +65,12 @@ export class SidebarComponent implements OnInit, OnDestroy {
       name: 'Animales de Granja', 
       icon: '🐄', 
       color: 'text-green-500'
+    },
+    { 
+      id: 'CEREALES', 
+      name: 'Cereales', 
+      icon: '🌾', 
+      color: 'text-yellow-500'
     }
   ];
 
@@ -81,6 +94,17 @@ export class SidebarComponent implements OnInit, OnDestroy {
   
   // Lista de marcas que tienen iconos disponibles (para uso rápido)
   private marcasConIcono: string[] = this.iconosMarcas.map(item => item.nombre);
+  
+  // Nueva lista para variedades de animales de granja
+  variedadesGranja: VariedadGranja[] = [
+    { id: 'AVES', name: 'Aves', icon: '🐓' },
+    { id: 'PONEDORAS', name: 'Ponedoras', icon: '🥚' },
+    { id: 'CONEJOS', name: 'Conejos', icon: '🐇' },
+    { id: 'PORCINOS', name: 'Porcinos', icon: '🐖' },
+    { id: 'EQUINOS', name: 'Equinos', icon: '🐴' },
+    { id: 'VACUNOS', name: 'Vacunos', icon: '🐄' },
+    { id: 'VARIOS', name: 'Varios', icon: '🧩' }
+  ];
   
   constructor(
     private productService: ProductService,

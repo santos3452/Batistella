@@ -15,6 +15,7 @@ export interface Product {
   stock: number;
   imageUrl: string;
   animalType: string;
+  tipoGranja?: string; // Campo para variedades de animales de granja
   activo: boolean;
   fullName: string;
   // Campo local para manejar productos sin ID
@@ -71,7 +72,9 @@ export class ProductService {
     
     // Añadir tipo de alimento si existe
     if (product.tipoAlimento) {
-      parts.push(product.tipoAlimento);
+      // Reemplazar guiones bajos por espacios en tipoAlimento
+      const tipoAlimentoFormateado = product.tipoAlimento.replace(/_/g, ' ');
+      parts.push(tipoAlimentoFormateado);
     }
     
     // Añadir tipo de raza solo si no es null
@@ -79,6 +82,13 @@ export class ProductService {
       // Reemplazar guiones bajos por espacios en tipoRaza
       const tipoRazaFormateado = product.tipoRaza.replace(/_/g, ' ');
       parts.push(tipoRazaFormateado);
+    }
+    
+    // Añadir tipo de animal de granja si el animalType es GRANJA y existe tipoGranja
+    if (product.animalType === 'GRANJA' && product.tipoGranja) {
+      // Reemplazar guiones bajos por espacios en tipoGranja
+      const tipoGranjaFormateado = product.tipoGranja.replace(/_/g, ' ');
+      parts.push(tipoGranjaFormateado);
     }
     
     // Unir las partes con espacios

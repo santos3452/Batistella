@@ -241,7 +241,7 @@
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
                 </div>
-                <span>Tipo de alimento: {{ product.tipoAlimento }}</span>
+                <span>Tipo de alimento: {{ product.tipoAlimento | formatText }}</span>
               </li>
               <li class="flex items-start gap-2">
                 <div class="h-5 w-5 rounded-full bg-emerald-100 flex items-center justify-center mt-0.5">
@@ -249,7 +249,7 @@
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
                 </div>
-                <span>Tamaño de la raza: {{ product.tipoRaza || 'Todo tipo de razas' }}</span>
+                <span>Tamaño de la raza: {{ product.tipoRaza ? (product.tipoRaza | formatText) : 'Todo tipo de razas' }}</span>
               </li>
               <li class="flex items-start gap-2">
                 <div class="h-5 w-5 rounded-full bg-emerald-100 flex items-center justify-center mt-0.5">
@@ -274,6 +274,16 @@
                   </svg>
                 </div>
                 <span>Tipo de mascota: {{ product.animalType }}</span>
+              </li>
+              
+              <!-- Mostrar tipo de animal de granja si corresponde -->
+              <li *ngIf="product.animalType === 'GRANJA' && product.tipoGranja" class="flex items-start gap-2">
+                <div class="h-5 w-5 rounded-full bg-emerald-100 flex items-center justify-center mt-0.5">
+                  <svg class="h-3 w-3 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </div>
+                <span>Variedad: {{ product.tipoGranja | formatText }}</span>
               </li>
             </ul>
           </div>
