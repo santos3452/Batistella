@@ -13,21 +13,30 @@ import java.math.BigDecimal;
 @Builder
 public class ProductDTO {
     
-    @NotNull(message = "La marca es obligatoria")
+    // Este campo es opcional para productos de granja
     private Marca marca;
     
-    @NotNull(message = "El tipo de alimento es obligatorio")
+    // Este campo es para productos de granja
+    private String nombre;
+    
+    // Este campo es opcional para productos de granja
     private TipoAlimento tipoAlimento;
     
     private TipoRaza tipoRaza;
     
+    // Este campo es para productos de granja
+    private CategoriaGranja categoriaGranja;
+    
+    @NotNull(message = "La descripción es obligatoria")
     private String description;
     
     @NotNull(message = "El peso es obligatorio")
     private Kilos kg;
     
+    @NotNull(message = "El precio minorista es obligatorio")
     private BigDecimal priceMinorista;
     
+    @NotNull(message = "El precio mayorista es obligatorio")
     private BigDecimal priceMayorista;
     
     @NotNull(message = "El stock es obligatorio")
@@ -41,12 +50,10 @@ public class ProductDTO {
     
     private Boolean activo;
 
-
-
-
-
     public String getFullName() {
-        if (tipoRaza != null) {
+        if (animalType == type.GRANJA) {
+            return nombre + " - " + (categoriaGranja != null ? categoriaGranja.toString() : "");
+        } else if (tipoRaza != null) {
             return marca + " " + tipoAlimento + " " + tipoRaza.toString().replace("_", " ");
         }
         return marca + " " + tipoAlimento;
@@ -54,16 +61,30 @@ public class ProductDTO {
 
     @Override
     public String toString() {
-        return "ProductDTO{" +
-                "name='" + getFullName() + '\'' +
-                ", description='" + description + '\'' +
-                ", kg=" + (kg != null ? kg.getDisplayName() : "N/A") +
-                ", priceMinorista=" + priceMinorista +
-                ", priceMayorista=" + priceMayorista +
-                ", stock=" + stock +
-                ", imageUrl='" + imageUrl + '\'' +
-                ", animalType='" + animalType + '\'' +
-                ", activo=" + activo +
-                '}';
+        if (animalType == type.GRANJA) {
+            return "ProductDTO{" +
+                    "nombre='" + nombre + '\'' +
+                    ", categoriaGranja=" + categoriaGranja +
+                    ", description='" + description + '\'' +
+                    ", kg=" + (kg != null ? kg.getDisplayName() : "N/A") +
+                    ", priceMinorista=" + priceMinorista +
+                    ", priceMayorista=" + priceMayorista +
+                    ", stock=" + stock +
+                    ", imageUrl='" + imageUrl + '\'' +
+                    ", activo=" + activo +
+                    '}';
+        } else {
+            return "ProductDTO{" +
+                    "name='" + getFullName() + '\'' +
+                    ", description='" + description + '\'' +
+                    ", kg=" + (kg != null ? kg.getDisplayName() : "N/A") +
+                    ", priceMinorista=" + priceMinorista +
+                    ", priceMayorista=" + priceMayorista +
+                    ", stock=" + stock +
+                    ", imageUrl='" + imageUrl + '\'' +
+                    ", animalType='" + animalType + '\'' +
+                    ", activo=" + activo +
+                    '}';
+        }
     }
 }

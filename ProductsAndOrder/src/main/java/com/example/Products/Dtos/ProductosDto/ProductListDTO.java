@@ -16,14 +16,16 @@ public class ProductListDTO {
     private Long id;
 
     private Marca marca;
-
+    
+    private String nombre;
 
     private TipoAlimento tipoAlimento;
 
     private TipoRaza tipoRaza;
+    
+    private CategoriaGranja categoriaGranja;
 
     private String description;
-
 
     private Kilos kg;
 
@@ -31,12 +33,9 @@ public class ProductListDTO {
 
     private BigDecimal priceMayorista;
 
-
     private Integer stock;
 
     private String imageUrl;
-
-
 
     private type animalType;
 
@@ -44,5 +43,13 @@ public class ProductListDTO {
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-
+    
+    public String getDisplayName() {
+        if (animalType == type.GRANJA) {
+            return nombre + " - " + (categoriaGranja != null ? categoriaGranja.toString() : "");
+        } else if (tipoRaza != null) {
+            return marca + " " + tipoAlimento + " " + tipoRaza.toString().replace("_", " ");
+        }
+        return marca + " " + tipoAlimento;
+    }
 }

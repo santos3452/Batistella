@@ -11,10 +11,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "productos", 
-    uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"marca", "tipo_alimento", "tipo_raza", "description", "animal_type", "price_minorista", "price_mayorista"})
-    })
+@Table(name = "productos")
 @Data
 @NoArgsConstructor
 public class Products {
@@ -24,16 +21,23 @@ public class Products {
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 50)
+    @Column(length = 50)
     private Marca marca;
 
+    @Column(length = 255)
+    private String nombre;
+
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @Column(length = 20)
     private TipoAlimento tipoAlimento;
 
     @Enumerated(EnumType.STRING)
     @Column(length = 20)
     private TipoRaza tipoRaza;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private CategoriaGranja categoriaGranja;
 
     @Column(nullable = false, length = 255)
     private String description;
@@ -67,9 +71,21 @@ public class Products {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 
     public String getFullName() {
-        if (tipoRaza != null) {
+        if (animalType == type.GRANJA) {
+            return nombre + " - " + (categoriaGranja != null ? categoriaGranja.toString() : "");
+        } else if (tipoRaza != null) {
             return marca + " " + tipoAlimento + " " + tipoRaza.toString().replace("_", " ");
         }
         return marca + " " + tipoAlimento;

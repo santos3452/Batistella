@@ -2,7 +2,10 @@ package com.example.Products.Controller;
 
 import com.example.Products.Dtos.Error.ErrorDto;
 import com.example.Products.Dtos.ProductosDto.ProductDTO;
+import com.example.Products.Dtos.ProductosDto.ProductListDTO;
 import com.example.Products.Dtos.ProductosDto.UpdateProductDto;
+import com.example.Products.Entity.enums.CategoriaGranja;
+import com.example.Products.Entity.enums.type;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +19,9 @@ import java.io.IOException;
 
 import com.example.Products.Service.impl.ImageService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/products")
@@ -281,6 +287,43 @@ public class ProductController {
                             "Error Interno del Servidor",
                             "Error al registrar producto: " + e.getMessage()
                     ));
+        }
+    }
+
+    @GetMapping("/por-tipo")
+    @Operation(
+            summary = "Filtrar productos por tipo",
+            description = "Permite filtrar productos por tipo de animal (mascotas/granja) y por categoría específica de granja",
+            security = { @SecurityRequirement(name = "bearerAuth") }
+    )
+    public ResponseEntity<?> obtenerProductosPorTipo(
+            @Parameter(description = "Tipo de animal (PERROS, GATOS, GRANJA)")
+            @RequestParam(required = false) type tipoAnimal,
+            
+            @Parameter(description = "Categoría específica de granja (solo aplica cuando tipoAnimal=GRANJA)")
+            @RequestParam(required = false) CategoriaGranja categoriaGranja
+    ) {
+        try {
+            List<ProductListDTO> productos;
+            
+            if (tipoAnimal != null) {
+                if (tipoAnimal == type.GRANJA && categoriaGranja != null) {
+                    // Filtrar por categoría específica de granja
+                    productos = productService.getProductosPorCategoriaGranja(categoriaGranja);
+                } else {
+                    // Filtrar por tipo de animal
+                    productos = productService.getProductosPorTipoAnimal(tipoAnimal);
+                }
+            } else {
+                // Si no se especifica tipo, devolver todos
+                productos = productService.getAllProducts();
+            }
+            
+            return ResponseEntity.ok(productos);
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(e.getMessage());
         }
     }
 }

@@ -5,18 +5,21 @@ import com.example.Products.Dtos.ProductosDto.ProductDTO;
 import com.example.Products.Dtos.ProductosDto.ProductListDTO;
 import com.example.Products.Dtos.ProductosDto.UpdateProductDto;
 import com.example.Products.Entity.Products;
+import com.example.Products.Entity.enums.CategoriaGranja;
 import com.example.Products.Entity.enums.Marca;
+import com.example.Products.Entity.enums.type;
+import com.example.Products.Repository.productRepository;
 import com.example.Products.Service.productService;
+import lombok.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.example.Products.Repository.productRepository;
-import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 public class productServiceImpl implements productService {
@@ -29,15 +32,14 @@ public class productServiceImpl implements productService {
 
     @Override
     public ProductDTO saveProduct(ProductDTO producto) {
+        // Validamos los campos según el tipo de animal
+        validateProductFields(producto);
+        
         // Buscar si ya existe un producto similar
         Products existingProduct = findExistingProduct(producto);
         
         if (existingProduct != null) {
-            throw new IllegalArgumentException("Ya existe un producto con los mismos datos: " + 
-                producto.getMarca() + ", " + 
-                producto.getTipoAlimento() + ", " + 
-                producto.getKg() + 
-                (producto.getTipoRaza() != null ? ", " + producto.getTipoRaza() : ""));
+            throw new IllegalArgumentException("Ya existe un producto con los mismos datos.");
         }
         
         // Si no existe, creamos un nuevo producto
@@ -48,19 +50,67 @@ public class productServiceImpl implements productService {
         Products savedProduct = productRepository.save(product);
         return modelMapper.modelMapper().map(savedProduct, ProductDTO.class);
     }
+    
+    private void validateProductFields(ProductDTO producto) {
+        if (producto.getAnimalType() == type.GRANJA) {
+            // Validaciones para productos de granja
+            if (producto.getNombre() == null || producto.getNombre().isEmpty()) {
+                throw new IllegalArgumentException("El nombre es obligatorio para productos de granja");
+            }
+            if (producto.getCategoriaGranja() == null) {
+                throw new IllegalArgumentException("La categoría de granja es obligatoria para productos de granja");
+            }
+        } else {
+            // Validaciones para productos de mascota (perros/gatos)
+            if (producto.getMarca() == null) {
+                throw new IllegalArgumentException("La marca es obligatoria para productos de mascota");
+            }
+            if (producto.getTipoAlimento() == null) {
+                throw new IllegalArgumentException("El tipo de alimento es obligatorio para productos de mascota");
+            }
+        }
+        
+        // Validaciones comunes para todos los productos
+        if (producto.getKg() == null) {
+            throw new IllegalArgumentException("El peso (kg) es obligatorio");
+        }
+        if (producto.getPriceMinorista() == null) {
+            throw new IllegalArgumentException("El precio minorista es obligatorio");
+        }
+        if (producto.getPriceMayorista() == null) {
+            throw new IllegalArgumentException("El precio mayorista es obligatorio");
+        }
+        if (producto.getStock() == null) {
+            throw new IllegalArgumentException("El stock es obligatorio");
+        }
+    }
 
     private Products findExistingProduct(ProductDTO producto) {
-        // Buscar un producto con los mismos datos específicos
-        return productRepository.findAll().stream()
-            .filter(p -> 
-                p.getMarca().equals(producto.getMarca()) &&
-                p.getTipoAlimento().equals(producto.getTipoAlimento()) &&
-                p.getKg().equals(producto.getKg()) &&
-                Objects.equals(p.getTipoRaza(), producto.getTipoRaza()) &&
-                p.getAnimalType().equals(producto.getAnimalType())
-            )
-            .findFirst()
-            .orElse(null);
+        // Para productos de granja buscamos por nombre y categoría
+        if (producto.getAnimalType() == type.GRANJA) {
+            return productRepository.findAll().stream()
+                .filter(p -> 
+                    p.getAnimalType() == type.GRANJA &&
+                    Objects.equals(p.getNombre(), producto.getNombre()) &&
+                    Objects.equals(p.getCategoriaGranja(), producto.getCategoriaGranja()) &&
+                    p.getKg().equals(producto.getKg())
+                )
+                .findFirst()
+                .orElse(null);
+        } else {
+            // Para productos de mascota buscamos por marca, tipo alimento, etc.
+            return productRepository.findAll().stream()
+                .filter(p -> 
+                    p.getAnimalType() != type.GRANJA &&
+                    Objects.equals(p.getMarca(), producto.getMarca()) &&
+                    Objects.equals(p.getTipoAlimento(), producto.getTipoAlimento()) &&
+                    p.getKg().equals(producto.getKg()) &&
+                    Objects.equals(p.getTipoRaza(), producto.getTipoRaza()) &&
+                    p.getAnimalType().equals(producto.getAnimalType())
+                )
+                .findFirst()
+                .orElse(null);
+        }
     }
 
     @Override
@@ -84,7 +134,6 @@ public class productServiceImpl implements productService {
 
     @Override
     public void deleteProduct(long id) {
-        // TODO: Implementar eliminación
         Products producto = productRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("No existe el producto con id: " + id));
 
@@ -100,29 +149,62 @@ public class productServiceImpl implements productService {
 
     @Override
     public List<ProductListDTO> getAllProducts() {
-        // TODO: Implementar obtención de todos los productos
         List<Products> products = productRepository.findAll();
-        List<ProductListDTO> productDTOs = products.stream()
+        return products.stream()
                 .map(product -> modelMapper.modelMapper().map(product, ProductListDTO.class))
-                .toList();
-        return productDTOs;
+                .collect(Collectors.toList());
+    }
+    
+    @Override
+    public List<ProductListDTO> getProductosMascotas() {
+        List<Products> products = productRepository.findAll();
+        return products.stream()
+                .filter(p -> p.getAnimalType() == type.PERROS || p.getAnimalType() == type.GATOS)
+                .map(product -> modelMapper.modelMapper().map(product, ProductListDTO.class))
+                .collect(Collectors.toList());
+    }
+    
+    @Override
+    public List<ProductListDTO> getProductosGranja() {
+        List<Products> products = productRepository.findAll();
+        return products.stream()
+                .filter(p -> p.getAnimalType() == type.GRANJA)
+                .map(product -> modelMapper.modelMapper().map(product, ProductListDTO.class))
+                .collect(Collectors.toList());
+    }
+    
+    @Override
+    public List<ProductListDTO> getProductosPorTipoAnimal(type tipoAnimal) {
+        List<Products> products = productRepository.findAll();
+        return products.stream()
+                .filter(p -> p.getAnimalType() == tipoAnimal)
+                .map(product -> modelMapper.modelMapper().map(product, ProductListDTO.class))
+                .collect(Collectors.toList());
+    }
+    
+    @Override
+    public List<ProductListDTO> getProductosPorCategoriaGranja(CategoriaGranja categoriaGranja) {
+        List<Products> products = productRepository.findAll();
+        return products.stream()
+                .filter(p -> p.getAnimalType() == type.GRANJA && p.getCategoriaGranja() == categoriaGranja)
+                .map(product -> modelMapper.modelMapper().map(product, ProductListDTO.class))
+                .collect(Collectors.toList());
     }
 
     @Override
     public ProductDTO getProductById(long id) {
-        // TODO: Implementar obtención por ID
-        return null;
+        Products producto = productRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("No existe el producto con id: " + id));
+        return modelMapper.modelMapper().map(producto, ProductDTO.class);
     }
 
     @Override
     public void aumentarPrecio(double porcentaje, String marca) {
-
-
         if(porcentaje < -50) {
             throw new IllegalArgumentException("No se puede hacer un descuento de mas del 50%");
         }
 
-        if( marca != null && !marca.isEmpty()) {
+        if(marca != null && !marca.isEmpty()) {
             String marca1 = marca.toUpperCase();
             Marca enumMarca = Marca.valueOf(marca1);
             List<Products> productos = productRepository.findByMarca(enumMarca);
@@ -136,9 +218,7 @@ public class productServiceImpl implements productService {
                 producto.setUpdatedAt(LocalDateTime.now());
                 productRepository.save(producto);
             }
-
-        }
-        else {
+        } else {
             List<Products> productos = productRepository.findAll();
 
             for (Products producto : productos) {
@@ -151,8 +231,6 @@ public class productServiceImpl implements productService {
                 productRepository.save(producto);
             }
         }
-
-
     }
 
     @Override

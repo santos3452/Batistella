@@ -16,13 +16,15 @@ public class UpdateProductDto {
 
     private Marca marca;
 
+    private String nombre;
 
     private TipoAlimento tipoAlimento;
 
     private TipoRaza tipoRaza;
+    
+    private CategoriaGranja categoriaGranja;
 
     private String description;
-
 
     private Kilos kg;
 
@@ -30,12 +32,9 @@ public class UpdateProductDto {
 
     private BigDecimal priceMayorista;
 
-
     private Integer stock;
 
     private String imageUrl;
-
-
 
     private type animalType;
 
