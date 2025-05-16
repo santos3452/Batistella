@@ -186,4 +186,20 @@ export class ProductDetailComponent implements OnInit {
     
     return `${diaSemana} ${diaMes} de ${mes}`;
   }
+
+  // Obtener el nombre a mostrar en la página de detalle
+  get displayName(): string {
+    if (!this.product) return '';
+    
+    // Para productos de granja, usar el campo nombre
+    if (this.product.animalType === 'GRANJA') {
+      // Si hay nombre, usarlo junto con la categoría
+      if (this.product.nombre) {
+        return `${this.product.nombre}${this.product.categoriaGranja ? ' - ' + this.product.categoriaGranja : ''}`;
+      }
+    }
+    
+    // Para productos de mascotas, usar el fullName
+    return this.product.fullName || '';
+  }
 } 

@@ -8,15 +8,69 @@
     {{ successMessage }}
   </div>
 
-  <div class="bg-white border-0 shadow-lg rounded-lg overflow-hidden">
+  <!-- Pantalla de selección inicial -->
+  <div *ngIf="seleccionInicial" class="bg-white border-0 shadow-lg rounded-lg overflow-hidden">
+    <div class="bg-gradient-to-r from-emerald-500 to-teal-600 text-white p-6">
+      <h1 class="text-2xl font-bold">Agregar Nuevo Producto</h1>
+      <p class="text-emerald-50 mt-1">Selecciona el tipo de producto que deseas agregar</p>
+    </div>
+
+    <div class="p-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Opción para productos de mascotas -->
+        <div 
+          class="border border-gray-200 rounded-lg p-6 cursor-pointer hover:border-emerald-500 hover:shadow-md transition-all"
+          (click)="seleccionarTipoProducto('MASCOTA')"
+        >
+          <div class="flex flex-col items-center text-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-emerald-500 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Productos para Mascotas</h3>
+            <p class="text-gray-600">Alimentos y productos para perros y gatos</p>
+          </div>
+        </div>
+
+        <!-- Opción para productos de granja -->
+        <div 
+          class="border border-gray-200 rounded-lg p-6 cursor-pointer hover:border-emerald-500 hover:shadow-md transition-all"
+          (click)="seleccionarTipoProducto('GRANJA')"
+        >
+          <div class="flex flex-col items-center text-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-emerald-500 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Productos para Granja</h3>
+            <p class="text-gray-600">Alimentos y productos para animales de granja y cereales</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Formulario de producto (se muestra después de seleccionar el tipo) -->
+  <div *ngIf="!seleccionInicial" class="bg-white border-0 shadow-lg rounded-lg overflow-hidden">
     <!-- Encabezado con gradiente -->
     <div class="bg-gradient-to-r from-emerald-500 to-teal-600 text-white p-6">
-      <h1 class="text-2xl font-bold">
-        {{ isEditing ? 'Editar Producto' : 'Agregar Nuevo Producto' }}
-      </h1>
-      <p class="text-emerald-50 mt-1">
-        Completa los campos para {{ isEditing ? 'actualizar el' : 'crear un nuevo' }} producto
-      </p>
+      <div class="flex justify-between items-center">
+        <div>
+          <h1 class="text-2xl font-bold">
+            {{ isEditing ? 'Editar Producto' : 'Agregar Nuevo Producto' }}
+          </h1>
+          <p class="text-emerald-50 mt-1">
+            {{ tipoProductoSeleccionado === 'MASCOTA' ? 'Producto para Mascotas' : 'Producto para Granja' }}
+          </p>
+        </div>
+        <button 
+          type="button" 
+          class="text-white hover:text-emerald-100 focus:outline-none"
+          (click)="volverASeleccion()"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+        </button>
+      </div>
     </div>
 
     <div class="p-6">
@@ -24,57 +78,156 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <!-- Primera columna -->
           <div class="space-y-6">
-            <!-- Marca -->
-            <div class="space-y-2">
-              <label for="marca" class="text-base font-medium flex items-center">
-                Marca <span class="text-red-500 ml-1">*</span>
-                <div class="relative group ml-1">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 text-gray-400">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="12" y1="16" x2="12" y2="12"></line>
-                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                  </svg>
-                  <div class="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 invisible group-hover:visible bg-gray-800 text-white text-xs rounded p-2 w-48">
-                    Selecciona la marca del producto
+            <!-- Campos específicos para productos de mascotas -->
+            <ng-container *ngIf="tipoProductoSeleccionado === 'MASCOTA'">
+              <!-- Marca -->
+              <div class="space-y-2">
+                <label for="marca" class="text-base font-medium flex items-center">
+                  Marca <span class="text-red-500 ml-1">*</span>
+                  <div class="relative group ml-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 text-gray-400">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="12" y1="16" x2="12" y2="12"></line>
+                      <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                    <div class="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 invisible group-hover:visible bg-gray-800 text-white text-xs rounded p-2 w-48">
+                      Selecciona la marca del producto
+                    </div>
                   </div>
+                </label>
+                <select
+                  id="marca"
+                  formControlName="marca"
+                  class="w-full rounded-md border border-gray-300 shadow-sm py-2 px-3 bg-white text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  [ngClass]="{'border-red-500': productForm.get('marca')?.invalid && productForm.get('marca')?.touched}"
+                >
+                  <option value="" disabled>Selecciona una marca</option>
+                  <option *ngFor="let option of marcaOptions" [value]="option.value">
+                    {{ option.label }}
+                  </option>
+                </select>
+                <div 
+                  *ngIf="productForm.get('marca')?.invalid && productForm.get('marca')?.touched" 
+                  class="text-red-500 text-xs mt-1"
+                >
+                  La marca es obligatoria
                 </div>
-              </label>
-              <select
-                id="marca"
-                formControlName="marca"
-                class="w-full rounded-md border border-gray-300 shadow-sm py-2 px-3 bg-white text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                [ngClass]="{'border-red-500': productForm.get('marca')?.invalid && productForm.get('marca')?.touched}"
-              >
-                <option value="" disabled>Selecciona una marca</option>
-                <option *ngFor="let option of marcaOptions" [value]="option.value">
-                  {{ option.label }}
-                </option>
-              </select>
-              <div 
-                *ngIf="productForm.get('marca')?.invalid && productForm.get('marca')?.touched" 
-                class="text-red-500 text-xs mt-1"
-              >
-                La marca es obligatoria
               </div>
-            </div>
 
-            <!-- Tipo de Raza -->
-            <div class="space-y-2">
-              <label for="tipoRaza" class="text-base font-medium">
-                Tipo de Raza
-              </label>
-              <select
-                id="tipoRaza"
-                formControlName="tipoRaza"
-                class="w-full rounded-md border border-gray-300 shadow-sm py-2 px-3 bg-white text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-              >
-                <option value="">Ninguno</option>
-                <option *ngFor="let option of tipoRazaOptions" [value]="option.value">
-                  {{ option.label }}
-                </option>
-              </select>
-            </div>
+              <!-- Tipo de Raza -->
+              <div class="space-y-2">
+                <label for="tipoRaza" class="text-base font-medium">
+                  Tipo de Raza
+                </label>
+                <select
+                  id="tipoRaza"
+                  formControlName="tipoRaza"
+                  class="w-full rounded-md border border-gray-300 shadow-sm py-2 px-3 bg-white text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                >
+                  <option value="">Ninguno</option>
+                  <option *ngFor="let option of tipoRazaOptions" [value]="option.value">
+                    {{ option.label }}
+                  </option>
+                </select>
+              </div>
 
+              <!-- Tipo de Alimento -->
+              <div class="space-y-2">
+                <label for="tipoAlimento" class="text-base font-medium flex items-center">
+                  Tipo de Alimento <span class="text-red-500 ml-1">*</span>
+                </label>
+                <select
+                  id="tipoAlimento"
+                  formControlName="tipoAlimento"
+                  class="w-full rounded-md border border-gray-300 shadow-sm py-2 px-3 bg-white text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  [ngClass]="{'border-red-500': productForm.get('tipoAlimento')?.invalid && productForm.get('tipoAlimento')?.touched}"
+                >
+                  <option value="" disabled>Selecciona un tipo</option>
+                  <option *ngFor="let option of tipoAlimentoOptions" [value]="option.value">
+                    {{ option.label }}
+                  </option>
+                </select>
+                <div 
+                  *ngIf="productForm.get('tipoAlimento')?.invalid && productForm.get('tipoAlimento')?.touched" 
+                  class="text-red-500 text-xs mt-1"
+                >
+                  El tipo de alimento es obligatorio
+                </div>
+              </div>
+
+              <!-- Tipo de Animal -->
+              <div class="space-y-2">
+                <label for="animalType" class="text-base font-medium flex items-center">
+                  Tipo de Animal <span class="text-red-500 ml-1">*</span>
+                </label>
+                <select
+                  id="animalType"
+                  formControlName="animalType"
+                  class="w-full rounded-md border border-gray-300 shadow-sm py-2 px-3 bg-white text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  [ngClass]="{'border-red-500': productForm.get('animalType')?.invalid && productForm.get('animalType')?.touched}"
+                >
+                  <option value="" disabled>Selecciona un tipo</option>
+                  <option value="PERROS">Perros</option>
+                  <option value="GATOS">Gatos</option>
+                </select>
+                <div 
+                  *ngIf="productForm.get('animalType')?.invalid && productForm.get('animalType')?.touched" 
+                  class="text-red-500 text-xs mt-1"
+                >
+                  El tipo de animal es obligatorio
+                </div>
+              </div>
+            </ng-container>
+
+            <!-- Campos específicos para productos de granja -->
+            <ng-container *ngIf="tipoProductoSeleccionado === 'GRANJA'">
+              <!-- Nombre -->
+              <div class="space-y-2">
+                <label for="nombre" class="text-base font-medium flex items-center">
+                  Nombre del Producto <span class="text-red-500 ml-1">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="nombre"
+                  formControlName="nombre"
+                  class="w-full rounded-md border border-gray-300 shadow-sm py-2 px-3 text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  [ngClass]="{'border-red-500': productForm.get('nombre')?.invalid && productForm.get('nombre')?.touched}"
+                  placeholder="Nombre del producto"
+                >
+                <div 
+                  *ngIf="productForm.get('nombre')?.invalid && productForm.get('nombre')?.touched" 
+                  class="text-red-500 text-xs mt-1"
+                >
+                  El nombre del producto es obligatorio
+                </div>
+              </div>
+
+              <!-- Categoría de Granja -->
+              <div class="space-y-2">
+                <label for="categoriaGranja" class="text-base font-medium flex items-center">
+                  Categoría <span class="text-red-500 ml-1">*</span>
+                </label>
+                <select
+                  id="categoriaGranja"
+                  formControlName="categoriaGranja"
+                  class="w-full rounded-md border border-gray-300 shadow-sm py-2 px-3 bg-white text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  [ngClass]="{'border-red-500': productForm.get('categoriaGranja')?.invalid && productForm.get('categoriaGranja')?.touched}"
+                >
+                  <option value="" disabled>Selecciona una categoría</option>
+                  <option *ngFor="let option of categoriaGranjaOptions" [value]="option.value">
+                    {{ option.label }}
+                  </option>
+                </select>
+                <div 
+                  *ngIf="productForm.get('categoriaGranja')?.invalid && productForm.get('categoriaGranja')?.touched" 
+                  class="text-red-500 text-xs mt-1"
+                >
+                  La categoría es obligatoria
+                </div>
+              </div>
+            </ng-container>
+
+            <!-- Campos comunes para ambos tipos -->
             <!-- Precio Minorista -->
             <div class="space-y-2">
               <label for="priceMinorista" class="text-base font-medium flex items-center">
@@ -146,30 +299,6 @@
 
           <!-- Segunda columna -->
           <div class="space-y-6">
-            <!-- Tipo de Alimento -->
-            <div class="space-y-2">
-              <label for="tipoAlimento" class="text-base font-medium flex items-center">
-                Tipo de Alimento <span class="text-red-500 ml-1">*</span>
-              </label>
-              <select
-                id="tipoAlimento"
-                formControlName="tipoAlimento"
-                class="w-full rounded-md border border-gray-300 shadow-sm py-2 px-3 bg-white text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                [ngClass]="{'border-red-500': productForm.get('tipoAlimento')?.invalid && productForm.get('tipoAlimento')?.touched}"
-              >
-                <option value="" disabled>Selecciona un tipo</option>
-                <option *ngFor="let option of tipoAlimentoOptions" [value]="option.value">
-                  {{ option.label }}
-                </option>
-              </select>
-              <div 
-                *ngIf="productForm.get('tipoAlimento')?.invalid && productForm.get('tipoAlimento')?.touched" 
-                class="text-red-500 text-xs mt-1"
-              >
-                El tipo de alimento es obligatorio
-              </div>
-            </div>
-
             <!-- Tamaño (kg) -->
             <div class="space-y-2">
               <label for="kg" class="text-base font-medium flex items-center">
@@ -222,47 +351,6 @@
               <div class="text-xs text-emerald-600 italic mt-1">
                 Al completar este campo, el precio minorista se calculará automáticamente considerando un 28% de descuento.
               </div>
-            </div>
-
-            <!-- Tipo de Animal -->
-            <div class="space-y-2">
-              <label for="animalType" class="text-base font-medium flex items-center">
-                Tipo de Animal <span class="text-red-500 ml-1">*</span>
-              </label>
-              <select
-                id="animalType"
-                formControlName="animalType"
-                class="w-full rounded-md border border-gray-300 shadow-sm py-2 px-3 bg-white text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                [ngClass]="{'border-red-500': productForm.get('animalType')?.invalid && productForm.get('animalType')?.touched}"
-              >
-                <option value="" disabled>Selecciona un tipo</option>
-                <option *ngFor="let option of animalTypeOptions" [value]="option.value">
-                  {{ option.label }}
-                </option>
-              </select>
-              <div 
-                *ngIf="productForm.get('animalType')?.invalid && productForm.get('animalType')?.touched" 
-                class="text-red-500 text-xs mt-1"
-              >
-                El tipo de animal es obligatorio
-              </div>
-            </div>
-
-            <!-- Variedades de Animales de Granja (solo aparece cuando animalType es GRANJA) -->
-            <div *ngIf="productForm.get('animalType')?.value === 'GRANJA'" class="space-y-2 mt-3 p-3 bg-amber-50 border border-amber-200 rounded-md">
-              <label for="tipoGranja" class="text-base font-medium flex items-center">
-                Variedad de Animal de Granja
-              </label>
-              <select
-                id="tipoGranja"
-                formControlName="tipoGranja"
-                class="w-full rounded-md border border-gray-300 shadow-sm py-2 px-3 bg-white text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-              >
-                <option value="">Selecciona una variedad</option>
-                <option *ngFor="let option of animalGranjaOptions" [value]="option.value">
-                  {{ option.label }}
-                </option>
-              </select>
             </div>
 
             <!-- Imagen del producto -->

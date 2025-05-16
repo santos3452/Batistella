@@ -48,8 +48,19 @@ public class ProductListDTO {
         if (animalType == type.GRANJA) {
             return nombre + " - " + (categoriaGranja != null ? categoriaGranja.toString() : "");
         } else if (tipoRaza != null) {
-            return marca + " " + tipoAlimento + " " + tipoRaza.toString().replace("_", " ");
+            if (marca != null && tipoAlimento != null) {
+                return marca.toString() + " " + tipoAlimento + " " + tipoRaza.toString().replace("_", " ");
+            } else {
+                return (marca != null ? marca.toString() : "Sin Marca") + " " +
+                       (tipoAlimento != null ? tipoAlimento.toString() : "") + " " +
+                       tipoRaza.toString().replace("_", " ");
+            }
         }
-        return marca + " " + tipoAlimento;
+        if (marca != null && tipoAlimento != null) {
+            return marca.toString() + " " + tipoAlimento;
+        } else {
+            return (marca != null ? marca.toString() : "Sin Marca") + " " +
+                   (tipoAlimento != null ? tipoAlimento.toString() : "");
+        }
     }
 }

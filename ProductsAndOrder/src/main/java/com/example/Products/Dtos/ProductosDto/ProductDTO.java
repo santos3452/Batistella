@@ -52,7 +52,7 @@ public class ProductDTO {
 
     public String getFullName() {
         if (animalType == type.GRANJA) {
-            return nombre + " - " + (categoriaGranja != null ? categoriaGranja.toString() : "");
+            return nombre ;
         } else if (tipoRaza != null) {
             return marca + " " + tipoAlimento + " " + tipoRaza.toString().replace("_", " ");
         }
@@ -85,6 +85,15 @@ public class ProductDTO {
                     ", animalType='" + animalType + '\'' +
                     ", activo=" + activo +
                     '}';
+        }
+    }
+
+    // Método para establecer el tipo de animal y manejar la marca según el tipo
+    public void setAnimalType(type animalType) {
+        this.animalType = animalType;
+        // Si es un producto de granja, asegurarnos de que la marca sea nula
+        if (animalType == type.GRANJA) {
+            this.marca = null;
         }
     }
 }

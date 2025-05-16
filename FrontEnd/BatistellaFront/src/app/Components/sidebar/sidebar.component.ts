@@ -80,7 +80,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   // Configuración de iconos/imágenes para cada marca
   private iconosMarcas: IconoMarca[] = [
     { nombre: 'TopNutrition', archivo: 'TopNutrition_Brand_white_vFF.ico' },
-    { nombre: 'Kenl', archivo: 'kenl.ico' },
+    { nombre: 'Ken-L', archivo: 'kenl.ico' },
     { nombre: 'Odwalla', archivo: 'Odwalla_color_logo-150x89-1.ico' },
     { nombre: '9Lives', archivo: '9live_color_logo.ico' },
     { nombre: 'Amici', archivo: 'CariAmici_color_logo.ico' },

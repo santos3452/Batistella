@@ -5,6 +5,7 @@ import com.example.Products.Dtos.ProductosDto.ProductDTO;
 import com.example.Products.Dtos.ProductosDto.ProductListDTO;
 import com.example.Products.Dtos.ProductosDto.UpdateProductDto;
 import com.example.Products.Entity.enums.CategoriaGranja;
+import com.example.Products.Entity.enums.Marca;
 import com.example.Products.Entity.enums.type;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
@@ -42,10 +43,54 @@ public class ProductController {
     @PostMapping("/saveProduct")
     public ResponseEntity<?> saveProduct(@Valid @RequestBody ProductDTO productDTO) {
         try {
+            // Validación específica para productos de granja
+            if (productDTO.getAnimalType() == type.GRANJA) {
+                // Asegurarnos de que la marca sea null para productos de granja
+                productDTO.setMarca(null);
+                
+                if (productDTO.getNombre() == null || productDTO.getNombre().trim().isEmpty()) {
+                    return ResponseEntity
+                            .status(HttpStatus.BAD_REQUEST)
+                            .body(ErrorDto.of(
+                                    HttpStatus.BAD_REQUEST.value(),
+                                    "Datos inválidos",
+                                    "El nombre es obligatorio para productos de granja"
+                            ));
+                }
+                if (productDTO.getCategoriaGranja() == null) {
+                    return ResponseEntity
+                            .status(HttpStatus.BAD_REQUEST)
+                            .body(ErrorDto.of(
+                                    HttpStatus.BAD_REQUEST.value(),
+                                    "Datos inválidos",
+                                    "La categoría de granja es obligatoria para productos de granja"
+                            ));
+                }
+            } else {
+                // Validación para productos de mascotas
+                if (productDTO.getMarca() == null) {
+                    return ResponseEntity
+                            .status(HttpStatus.BAD_REQUEST)
+                            .body(ErrorDto.of(
+                                    HttpStatus.BAD_REQUEST.value(),
+                                    "Datos inválidos",
+                                    "La marca es obligatoria para productos de mascotas"
+                            ));
+                }
+                if (productDTO.getTipoAlimento() == null) {
+                    return ResponseEntity
+                            .status(HttpStatus.BAD_REQUEST)
+                            .body(ErrorDto.of(
+                                    HttpStatus.BAD_REQUEST.value(),
+                                    "Datos inválidos",
+                                    "El tipo de alimento es obligatorio para productos de mascotas"
+                            ));
+                }
+            }
+            
             ProductDTO savedProduct = productService.saveProduct(productDTO);
             return ResponseEntity.status(HttpStatus.CREATED).body(savedProduct);
         } catch (IllegalArgumentException e) {
-
             return ResponseEntity
                     .status(HttpStatus.CONFLICT)
                     .body(ErrorDto.of(
@@ -132,6 +177,11 @@ public class ProductController {
     @PutMapping("/updateProduct")
     public ResponseEntity<?> updateProduct(@Valid @RequestBody UpdateProductDto product){
         try {
+                // Si es un producto de tipo GRANJA, establecer la marca como null
+                if (product.getAnimalType() == type.GRANJA) {
+                    product.setMarca(null);
+                }
+                
                 productService.updateProduct(product);
                 return ResponseEntity.ok("Producto actualizado exitosamente");
 
@@ -170,7 +220,15 @@ public class ProductController {
             ObjectMapper objectMapper = new ObjectMapper();
             // Registrar módulos para manejo de fechas y otras configuraciones
             objectMapper.findAndRegisterModules();
-            UpdateProductDto product = objectMapper.readValue(productJson, UpdateProductDto.class);
+            
+            // Procesar el JSON para manejar marca null en productos GRANJA
+            String processedJson = productJson.replace("\"marca\":\"SIN_MARCA\"", "\"marca\":null");
+            UpdateProductDto product = objectMapper.readValue(processedJson, UpdateProductDto.class);
+            
+            // Si es un producto de tipo GRANJA, establecer la marca como null
+            if (product.getAnimalType() == type.GRANJA) {
+                product.setMarca(null);
+            }
 
             // Guardar la imagen y obtener su URL
             String imageUrl = imageService.updateImage(image, product);
@@ -245,7 +303,55 @@ public class ProductController {
             ObjectMapper objectMapper = new ObjectMapper();
             // Registrar módulos para manejo de fechas y otras configuraciones
             objectMapper.findAndRegisterModules();
-            ProductDTO productDTO = objectMapper.readValue(productJson, ProductDTO.class);
+            
+            // Procesamiento previo del JSON para manejar marca null en productos GRANJA
+            String processedJson = productJson.replace("\"marca\":\"SIN_MARCA\"", "\"marca\":null");
+            ProductDTO productDTO = objectMapper.readValue(processedJson, ProductDTO.class);
+            
+            // Validación específica para productos de granja
+            if (productDTO.getAnimalType() == type.GRANJA) {
+                // Asegurarnos de que la marca sea null para productos de granja
+                productDTO.setMarca(null);
+                
+                if (productDTO.getNombre() == null || productDTO.getNombre().trim().isEmpty()) {
+                    return ResponseEntity
+                            .status(HttpStatus.BAD_REQUEST)
+                            .body(ErrorDto.of(
+                                    HttpStatus.BAD_REQUEST.value(),
+                                    "Datos inválidos",
+                                    "El nombre es obligatorio para productos de granja"
+                            ));
+                }
+                if (productDTO.getCategoriaGranja() == null) {
+                    return ResponseEntity
+                            .status(HttpStatus.BAD_REQUEST)
+                            .body(ErrorDto.of(
+                                    HttpStatus.BAD_REQUEST.value(),
+                                    "Datos inválidos",
+                                    "La categoría de granja es obligatoria para productos de granja"
+                            ));
+                }
+            } else {
+                // Validación para productos de mascotas
+                if (productDTO.getMarca() == null) {
+                    return ResponseEntity
+                            .status(HttpStatus.BAD_REQUEST)
+                            .body(ErrorDto.of(
+                                    HttpStatus.BAD_REQUEST.value(),
+                                    "Datos inválidos",
+                                    "La marca es obligatoria para productos de mascotas"
+                            ));
+                }
+                if (productDTO.getTipoAlimento() == null) {
+                    return ResponseEntity
+                            .status(HttpStatus.BAD_REQUEST)
+                            .body(ErrorDto.of(
+                                    HttpStatus.BAD_REQUEST.value(),
+                                    "Datos inválidos",
+                                    "El tipo de alimento es obligatorio para productos de mascotas"
+                            ));
+                }
+            }
             
             // Guardar la imagen y obtener su URL
             String imageUrl = imageService.saveImage(image, productDTO);
@@ -268,15 +374,6 @@ public class ProductController {
                             HttpStatus.CONFLICT.value(),
                             "Producto Duplicado",
                             e.getMessage()
-                    ));
-        } catch (IOException e) {
-            e.printStackTrace(); // Para depuración
-            return ResponseEntity
-                    .status(HttpStatus.BAD_REQUEST)
-                    .body(ErrorDto.of(
-                            HttpStatus.BAD_REQUEST.value(),
-                            "Error de imagen",
-                            "No se pudo procesar la imagen: " + e.getMessage()
                     ));
         } catch (Exception e) {
             e.printStackTrace(); // Para depuración

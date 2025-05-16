@@ -39,7 +39,7 @@
           <div class="flex justify-center">
             <img 
               [src]="product.imageUrl" 
-              [alt]="product.fullName"
+              [alt]="displayName"
               class="object-contain h-[400px]"
             />
           </div>
@@ -60,7 +60,7 @@
             <span class="text-sm text-gray-500">(24 reseñas)</span>
           </div>
 
-          <h1 class="text-2xl font-bold text-gray-900 mb-2">{{ product.fullName }}</h1>
+          <h1 class="text-2xl font-bold text-gray-900 mb-2">{{ displayName }}</h1>
           <p class="text-gray-600 mb-4">{{ product.description || 'Alimento balanceado para mascotas' }}</p>
 
           <div class="mb-6">

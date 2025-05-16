@@ -6,8 +6,10 @@ import { map, tap } from 'rxjs/operators';
 export interface Product {
   id?: number | string;
   marca: string;
+  nombre?: string;
   tipoAlimento: string;
   tipoRaza: string;
+  categoriaGranja?: string;
   description: string;
   kg: string;
   priceMinorista: number;
@@ -18,6 +20,7 @@ export interface Product {
   tipoGranja?: string; // Campo para variedades de animales de granja
   activo: boolean;
   fullName: string;
+  displayName?: string;
   // Campo local para manejar productos sin ID
   localId?: string;
   // Fechas de creación y actualización
@@ -334,12 +337,25 @@ export class ProductService {
   getProductsGroupedByWeight(): Observable<any[]> {
     return this.getActiveProducts().pipe(
       map(products => {
-        // Crear un mapa para agrupar productos por marca, tipoAlimento y tipoRaza
+        // Crear un mapa para agrupar productos
         const productGroups = new Map();
         
         products.forEach(product => {
-          // La clave es la combinación de marca + tipoAlimento + tipoRaza + animalType
-          const key = `${product.marca}_${product.tipoAlimento}_${product.tipoRaza}_${product.animalType}`;
+          // La clave depende del tipo de animal
+          let key = '';
+          
+          // Si es un producto de granja pero en la categoría CEREAL, darle su propio tipo
+          if (product.animalType === 'GRANJA' && product.categoriaGranja === 'CEREAL') {
+            // Para cereales, tratarlos como una categoría separada
+            product.animalType = 'CEREALES'; // Cambiar el tipo a CEREALES
+            key = `CEREALES_${product.nombre}`;
+          } else if (product.animalType === 'GRANJA') {
+            // Para productos de granja, la clave se forma con nombre y categoría
+            key = `GRANJA_${product.nombre}_${product.categoriaGranja}`;
+          } else {
+            // Para productos de mascota, se mantiene la clave original
+            key = `${product.marca}_${product.tipoAlimento}_${product.tipoRaza}_${product.animalType}`;
+          }
           
           if (!productGroups.has(key)) {
             // Crear un nuevo grupo con el primer producto y su variante de peso
@@ -400,13 +416,23 @@ export class ProductService {
     
     return this.getActiveProducts().pipe(
       map(products => {
-        // Filtrar productos que sean variantes del producto indicado (mismo nombre, misma marca, mismo tipo)
-        return products.filter(p => 
-          p.marca === product.marca && 
-          p.tipoAlimento === product.tipoAlimento && 
-          p.tipoRaza === product.tipoRaza &&
-          p.animalType === product.animalType
-        );
+        // La lógica de filtrado depende del tipo de animal
+        if (product.animalType === 'GRANJA') {
+          // Para productos de granja, filtrar por nombre y categoría
+          return products.filter(p => 
+            p.animalType === 'GRANJA' && 
+            p.nombre === product.nombre && 
+            p.categoriaGranja === product.categoriaGranja
+          );
+        } else {
+          // Para productos de mascota, mantener la lógica original
+          return products.filter(p => 
+            p.marca === product.marca && 
+            p.tipoAlimento === product.tipoAlimento && 
+            p.tipoRaza === product.tipoRaza &&
+            p.animalType === product.animalType
+          );
+        }
       })
     );
   }
@@ -426,6 +452,35 @@ export class ProductService {
         this.marcasCache = marcas;
         this.lastMarcasFetchTime = Date.now();
       })
+    );
+  }
+
+  /**
+   * Obtiene productos filtrados por categoría de granja
+   * @param tipoGranja La categoría de granja (AVES, PONEDORAS, etc.)
+   * @returns Observable con los productos filtrados
+   */
+  getProductsByTipoGranja(tipoGranja: string): Observable<Product[]> {
+    return this.getActiveProducts().pipe(
+      map(products => products.filter(product => 
+        product.animalType === 'GRANJA' && 
+        product.categoriaGranja === tipoGranja
+      ))
+    );
+  }
+
+  /**
+   * Obtiene productos agrupados filtrados por categoría de granja
+   * @param tipoGranja La categoría de granja (AVES, PONEDORAS, etc.)
+   * @returns Observable con los productos agrupados filtrados
+   */
+  getProductsGroupedByWeightByTipoGranja(tipoGranja: string): Observable<any[]> {
+    return this.getProductsGroupedByWeightByCategory('GRANJA').pipe(
+      map(groupedProducts => 
+        groupedProducts.filter(group => 
+          group.baseProduct.categoriaGranja === tipoGranja
+        )
+      )
     );
   }
 }

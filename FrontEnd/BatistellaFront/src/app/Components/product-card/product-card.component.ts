@@ -50,6 +50,22 @@ export class ProductCardComponent implements OnInit {
     return `${this.index * 100}ms`;
   }
 
+  // Obtener el nombre a mostrar en la tarjeta del producto
+  get displayName(): string {
+    if (!this.product) return '';
+    
+    // Para productos de granja, usar el campo nombre
+    if (this.product.animalType === 'GRANJA') {
+      // Si hay nombre, usarlo junto con la categoría
+      if (this.product.nombre) {
+        return `${this.product.nombre}${this.product.categoriaGranja ? ' - ' + this.product.categoriaGranja : ''}`;
+      }
+    }
+    
+    // Para productos de mascotas, usar el fullName
+    return this.product.fullName || '';
+  }
+
   constructor(
     private cartService: CartService,
     public utils: UtilsService,

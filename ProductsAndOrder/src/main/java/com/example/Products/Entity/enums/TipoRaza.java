@@ -6,7 +6,8 @@ import com.fasterxml.jackson.annotation.JsonValue;
 public enum TipoRaza {
     RAZA_GRANDE,
     RAZA_MEDIANA,
-    RAZA_PEQUENA;
+    RAZA_PEQUENA,
+    RAZA_MEDIANA_GRANDE;
 
     @JsonCreator
     public static TipoRaza fromString(String value) {

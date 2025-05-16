@@ -41,4 +41,13 @@ public class UpdateProductDto {
     private Boolean activo;
 
     private LocalDateTime updatedAt;
+    
+    // Método para establecer el tipo de animal y manejar la marca según el tipo
+    public void setAnimalType(type animalType) {
+        this.animalType = animalType;
+        // Si es un producto de granja, asegurarnos de que la marca sea nula
+        if (animalType == type.GRANJA) {
+            this.marca = null;
+        }
+    }
 }

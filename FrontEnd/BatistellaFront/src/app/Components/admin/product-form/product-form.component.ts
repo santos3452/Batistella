@@ -23,11 +23,15 @@ export class ProductFormComponent implements OnInit {
   dragOver = false; // Para indicar cuando se está arrastrando un archivo
   // Descuento para calcular precio mayorista (28%)
   readonly DESCUENTO_MAYORISTA = 0.28;
+  
+  // Selección de tipo de producto inicial
+  seleccionInicial = true; // Muestra la pantalla de selección inicial
+  tipoProductoSeleccionado: 'MASCOTA' | 'GRANJA' | null = null;
 
   // Opciones para los campos del formulario
   marcaOptions = [
     { value: 'TOPNUTRITION', label: 'TopNutrition' },
-    { value: 'KENL', label: 'Kenl' },
+    { value: 'KENL', label: 'Ken-L' },
     { value: 'ODWALLA', label: 'Odwalla' },
     { value: 'NINELIVES', label: '9Lives' },
     { value: 'AMICI', label: 'Amici' },
@@ -67,37 +71,46 @@ export class ProductFormComponent implements OnInit {
   tipoRazaOptions = [
     { value: 'RAZA_GRANDE', label: 'Raza Grande' },
     { value: 'RAZA_MEDIANA', label: 'Raza Mediana' },
-    { value: 'RAZA_PEQUENA', label: 'Raza Pequeña' }
+    { value: 'RAZA_PEQUENA', label: 'Raza Pequeña' },
+    { value: 'RAZA_MEDIANA_GRANDE', label: 'Raza Mediana y Grande' }
   ];
 
   kgOptions = [
-    { value: 'EIGHTEEN_KG', label: '18kg' },
-    { value: 'THREE_KG', label: '3kg' },
-    { value: 'SEVEN_POINT_FIVE_KG', label: '7.5kg' },
-    { value: 'TWENTY_KG', label: '20kg' },
-    { value: 'FIFTEEN_KG', label: '15kg' },
+    { value: 'ONE_KG', label: '1kg' },
     { value: 'ONE_POINT_FIVE', label: '1.5kg' },
+    { value: 'TWO_KG', label: '2kg' },
+    { value: 'THREE_KG', label: '3kg' },
+    { value: 'FIVE_KG', label: '5kg' },
+    { value: 'SEVEN_POINT_FIVE_KG', label: '7.5kg' },
+    { value: 'EIGHT_KG', label: '8kg' },
+    { value: 'TEN_KG', label: '10kg' },
+    { value: 'FIFTEEN_KG', label: '15kg' },
     { value: 'FIFTEEN_PLUS_THREE_KG', label: '15+3kg' },
+    { value: 'EIGHTEEN_KG', label: '18kg' },
+    { value: 'EIGHTEEN_PLUS_THREE_KG', label: '18+3kg' },
+    { value: 'TWENTY_KG', label: '20kg' },
     { value: 'TWENTY_TWO_KG', label: '22kg' },
-    { value: 'TWENTY_TWO_PLUS_THREE_KG', label: '22+3kg' }
+    { value: 'TWENTY_TWO_PLUS_THREE_KG', label: '22+3kg' },
+    { value: 'TWENTY_FIVE_KG', label: '25kg' },
+    { value: 'THIRTY_KG', label: '30kg' }
   ];
 
   animalTypeOptions = [
     { value: 'PERROS', label: 'Perros' },
     { value: 'GATOS', label: 'Gatos' },
-    { value: 'GRANJA', label: 'Granja' },
-    { value: 'CEREALES', label: 'Cereales' }
+    { value: 'GRANJA', label: 'Granja' }
   ];
 
-  // Opciones para los tipos de animales de granja
-  animalGranjaOptions = [
+  // Opciones para las categorías de granja
+  categoriaGranjaOptions = [
     { value: 'AVES', label: 'Aves' },
     { value: 'PONEDORAS', label: 'Ponedoras' },
     { value: 'CONEJOS', label: 'Conejos' },
     { value: 'PORCINOS', label: 'Porcinos' },
     { value: 'EQUINOS', label: 'Equinos' },
     { value: 'VACUNOS', label: 'Vacunos' },
-    { value: 'VARIOS', label: 'Varios' }
+    { value: 'VARIOS', label: 'Varios' },
+    { value: 'CEREAL', label: 'Cereal' }
   ];
 
   constructor(
@@ -108,8 +121,6 @@ export class ProductFormComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    this.initForm();
-    
     // Verificar si estamos editando un producto existente
     this.route.paramMap.subscribe(params => {
       const id = params.get('id');
@@ -117,14 +128,34 @@ export class ProductFormComponent implements OnInit {
         this.isEditing = true;
         this.productId = id;
         this.loadProduct(id);
+        // Al editar, saltamos la pantalla de selección inicial
+        this.seleccionInicial = false;
       }
     });
+  }
 
+  /**
+   * Selecciona el tipo de producto a crear y muestra el formulario correspondiente
+   */
+  seleccionarTipoProducto(tipo: 'MASCOTA' | 'GRANJA'): void {
+    this.tipoProductoSeleccionado = tipo;
+    this.seleccionInicial = false;
+    
+    // Inicializar formulario según el tipo seleccionado
+    if (tipo === 'MASCOTA') {
+      this.initFormMascotas();
+    } else {
+      this.initFormGranja();
+    }
+    
     // Escuchar cambios en los campos de precio para calcular automáticamente
     this.listenPriceChanges();
   }
 
-  initForm(): void {
+  /**
+   * Inicializa el formulario para productos de mascotas
+   */
+  initFormMascotas(): void {
     this.productForm = this.fb.group({
       marca: ['', Validators.required],
       tipoAlimento: ['', Validators.required],
@@ -135,21 +166,29 @@ export class ProductFormComponent implements OnInit {
       priceMayorista: ['', [Validators.required, Validators.min(0)]],
       stock: ['', [Validators.required, Validators.min(0)]],
       animalType: ['', Validators.required],
-      tipoGranja: [''],
       activo: [true]
-    });
-
-    // Escuchar cambios en animalType para resetear tipoGranja cuando no es GRANJA
-    this.productForm.get('animalType')?.valueChanges.subscribe(value => {
-      if (value !== 'GRANJA') {
-        this.productForm.get('tipoGranja')?.setValue('');
-      }
     });
   }
 
   /**
-   * Configura los escuchadores para los cambios en los campos de precio
-   * para calcular automáticamente el otro precio con un 28% de descuento
+   * Inicializa el formulario para productos de granja/cereales
+   */
+  initFormGranja(): void {
+    this.productForm = this.fb.group({
+      nombre: ['', Validators.required],
+      categoriaGranja: ['', Validators.required],
+      description: [''],
+      kg: ['', Validators.required],
+      priceMinorista: ['', [Validators.required, Validators.min(0)]],
+      priceMayorista: ['', [Validators.required, Validators.min(0)]],
+      stock: ['', [Validators.required, Validators.min(0)]],
+      animalType: ['GRANJA'], // Siempre es GRANJA para este tipo de producto
+      activo: [true]
+    });
+  }
+
+  /**
+   * Escucha cambios en los campos de precio para calcular automáticamente el otro precio con un 28% de descuento
    */
   listenPriceChanges(): void {
     // Escuchar cambios en el precio minorista
@@ -204,86 +243,217 @@ export class ProductFormComponent implements OnInit {
       next: (product) => {
         console.log('Producto cargado para editar:', product);
         
-        // Mapear los valores recibidos a los valores aceptados por los selectores
-        
-        // Para marca - Convertir el valor de la API a las opciones del selector
-        let marcaValue = '';
-        if (product.marca) {
-          // Buscar la opción que tenga un label que coincida con la marca (sin importar mayúsculas/minúsculas)
-          const marcaOption = this.marcaOptions.find(opt => 
-            opt.label.toLowerCase() === product.marca.toLowerCase()
-          );
-          marcaValue = marcaOption ? marcaOption.value : product.marca.toUpperCase();
-        }
-        
-        // Para tipoAlimento - Añadir el valor si no existe en las opciones
-        let tipoAlimentoValue = product.tipoAlimento || '';
-        if (tipoAlimentoValue && !this.tipoAlimentoOptions.some(opt => opt.value === tipoAlimentoValue)) {
-          this.tipoAlimentoOptions.push({ 
-            value: tipoAlimentoValue, 
-            label: tipoAlimentoValue.charAt(0) + tipoAlimentoValue.slice(1).toLowerCase()
+        // Determinar el tipo de producto para saber qué formulario mostrar
+        if (product.animalType === 'GRANJA') {
+          this.tipoProductoSeleccionado = 'GRANJA';
+          this.initFormGranja();
+          
+          // Asignar valores al formulario de granja
+          this.productForm.patchValue({
+            nombre: product.nombre || '',
+            categoriaGranja: product.categoriaGranja || '',
+            description: product.description || '',
+            kg: this.mapKgValue(product.kg),
+            priceMinorista: product.priceMinorista,
+            priceMayorista: product.priceMayorista,
+            stock: product.stock,
+            activo: product.activo
+          });
+        } else {
+          this.tipoProductoSeleccionado = 'MASCOTA';
+          this.initFormMascotas();
+          
+          // Mapear los valores recibidos a los valores aceptados por los selectores para productos de mascotas
+          let marcaValue = '';
+          if (product.marca) {
+            // Buscar la opción que tenga un label que coincida con la marca (sin importar mayúsculas/minúsculas)
+            const marcaOption = this.marcaOptions.find(opt => 
+              opt.label.toLowerCase() === product.marca.toLowerCase()
+            );
+            marcaValue = marcaOption ? marcaOption.value : product.marca.toUpperCase();
+          }
+          
+          // Para tipoAlimento - Añadir el valor si no existe en las opciones
+          let tipoAlimentoValue = product.tipoAlimento || '';
+          if (tipoAlimentoValue && !this.tipoAlimentoOptions.some(opt => opt.value === tipoAlimentoValue)) {
+            this.tipoAlimentoOptions.push({ 
+              value: tipoAlimentoValue, 
+              label: tipoAlimentoValue.charAt(0) + tipoAlimentoValue.slice(1).toLowerCase()
+            });
+          }
+          
+          // Asignar valores al formulario de mascotas
+          this.productForm.patchValue({
+            marca: marcaValue,
+            tipoAlimento: tipoAlimentoValue,
+            tipoRaza: product.tipoRaza || '',
+            animalType: product.animalType,
+            description: product.description || '',
+            kg: this.mapKgValue(product.kg),
+            priceMinorista: product.priceMinorista,
+            priceMayorista: product.priceMayorista,
+            stock: product.stock,
+            activo: product.activo
           });
         }
         
-        // Para kg - Mapear el valor de la API a las opciones del selector
-        let kgValue = '';
-        if (product.kg) {
-          // Primero buscar por label exacto
-          const kgOption = this.kgOptions.find(opt => opt.label === product.kg);
-          if (kgOption) {
-            kgValue = kgOption.value;
-          } else {
-            // Si no hay coincidencia exacta, intentar normalizar el formato
-            const kgNormalized = product.kg.replace(' ', '').replace(',', '.').toLowerCase();
-            // Buscar una opción cuya etiqueta normalizada coincida
-            const kgOptionNormalized = this.kgOptions.find(opt => 
-              opt.label.replace(' ', '').replace(',', '.').toLowerCase() === kgNormalized
-            );
-            
-            if (kgOptionNormalized) {
-              kgValue = kgOptionNormalized.value;
-            } else {
-              // Si todavía no hay coincidencia, añadir una nueva opción
-              const newValue = `KG_${kgNormalized.replace('.', '_')}`;
-              this.kgOptions.push({ value: newValue, label: product.kg });
-              kgValue = newValue;
-            }
-          }
-        }
+        // Configurar listeners para cambios en precios
+        this.listenPriceChanges();
         
-        // Asegurarnos de que todos los campos estén correctamente asignados
-        this.productForm.patchValue({
-          marca: marcaValue,
-          tipoAlimento: tipoAlimentoValue,
-          tipoRaza: product.tipoRaza || '',
-          description: product.description || '',
-          kg: kgValue,
-          priceMinorista: product.priceMinorista || 0,
-          priceMayorista: product.priceMayorista || 0,
-          stock: product.stock || 0,
-          animalType: product.animalType || '',
-          tipoGranja: product.tipoGranja || '',
-          activo: product.activo !== undefined ? product.activo : true
-        });
-        
-        // Mostrar la imagen actual
+        // Si hay imagen, mostrarla en la vista previa
         if (product.imageUrl) {
           this.imagePreview = product.imageUrl;
         }
-        
-        // Verificar que los campos se han cargado correctamente
-        console.log('Formulario después de cargar datos:', this.productForm.value);
-        console.log('Opciones actualizadas:', {
-          marca: this.marcaOptions,
-          tipoAlimento: this.tipoAlimentoOptions,
-          kg: this.kgOptions
-        });
       },
       error: (error) => {
-        console.error('Error al cargar el producto:', error);
-        this.errorMessage = 'Error al cargar el producto: ' + error.message;
+        console.error('Error al cargar el producto', error);
+        this.errorMessage = 'Error al cargar el producto. Por favor, intenta de nuevo más tarde.';
       }
     });
+  }
+
+  onSubmit(): void {
+    if (this.productForm.invalid) {
+      this.markFormGroupTouched(this.productForm);
+      return;
+    }
+
+    // Validación de imagen:
+    if (!this.selectedFile) {
+      if (!this.isEditing) {
+        this.errorMessage = 'Debe seleccionar una imagen para el producto';
+        return;
+      } else if (!this.imagePreview) {
+        this.errorMessage = 'El producto debe tener una imagen. Por favor, seleccione una.';
+        return;
+      }
+    }
+
+    this.isSubmitting = true;
+    this.errorMessage = '';
+    this.successMessage = '';
+
+    // Crear una copia del formulario para no modificar el original
+    const formData = { ...this.productForm.value };
+    
+    // Manejar campos según el tipo de producto
+    if (this.tipoProductoSeleccionado === 'GRANJA') {
+      // Para productos de granja, establecemos marca como null y eliminamos campos específicos de mascotas
+      formData.marca = null;
+      formData.tipoAlimento = null;
+      formData.tipoRaza = null;
+      formData.animalType = 'GRANJA';
+    } else {
+      // Para productos de mascotas, solo manejamos el tipo de raza
+      if (formData.tipoRaza === '') {
+        formData.tipoRaza = null;
+      }
+    }
+
+    // Generar el nombre completo del producto usando el servicio (solo para uso local)
+    const fullNameForDisplay = this.productService.generateProductFullName(formData);
+    console.log('Nombre completo generado (solo para mostrar):', fullNameForDisplay);
+    
+    // Obtener el ID para usarlo tanto en la URL como en el cuerpo de la petición
+    const productId = this.isEditing ? this.productId : null;
+    
+    // Si estamos editando, añadir el ID al objeto del producto
+    if (this.isEditing && productId) {
+      formData.id = productId;
+    }
+    
+    // Si estamos editando y hay una imagen previa pero no se seleccionó una nueva,
+    // incluimos la URL de la imagen actual para mantenerla
+    if (this.isEditing && !this.selectedFile && this.imagePreview) {
+      formData.imageUrl = this.imagePreview;
+    }
+    
+    // Eliminar el campo fullName ya que no existe en el backend
+    delete formData.fullName;
+    
+    console.log('Datos del producto a enviar:', formData);
+
+    // LÓGICA DUAL DE ACTUALIZACIÓN:
+    if (this.isEditing && !this.selectedFile) {
+      // CASO 1: Actualización sin cambio de imagen - Usar updateProduct con JSON
+      console.log('Actualizando producto sin cambiar imagen, usando endpoint JSON');
+      if (productId) {
+        this.productService.updateProduct(productId, formData).subscribe({
+          next: (response: any) => {
+            console.log('Producto actualizado:', response);
+            this.isSubmitting = false;
+            this.successMessage = 'Producto actualizado con éxito';
+            
+            // Limpiar caché de productos para forzar recarga de datos
+            this.productService.clearProductsCache();
+            
+            setTimeout(() => {
+              this.router.navigate(['/admin/products'], { queryParams: { refresh: new Date().getTime() } });
+            }, 1500);
+          },
+          error: (error: any) => {
+            console.error('Error al actualizar el producto:', error);
+            this.isSubmitting = false;
+            this.errorMessage = 'Error al actualizar el producto: ' + (error.error?.message || error.message);
+          }
+        });
+      } else {
+        this.isSubmitting = false;
+        this.errorMessage = 'Error: ID de producto no disponible para la actualización';
+      }
+    } else {
+      // CASO 2: Nuevo producto o actualización con nueva imagen - Usar FormData
+      const formDataToSend = new FormData();
+      
+      // Añadir el producto como una cadena JSON
+      formDataToSend.append('product', JSON.stringify(formData));
+      
+      // Añadir la imagen si hay una seleccionada
+      if (this.selectedFile) {
+        formDataToSend.append('image', this.selectedFile);
+      }
+      
+      this.sendRequestWithImage(formDataToSend, productId);
+    }
+  }
+
+  /**
+   * Método para volver a la pantalla de selección de tipo de producto
+   */
+  volverASeleccion(): void {
+    this.seleccionInicial = true;
+    this.tipoProductoSeleccionado = null;
+    this.productForm = null!;
+    this.imagePreview = null;
+    this.selectedFile = null;
+    this.errorMessage = '';
+    this.successMessage = '';
+  }
+  
+  private mapKgValue(kg: string | undefined): string {
+    if (!kg) return '';
+    
+    // Primero buscar por label exacto
+    const kgOption = this.kgOptions.find(opt => opt.label === kg);
+    if (kgOption) {
+      return kgOption.value;
+    }
+    
+    // Si no hay coincidencia exacta, intentar normalizar el formato
+    const kgNormalized = kg.replace(' ', '').replace(',', '.').toLowerCase();
+    // Buscar una opción cuya etiqueta normalizada coincida
+    const kgOptionNormalized = this.kgOptions.find(opt => 
+      opt.label.replace(' ', '').replace(',', '.').toLowerCase() === kgNormalized
+    );
+    
+    if (kgOptionNormalized) {
+      return kgOptionNormalized.value;
+    }
+    
+    // Si todavía no hay coincidencia, añadir una nueva opción
+    const newValue = `KG_${kgNormalized.replace('.', '_')}`;
+    this.kgOptions.push({ value: newValue, label: kg });
+    return newValue;
   }
 
   // Método para activar el input de selección de archivo
@@ -478,125 +648,19 @@ export class ProductFormComponent implements OnInit {
     });
   }
 
-  onSubmit(): void {
-    if (this.productForm.invalid) {
-      this.markFormGroupTouched(this.productForm);
-      return;
-    }
-
-    // Validación de imagen:
-    // - Para productos nuevos: siempre necesitamos una imagen
-    // - Para ediciones: si no hay una nueva imagen seleccionada, debe existir una previa
-    if (!this.selectedFile) {
-      if (!this.isEditing) {
-        // Caso 1: Nuevo producto sin imagen
-        this.errorMessage = 'Debe seleccionar una imagen para el producto';
-        return;
-      } else if (!this.imagePreview) {
-        // Caso 2: Editando un producto, sin imagen nueva ni existente
-        this.errorMessage = 'El producto debe tener una imagen. Por favor, seleccione una.';
-        return;
+  // Método auxiliar para marcar todos los campos como touched
+  markFormGroupTouched(formGroup: FormGroup) {
+    Object.values(formGroup.controls).forEach(control => {
+      control.markAsTouched();
+      if (control instanceof FormGroup) {
+        this.markFormGroupTouched(control);
       }
-      // Caso 3: Editando un producto, sin imagen nueva pero con una existente
-      // En este caso, continuamos con la actualización usando la imagen existente
-    }
-    // Caso 4: Hay una nueva imagen seleccionada (para nuevo producto o edición)
-    // Procedemos normalmente con la nueva imagen
-
-    this.isSubmitting = true;
-    this.errorMessage = '';
-    this.successMessage = '';
-
-    const productData = this.productForm.value;
-    
-    // Manejar campos especiales
-    
-    // Tipo de raza: convertir cadena vacía a null para el enum del backend
-    if (productData.tipoRaza === '') {
-      productData.tipoRaza = null;
-    }
-
-    // Generar el nombre completo del producto usando el servicio (solo para uso local)
-    // No lo incluimos en los datos enviados al backend
-    const fullNameForDisplay = this.productService.generateProductFullName(productData);
-    console.log('Nombre completo generado (solo para mostrar):', fullNameForDisplay);
-    
-    // Obtener el ID para usarlo tanto en la URL como en el cuerpo de la petición
-    const productId = this.isEditing ? this.productId : null;
-    
-    // Si estamos editando, añadir el ID al objeto del producto
-    if (this.isEditing && productId) {
-      productData.id = productId;
-    }
-    
-    // Si estamos editando y hay una imagen previa pero no se seleccionó una nueva,
-    // incluimos la URL de la imagen actual para mantenerla
-    if (this.isEditing && !this.selectedFile && this.imagePreview) {
-      productData.imageUrl = this.imagePreview;
-    }
-    
-    // Crear una copia de los datos del producto para enviar al backend, sin el campo fullName
-    const productDataForBackend = { ...productData };
-    // Eliminar el campo fullName ya que no existe en el backend
-    delete productDataForBackend.fullName;
-    
-    console.log('Datos del producto a enviar:', productDataForBackend);
-    
-    // LÓGICA DUAL DE ACTUALIZACIÓN:
-    // 1. Si estamos editando y NO hay una nueva imagen, usamos el endpoint JSON simple
-    // 2. Para nuevos productos o actualizaciones con nueva imagen, usamos FormData
-    
-    if (this.isEditing && !this.selectedFile) {
-      // CASO 1: Actualización sin cambio de imagen - Usar updateProduct con JSON
-      console.log('Actualizando producto sin cambiar imagen, usando endpoint JSON');
-      if (productId) {
-        // Agregar logs detallados para depuración
-        console.log('ID del producto:', productId);
-        console.log('Tipo de ID:', typeof productId);
-        console.log('Datos completos enviados al endpoint updateProduct:', JSON.stringify(productDataForBackend, null, 2));
-        console.log('URL del endpoint:', `${this.productService['apiUrl']}/updateProduct`);
-        
-        this.productService.updateProduct(productId, productDataForBackend).subscribe({
-          next: (response: any) => {
-            console.log('Producto actualizado:', response);
-            this.isSubmitting = false;
-            this.successMessage = 'Producto actualizado con éxito';
-            
-            // Limpiar caché de productos para forzar recarga de datos
-            this.productService.clearProductsCache();
-            
-            setTimeout(() => {
-              this.router.navigate(['/admin/products'], { queryParams: { refresh: new Date().getTime() } });
-            }, 1500);
-          },
-          error: (error: any) => {
-            console.error('Error al actualizar el producto:', error);
-            this.isSubmitting = false;
-            this.errorMessage = 'Error al actualizar el producto: ' + (error.error?.message || error.message);
-          }
-        });
-      } else {
-        this.isSubmitting = false;
-        this.errorMessage = 'Error: ID de producto no disponible para la actualización';
-      }
-    } else {
-      // CASO 2: Nuevo producto o actualización con nueva imagen - Usar FormData
-      // Crear FormData
-      const formData = new FormData();
-      
-      // Añadir el producto como una cadena JSON
-      formData.append('product', JSON.stringify(productDataForBackend));
-      
-      // Añadir la imagen si hay una seleccionada (debe haberla para nuevos productos)
-      if (this.selectedFile) {
-        formData.append('image', this.selectedFile);
-      }
-      
-      this.sendRequestWithImage(formData, productId);
-    }
+    });
   }
 
-  // Método para enviar la petición HTTP con imagen (FormData)
+  /**
+   * Enviar petición con imagen usando FormData
+   */
   private sendRequestWithImage(formData: FormData, productId: string | number | null): void {
     if (this.isEditing && productId) {
       // Si estamos editando, usamos el método de actualización con imagen
@@ -641,15 +705,5 @@ export class ProductFormComponent implements OnInit {
         }
       });
     }
-  }
-
-  // Método auxiliar para marcar todos los campos como touched
-  markFormGroupTouched(formGroup: FormGroup) {
-    Object.values(formGroup.controls).forEach(control => {
-      control.markAsTouched();
-      if (control instanceof FormGroup) {
-        this.markFormGroupTouched(control);
-      }
-    });
   }
 } 

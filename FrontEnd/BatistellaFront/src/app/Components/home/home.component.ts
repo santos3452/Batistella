@@ -34,6 +34,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   totalPages = 0;
   categoryFilter: string | null = null;
   marcaFilter: string | null = null;
+  tipoGranjaFilter: string | null = null;
   categoryTitle = 'Todos los Alimentos';
   isAdmin = false;
   private subscription: Subscription = new Subscription();
@@ -47,6 +48,18 @@ export class HomeComponent implements OnInit, OnDestroy {
     'GRANJA': 'Alimentos para Animales de Granja'
   };
 
+  // Nombres de las categorías de granja
+  private tipoGranjaTitles: Record<string, string> = {
+    'AVES': 'Alimentos para Aves',
+    'PONEDORAS': 'Alimentos para Ponedoras',
+    'CONEJOS': 'Alimentos para Conejos',
+    'PORCINOS': 'Alimentos para Porcinos',
+    'EQUINOS': 'Alimentos para Equinos',
+    'VACUNOS': 'Alimentos para Vacunos',
+    'VARIOS': 'Varios Alimentos para Granja',
+    'CEREAL': 'Cereales'
+  };
+
   get pagedProductGroups(): ProductGroup[] {
     const start = (this.page - 1) * this.pageSize;
     return this.productGroups.slice(start, start + this.pageSize);
@@ -54,8 +67,8 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   constructor(
     private productService: ProductService,
-    private route: ActivatedRoute,
-    private authService: AuthService
+    private authService: AuthService,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
@@ -63,11 +76,14 @@ export class HomeComponent implements OnInit, OnDestroy {
       this.route.queryParamMap.subscribe(params => {
         this.categoryFilter = params.get('category');
         this.marcaFilter = params.get('marca');
+        this.tipoGranjaFilter = params.get('tipoGranja');
         
         if (this.categoryFilter) {
           this.categoryTitle = this.categoryTitles[this.categoryFilter] || 'Productos';
         } else if (this.marcaFilter) {
           this.categoryTitle = `Productos de ${this.marcaFilter}`;
+        } else if (this.tipoGranjaFilter) {
+          this.categoryTitle = this.tipoGranjaTitles[this.tipoGranjaFilter] || 'Productos para Granja';
         } else {
           this.categoryTitle = 'Todos los Alimentos';
         }
@@ -88,6 +104,11 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   loadProductGroups(): void {
+    // Si hay filtro de categoría de granja, siempre establecemos categoryFilter a GRANJA
+    if (this.tipoGranjaFilter) {
+      this.categoryFilter = 'GRANJA';
+    }
+
     if (this.categoryFilter) {
       this.productService.getProductsGroupedByWeightByCategory(this.categoryFilter).subscribe(groups => {
         this.productGroups = groups;
@@ -95,6 +116,11 @@ export class HomeComponent implements OnInit, OnDestroy {
         if (this.marcaFilter) {
           this.filterGroupsByMarca();
         }
+        
+        if (this.tipoGranjaFilter) {
+          this.filterGroupsByTipoGranja();
+        }
+        
         this.setupPagination();
       });
     } else if (this.marcaFilter) {
@@ -115,6 +141,14 @@ export class HomeComponent implements OnInit, OnDestroy {
     if (this.marcaFilter) {
       this.productGroups = this.productGroups.filter(group => 
         group.baseProduct.marca === this.marcaFilter
+      );
+    }
+  }
+
+  private filterGroupsByTipoGranja(): void {
+    if (this.tipoGranjaFilter) {
+      this.productGroups = this.productGroups.filter(group => 
+        group.baseProduct.categoriaGranja === this.tipoGranjaFilter
       );
     }
   }

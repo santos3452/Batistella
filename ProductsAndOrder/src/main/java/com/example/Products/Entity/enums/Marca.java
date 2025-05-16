@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum Marca {
     TOPNUTRITION("TopNutrition"),
-    KENL("Kenl"),
+    KENL("Ken-L"),
     ODWALLA("Odwalla"),
     NINELIVES("9Lives"),
     AMICI("Amici"),
@@ -25,7 +25,8 @@ public enum Marca {
 
     @JsonCreator
     public static Marca fromString(String value) {
-        if (value == null) {
+        if (value == null || value.equalsIgnoreCase("null") || value.isEmpty() || 
+            value.equalsIgnoreCase("SIN_MARCA") || value.equalsIgnoreCase("Sin Marca")) {
             return null;
         }
 

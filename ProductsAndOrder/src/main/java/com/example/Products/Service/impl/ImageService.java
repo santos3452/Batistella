@@ -2,6 +2,7 @@ package com.example.Products.Service.impl;
 
 import com.example.Products.Dtos.ProductosDto.ProductDTO;
 import com.example.Products.Dtos.ProductosDto.UpdateProductDto;
+import com.example.Products.Entity.enums.type;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -30,22 +31,28 @@ public class ImageService {
         System.out.println("Tamaño de la imagen: " + image.getSize() + " bytes");
         System.out.println("Nombre original de la imagen: " + image.getOriginalFilename());
         
-        // Determinar la marca para la carpeta
-        String marca = "OTROS";
-        try {
-            marca = productDTO.getMarca() != null ? productDTO.getMarca().toString() : "OTROS";
-        } catch (Exception e) {
-            System.err.println("Error al obtener la marca: " + e.getMessage());
+        // Determinar la carpeta según el tipo de producto
+        String carpeta;
+        if (productDTO.getAnimalType() == type.GRANJA) {
+            carpeta = "GRANJA";
+        } else {
+            // Determinar la marca para la carpeta
+            try {
+                carpeta = productDTO.getMarca() != null ? productDTO.getMarca().toString() : "OTROS";
+            } catch (Exception e) {
+                System.err.println("Error al obtener la marca: " + e.getMessage());
+                carpeta = "OTROS";
+            }
         }
         
-        System.out.println("Marca determinada: " + marca);
+        System.out.println("Carpeta determinada: " + carpeta);
         
-        // Asegurarnos de que existe el directorio de marcas
-        String marcaDir = uploadDir + File.separator + marca;
-        File marcaDirFile = new File(marcaDir);
-        if (!marcaDirFile.exists()) {
-            boolean dirCreated = marcaDirFile.mkdirs();
-            System.out.println("Directorio creado: " + dirCreated + " - Ruta: " + marcaDirFile.getAbsolutePath());
+        // Asegurarnos de que existe el directorio
+        String carpetaDir = uploadDir + File.separator + carpeta;
+        File carpetaDirFile = new File(carpetaDir);
+        if (!carpetaDirFile.exists()) {
+            boolean dirCreated = carpetaDirFile.mkdirs();
+            System.out.println("Directorio creado: " + dirCreated + " - Ruta: " + carpetaDirFile.getAbsolutePath());
         }
         
         // Generar nombre de archivo
@@ -54,7 +61,7 @@ public class ImageService {
         String newFilename = nombreProducto + "." + fileExtension;
         
         // Ruta completa del archivo
-        String filePath = marcaDir + File.separator + newFilename;
+        String filePath = carpetaDir + File.separator + newFilename;
         File fileToSave = new File(filePath);
         
         System.out.println("Guardando imagen en: " + fileToSave.getAbsolutePath());
@@ -70,7 +77,7 @@ public class ImageService {
         
         // Devolver la URL relativa para acceder a la imagen, incluyendo la URL base y un timestamp
         long timestamp = System.currentTimeMillis();
-        String relativePath = "/images/" + marca + "/" + newFilename;
+        String relativePath = "/images/" + carpeta + "/" + newFilename;
         String imageUrl = baseUrl + relativePath + "?t=" + timestamp;
         System.out.println("URL de la imagen generada: " + imageUrl);
         return imageUrl;
@@ -116,22 +123,28 @@ public class ImageService {
         System.out.println("Tamaño de la imagen: " + image.getSize() + " bytes");
         System.out.println("Nombre original de la imagen: " + image.getOriginalFilename());
         
-        // Determinar la marca para la carpeta
-        String marca = "OTROS";
-        try {
-            marca = productListDTO.getMarca() != null ? productListDTO.getMarca().toString() : "OTROS";
-        } catch (Exception e) {
-            System.err.println("Error al obtener la marca: " + e.getMessage());
+        // Determinar la carpeta según el tipo de producto
+        String carpeta;
+        if (productListDTO.getAnimalType() == type.GRANJA) {
+            carpeta = "GRANJA";
+        } else {
+            // Determinar la marca para la carpeta
+            try {
+                carpeta = productListDTO.getMarca() != null ? productListDTO.getMarca().toString() : "OTROS";
+            } catch (Exception e) {
+                System.err.println("Error al obtener la marca: " + e.getMessage());
+                carpeta = "OTROS";
+            }
         }
         
-        System.out.println("Marca determinada: " + marca);
+        System.out.println("Carpeta determinada: " + carpeta);
         
-        // Asegurarnos de que existe el directorio de marcas
-        String marcaDir = uploadDir + File.separator + marca;
-        File marcaDirFile = new File(marcaDir);
-        if (!marcaDirFile.exists()) {
-            boolean dirCreated = marcaDirFile.mkdirs();
-            System.out.println("Directorio creado: " + dirCreated + " - Ruta: " + marcaDirFile.getAbsolutePath());
+        // Asegurarnos de que existe el directorio
+        String carpetaDir = uploadDir + File.separator + carpeta;
+        File carpetaDirFile = new File(carpetaDir);
+        if (!carpetaDirFile.exists()) {
+            boolean dirCreated = carpetaDirFile.mkdirs();
+            System.out.println("Directorio creado: " + dirCreated + " - Ruta: " + carpetaDirFile.getAbsolutePath());
         }
         
         // Generar nombre de archivo
@@ -140,7 +153,7 @@ public class ImageService {
         String newFilename = nombreProducto + "." + fileExtension;
         
         // Ruta completa del archivo
-        String filePath = marcaDir + File.separator + newFilename;
+        String filePath = carpetaDir + File.separator + newFilename;
         File fileToSave = new File(filePath);
         
         System.out.println("Actualizando imagen en: " + fileToSave.getAbsolutePath());
@@ -156,7 +169,7 @@ public class ImageService {
         
         // Devolver la URL relativa para acceder a la imagen, incluyendo la URL base y un timestamp
         long timestamp = System.currentTimeMillis();
-        String relativePath = "/images/" + marca + "/" + newFilename;
+        String relativePath = "/images/" + carpeta + "/" + newFilename;
         String imageUrl = baseUrl + relativePath + "?t=" + timestamp;
         System.out.println("URL de la imagen generada: " + imageUrl);
         return imageUrl;
@@ -166,20 +179,37 @@ public class ImageService {
         // Construir un nombre descriptivo para el archivo
         StringBuilder nombre = new StringBuilder();
         
-        // Añadir marca
-        if (productDTO.getMarca() != null) {
-            String marcaStr = productDTO.getMarca().toString();
-            nombre.append(marcaStr.contains("Top") ? "Top" : marcaStr);
-        }
-        
-        // Añadir tipo de alimento (por ejemplo, Adulto, Cachorro, etc.)
-        if (productDTO.getTipoAlimento() != null) {
-            nombre.append(productDTO.getTipoAlimento().toString());
-        }
-        
-        // Añadir tipo de raza si existe
-        if (productDTO.getTipoRaza() != null) {
-            nombre.append(productDTO.getTipoRaza().toString().replace("RAZA_", "Raza"));
+        // Si es un producto de granja, usar nombre y categoría
+        if (productDTO.getAnimalType() == type.GRANJA) {
+            if (productDTO.getNombre() != null) {
+                nombre.append(productDTO.getNombre());
+            }
+            if (productDTO.getCategoriaGranja() != null) {
+                nombre.append(productDTO.getCategoriaGranja().toString());
+            }
+        } else {
+            // Para productos de mascotas, usar marca, tipo de alimento y tipo de raza
+            if (productDTO.getMarca() != null) {
+                String marcaStr = productDTO.getMarca().toString();
+                nombre.append(marcaStr.contains("Top") ? "Top" : marcaStr);
+            } else {
+                // Si no hay marca, usamos el nombre o un valor genérico
+                if (productDTO.getNombre() != null && !productDTO.getNombre().isEmpty()) {
+                    nombre.append(productDTO.getNombre());
+                } else {
+                    nombre.append("SinMarca");
+                }
+            }
+            
+            // Añadir tipo de alimento (por ejemplo, Adulto, Cachorro, etc.)
+            if (productDTO.getTipoAlimento() != null) {
+                nombre.append(productDTO.getTipoAlimento().toString());
+            }
+            
+            // Añadir tipo de raza si existe
+            if (productDTO.getTipoRaza() != null) {
+                nombre.append(productDTO.getTipoRaza().toString().replace("RAZA_", "Raza"));
+            }
         }
         
         // Limpiar el nombre (quitar espacios, caracteres especiales, etc.)
@@ -193,20 +223,37 @@ public class ImageService {
         // Construir un nombre descriptivo para el archivo
         StringBuilder nombre = new StringBuilder();
         
-        // Añadir marca
-        if (productListDTO.getMarca() != null) {
-            String marcaStr = productListDTO.getMarca().toString();
-            nombre.append(marcaStr.contains("Top") ? "Top" : marcaStr);
-        }
-        
-        // Añadir tipo de alimento (por ejemplo, Adulto, Cachorro, etc.)
-        if (productListDTO.getTipoAlimento() != null) {
-            nombre.append(productListDTO.getTipoAlimento().toString());
-        }
-        
-        // Añadir tipo de raza si existe
-        if (productListDTO.getTipoRaza() != null) {
-            nombre.append(productListDTO.getTipoRaza().toString().replace("RAZA_", "Raza"));
+        // Si es un producto de granja, usar nombre y categoría
+        if (productListDTO.getAnimalType() == type.GRANJA) {
+            if (productListDTO.getNombre() != null) {
+                nombre.append(productListDTO.getNombre());
+            }
+            if (productListDTO.getCategoriaGranja() != null) {
+                nombre.append(productListDTO.getCategoriaGranja().toString());
+            }
+        } else {
+            // Para productos de mascotas, usar marca, tipo de alimento y tipo de raza
+            if (productListDTO.getMarca() != null) {
+                String marcaStr = productListDTO.getMarca().toString();
+                nombre.append(marcaStr.contains("Top") ? "Top" : marcaStr);
+            } else {
+                // Si no hay marca, usamos el nombre o un valor genérico
+                if (productListDTO.getNombre() != null && !productListDTO.getNombre().isEmpty()) {
+                    nombre.append(productListDTO.getNombre());
+                } else {
+                    nombre.append("SinMarca");
+                }
+            }
+            
+            // Añadir tipo de alimento (por ejemplo, Adulto, Cachorro, etc.)
+            if (productListDTO.getTipoAlimento() != null) {
+                nombre.append(productListDTO.getTipoAlimento().toString());
+            }
+            
+            // Añadir tipo de raza si existe
+            if (productListDTO.getTipoRaza() != null) {
+                nombre.append(productListDTO.getTipoRaza().toString().replace("RAZA_", "Raza"));
+            }
         }
         
         // Limpiar el nombre (quitar espacios, caracteres especiales, etc.)

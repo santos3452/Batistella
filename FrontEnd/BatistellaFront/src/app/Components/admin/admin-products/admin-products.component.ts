@@ -41,6 +41,10 @@ export class AdminProductsComponent implements OnInit {
   weights: string[] = [];
   statuses: string[] = ['Activo', 'Inactivo'];
 
+  // Filtros para productos de granja
+  filterCategoriaGranja: string = '';
+  categoriasGranja: string[] = [];
+
   // Modal de confirmación
   showConfirmModal = false;
   productToToggle: Product | null = null;
@@ -50,6 +54,9 @@ export class AdminProductsComponent implements OnInit {
   selectedBrand: string = 'TODAS';
   updatePercentage: number = 0;
   isUpdatingPrices = false;
+
+  // Control de vista de productos
+  activeTab: 'MASCOTAS' | 'GRANJA' = 'MASCOTAS';
 
   constructor(
     private productService: ProductService,
@@ -72,6 +79,7 @@ export class AdminProductsComponent implements OnInit {
           this.extractFilterOptions();
           this.updatePagination();
           this.isLoading = false;
+          this.applyFilters();
         },
         error: (error) => {
           console.error('Error fetching products', error);
@@ -82,44 +90,90 @@ export class AdminProductsComponent implements OnInit {
   }
 
   extractFilterOptions(): void {
-    // Extraer marcas únicas
-    this.brands = [...new Set(this.products.map(p => p.marca))].filter(Boolean).sort();
+    // Extraer marcas únicas (para productos de mascotas)
+    this.brands = [...new Set(this.products
+      .filter(p => p.animalType === 'PERROS' || p.animalType === 'GATOS')
+      .map(p => p.marca))]
+      .filter(Boolean)
+      .sort();
     
-    // Extraer tipos únicos
-    this.types = [...new Set(this.products.map(p => p.tipoAlimento))].filter(Boolean).sort();
+    // Extraer tipos únicos (para productos de mascotas)
+    this.types = [...new Set(this.products
+      .filter(p => p.animalType === 'PERROS' || p.animalType === 'GATOS')
+      .map(p => p.tipoAlimento))]
+      .filter(Boolean)
+      .sort();
+    
+    // Extraer categorías de granja únicas
+    this.categoriasGranja = [...new Set(this.products
+      .filter(p => p.animalType === 'GRANJA')
+      .map(p => p.categoriaGranja)
+      .filter((categoria): categoria is string => categoria !== undefined))]
+      .filter(Boolean)
+      .sort();
     
     // Extraer pesos únicos
-    this.weights = [...new Set(this.products.map(p => p.kg?.toString()))].filter(Boolean).sort((a, b) => parseFloat(a) - parseFloat(b));
+    this.weights = [...new Set(this.products.map(p => p.kg?.toString()))]
+      .filter(Boolean)
+      .sort((a, b) => parseFloat(a) - parseFloat(b));
+  }
+
+  setActiveTab(tab: 'MASCOTAS' | 'GRANJA'): void {
+    this.activeTab = tab;
+    this.resetFilters();
+    this.page = 1;
+    this.applyFilters();
   }
 
   applyFilters(): void {
-    this.filteredProducts = this.products.filter(product => {
-      // Filtro por nombre
+    // Primero filtrar por el tipo de animal (mascota o granja)
+    let filteredByType: Product[];
+    
+    if (this.activeTab === 'MASCOTAS') {
+      filteredByType = this.products.filter(product => 
+        product.animalType === 'PERROS' || product.animalType === 'GATOS'
+      );
+    } else {
+      filteredByType = this.products.filter(product => 
+        product.animalType === 'GRANJA'
+      );
+    }
+    
+    // Luego aplicar el resto de filtros según el tipo
+    this.filteredProducts = filteredByType.filter(product => {
+      // Filtro por nombre (común para ambos tipos)
       const nameMatch = !this.filterName || 
-        product.fullName?.toLowerCase().includes(this.filterName.toLowerCase());
+        product.fullName?.toLowerCase().includes(this.filterName.toLowerCase()) ||
+        (product.nombre && product.nombre.toLowerCase().includes(this.filterName.toLowerCase()));
       
-      // Filtro por marca
-      const brandMatch = !this.filterBrand || 
-        product.marca === this.filterBrand;
-      
-      // Filtro por tipo
-      const typeMatch = !this.filterType || 
-        product.tipoAlimento === this.filterType;
-      
-      // Filtro por peso
-      const weightMatch = !this.filterWeight || 
-        product.kg?.toString() === this.filterWeight;
-      
-      // Filtro por estado
+      // Filtro por estado (común para ambos tipos)
       const statusMatch = !this.filterStatus || 
         (this.filterStatus === 'Activo' && product.activo === true) ||
         (this.filterStatus === 'Inactivo' && product.activo === false);
       
-      return nameMatch && brandMatch && typeMatch && weightMatch && statusMatch;
+      // Filtro por peso (común para ambos tipos)
+      const weightMatch = !this.filterWeight || 
+        product.kg?.toString() === this.filterWeight;
+      
+      if (this.activeTab === 'MASCOTAS') {
+        // Filtros específicos para mascotas
+        const brandMatch = !this.filterBrand || 
+          product.marca === this.filterBrand;
+        
+        const typeMatch = !this.filterType || 
+          product.tipoAlimento === this.filterType;
+        
+        return nameMatch && brandMatch && typeMatch && weightMatch && statusMatch;
+      } else {
+        // Filtros específicos para granja
+        const categoriaGranjaMatch = !this.filterCategoriaGranja || 
+          product.categoriaGranja === this.filterCategoriaGranja;
+        
+        return nameMatch && categoriaGranjaMatch && weightMatch && statusMatch;
+      }
     });
     
     // Actualizar la paginación después de aplicar los filtros
-    this.page = 1;
     this.updatePagination();
   }
 
@@ -129,9 +183,9 @@ export class AdminProductsComponent implements OnInit {
     this.filterType = '';
     this.filterWeight = '';
     this.filterStatus = '';
-    this.filteredProducts = [...this.products];
-    this.page = 1;
-    this.updatePagination();
+    this.filterCategoriaGranja = '';
+    
+    this.applyFilters();
   }
 
   // Métodos de paginación
@@ -292,68 +346,86 @@ export class AdminProductsComponent implements OnInit {
   // Formatea la fecha de última actualización de forma amigable
   formatUpdatedAt(dateString: string): string {
     if (!dateString) return 'No disponible';
+    
     try {
-      // Parsear el formato MM/DD/YYYY HH:mm:ss
-      const parts = dateString.split(' ');
-      if (parts.length !== 2) return dateString;
-      const dateParts = parts[0].split('/');
-      if (dateParts.length !== 3) return dateString;
-      const month = parseInt(dateParts[0]) - 1; // Mes en JS (0-11)
-      const day = parseInt(dateParts[1]);
-      const year = parseInt(dateParts[2]);
-      const timeParts = parts[1].split(':');
-      if (timeParts.length < 2) return dateString;
-      const hour = parseInt(timeParts[0]);
-      const minute = parseInt(timeParts[1]);
-      // Crear el objeto Date correctamente
-      const date = new Date(year, month, day, hour, minute);
-      // Mostrar como DD/MM/YYYY HH:mm
-      const dd = day.toString().padStart(2, '0');
-      const mm = (month + 1).toString().padStart(2, '0');
-      const yyyy = year;
-      const hh = hour.toString().padStart(2, '0');
-      const min = minute.toString().padStart(2, '0');
-      return `${dd}/${mm}/${yyyy} ${hh}:${min}`;
+      // Verificar si el formato es DD/MM/YYYY HH:MM:SS
+      if (dateString.includes('/')) {
+        const parts = dateString.split(' ');
+        const dateParts = parts[0].split('/');
+        const date = new Date(`${dateParts[2]}-${dateParts[1]}-${dateParts[0]}T${parts[1]}`);
+        
+        // Retornar tiempo relativo (ej: "hace 2 horas")
+        return this.getTimeAgo(date);
+      }
+      
+      // Si no es ese formato, intentar con formato ISO
+      const date = new Date(dateString);
+      
+      if (isNaN(date.getTime())) {
+        return 'Fecha inválida';
+      }
+      
+      return this.getTimeAgo(date);
     } catch (error) {
-      console.error('Error al formatear fecha', error);
-      return dateString;
+      console.error('Error parsing date', error);
+      return 'Fecha inválida';
     }
   }
 
   // Determina si un número de página debe mostrarse basado en la página actual
   showPageNumber(pageNum: number): boolean {
-    // Si hay 5 o menos páginas, mostrar todas
-    if (this.totalPages <= 5) return true;
+    // Lógica para mostrar números de página apropiados
+    if (this.totalPages <= 5) {
+      // Si hay 5 o menos páginas, mostrar todos los números
+      return true;
+    }
     
-    // Siempre mostrar la primera página
-    if (pageNum === 1) return true;
+    // Siempre mostrar la primera y última página
+    if (pageNum === 1 || pageNum === this.totalPages) {
+      return true;
+    }
     
-    // Para páginas cercanas a la actual
-    if (pageNum >= this.page - 1 && pageNum <= this.page + 1) return true;
-    
-    // No mostrar otras páginas
-    return false;
+    // Para páginas intermedias, mostrar la página actual y ±1 página
+    return Math.abs(pageNum - this.page) <= 1;
   }
 
-  // Obtiene el número de página que se debe mostrar en cada posición
   getPageNumberToShow(index: number): number {
-    // Si hay 5 o menos páginas, mostrar secuencialmente
-    if (this.totalPages <= 5) return index + 1;
+    if (this.totalPages <= 5) {
+      // Si hay 5 o menos páginas, mostrar la página con el índice
+      return index + 1;
+    }
     
-    // Para la primera posición siempre mostrar página 1
-    if (index === 0) return 1;
-    
-    // Si estamos en las primeras páginas
+    // Si estamos cerca del inicio
     if (this.page <= 3) {
       return index + 1;
     }
     
     // Si estamos cerca del final
     if (this.page >= this.totalPages - 2) {
-      return this.totalPages - 4 + index;
+      return this.totalPages - (4 - index);
     }
     
-    // En medio del rango
+    // En medio
     return this.page - 2 + index;
+  }
+
+  private getTimeAgo(date: Date): string {
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffSecs = Math.floor(diffMs / 1000);
+    const diffMins = Math.floor(diffSecs / 60);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+    
+    if (diffDays > 0) {
+      return `hace ${diffDays} día${diffDays > 1 ? 's' : ''}`;
+    }
+    if (diffHours > 0) {
+      return `hace ${diffHours} hora${diffHours > 1 ? 's' : ''}`;
+    }
+    if (diffMins > 0) {
+      return `hace ${diffMins} minuto${diffMins > 1 ? 's' : ''}`;
+    }
+    return 'justo ahora';
   }
 } 

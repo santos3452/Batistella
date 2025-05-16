@@ -190,15 +190,12 @@ public class PedidoServiceImpl implements PedidoService {
             .map(pedidoProducto -> {
                 PedidoProductoResponseDTO productoDTO = modelMapperConfig.modelMapper().map(pedidoProducto, PedidoProductoResponseDTO.class);
                 
-                // Construir el nombre del producto con el formato: MARCA + TIPO ALIMENTO + TIPO RAZA
+                // Obtener el producto y usar su método getFullName()
                 Products producto = pedidoProducto.getProducto();
-                String nombreProducto = producto.getMarca().toString();
-                nombreProducto += " " + producto.getTipoAlimento().toString();
-                if (producto.getTipoRaza() != null) {
-                    nombreProducto += " " + producto.getTipoRaza().toString();
-                }
                 
-                productoDTO.setNombreProducto(nombreProducto);
+                // Establecer el nombre del producto utilizando el método getFullName() que maneja la lógica según el tipo de animal
+                productoDTO.setNombreProducto(producto.getFullName());
+                
                 BigDecimal cantidad = new BigDecimal(pedidoProducto.getCantidad());
                 productoDTO.setSubtotal(pedidoProducto.getPrecioUnitario().multiply(cantidad));
                 return productoDTO;
@@ -212,6 +209,10 @@ public class PedidoServiceImpl implements PedidoService {
     @Override
     public List<PedidoResponseDTO> obtenerPedidosPorUsuario(Long usuarioId) {
         List<Pedido> pedidos = pedidoRepository.findByUsuarioId(usuarioId);
+        // Ordenar por fecha de pedido descendente (más recientes primero)
+        pedidos = pedidos.stream()
+            .sorted((p1, p2) -> p2.getFechaPedido().compareTo(p1.getFechaPedido()))
+            .collect(Collectors.toList());
         return pedidos.stream()
             .map(this::mapPedidoToDTO)
             .collect(Collectors.toList());
@@ -310,15 +311,12 @@ public class PedidoServiceImpl implements PedidoService {
             .map(pedidoProducto -> {
                 PedidoProductoResponseDTO productoDTO = mapper.map(pedidoProducto, PedidoProductoResponseDTO.class);
                 
-                // Construir el nombre del producto con el formato: MARCA + TIPO ALIMENTO + TIPO RAZA
+                // Obtener el producto y usar su método getFullName()
                 Products producto = pedidoProducto.getProducto();
-                String nombreProducto = producto.getMarca().toString();
-                nombreProducto += " " + producto.getTipoAlimento().toString();
-                if (producto.getTipoRaza() != null) {
-                    nombreProducto += " " + producto.getTipoRaza().toString();
-                }
                 
-                productoDTO.setNombreProducto(nombreProducto);
+                // Establecer el nombre del producto utilizando el método getFullName() que maneja la lógica según el tipo de animal
+                productoDTO.setNombreProducto(producto.getFullName());
+                
                 BigDecimal cantidad = new BigDecimal(pedidoProducto.getCantidad());
                 productoDTO.setSubtotal(pedidoProducto.getPrecioUnitario().multiply(cantidad));
                 return productoDTO;
