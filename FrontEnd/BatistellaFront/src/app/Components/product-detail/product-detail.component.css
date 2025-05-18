@@ -61,6 +61,12 @@ button:disabled {
   cursor: not-allowed;
 }
 
+/* Estilo para la descripción del producto - preserva saltos de línea */
+.product-description {
+  white-space: pre-line;
+  text-align: left;
+}
+
 @media (max-width: 768px) {
   .container {
     padding: 1rem;

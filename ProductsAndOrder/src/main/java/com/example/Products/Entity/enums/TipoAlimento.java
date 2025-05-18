@@ -14,6 +14,7 @@ public enum TipoAlimento {
     CARNE,
     MIX_CARNE_HIGADO_POLLO,
     PESCADO,
+    MIX_PESCADO_CARNE_POLLO,
     CARNE_POLLO_ATUN,
     CARNE_POLLO_VERDURAS,
     PEQUEÑAS,

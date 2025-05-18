@@ -43,8 +43,7 @@ public class JwtService {
 
     @Value("${microservice.usuarios.url}")
     private String usuariosServiceUrl;
-    @Value("${token}")
-    private String token;
+
     
     // Caché para almacenar los nombres completos de los usuarios
     private ConcurrentHashMap<Long, String> userFullNameCache = new ConcurrentHashMap<>();
@@ -149,7 +148,7 @@ public class JwtService {
             try {
                 // Solo si eres administrador o es tu propio ID
                 if (isAdmin() || isUserAuthorized(userId)) {
-                    String url = "http://localhost:8081/api/users/getUserByID/" + userId;
+                    String url = usuariosServiceUrl + "/getUserByID/" + userId;
                     logger.info("Consultando usuario en: {}", url);
                     String token = extractJwtFromRequest(request);
 
