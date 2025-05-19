@@ -84,7 +84,7 @@ export class CartDropdownComponent implements OnInit, OnDestroy {
     // Navegar a la página de resumen del pedido
     this.router.navigate(['/checkout/summary']);
     
-    // Si hay un método para cerrar el dropdown del carrito, llamarlo aquí
-    // Por ejemplo: this.cartService.closeCartDropdown();
+    // Cerrar el carrito
+    this.cartService.closeCart();
   }
 }

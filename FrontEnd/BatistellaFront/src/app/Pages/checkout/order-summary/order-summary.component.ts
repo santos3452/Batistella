@@ -91,6 +91,20 @@ export class OrderSummaryComponent implements OnInit, OnDestroy {
     this.isPickupSelected = false;
   }
   
+  // Eliminar un producto del carrito
+  removeItem(item: CartItem): void {
+    const productId = this.getProductId(item.product);
+    this.cartService.removeFromCart(productId);
+  }
+  
+  // Obtiene un identificador único para el producto
+  private getProductId(product: CartItem['product']): string {
+    // Mismo método que en CartService
+    const id = product.id || product.localId || '';
+    const kg = product.kg || '';
+    return `${id}-${kg}`;
+  }
+  
   proceedToPayment(): void {
     if (!this.isPickupSelected && !this.selectedAddress) {
       this.errorMessage = 'Por favor seleccione una dirección de entrega o la opción de retiro en local';

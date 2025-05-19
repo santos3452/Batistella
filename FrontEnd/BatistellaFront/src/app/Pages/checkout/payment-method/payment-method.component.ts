@@ -159,7 +159,7 @@ export class PaymentMethodComponent implements OnInit {
       message += `*Notas:* ${this.orderSummary.deliveryNotes}\n\n`;
     }
     
-    message += `Hola, quisiera confirmar este pedido para pagar en efectivo/transferencia. El pedido ya fue registrado en el sistema con estado PENDIENTE. ¡Gracias!`;
+    message += `Hola, quisiera confirmar este pedido para pagar en efectivo. El pedido ya fue registrado en el sistema con estado PENDIENTE. ¡Gracias!`;
     
     // Codificar el mensaje para la URL
     const encodedMessage = encodeURIComponent(message);

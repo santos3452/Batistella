@@ -29,7 +29,17 @@
             />
           </div>
           <div class="flex-1 min-w-0">
-            <h4 class="text-sm font-medium">{{item.product.fullName}}</h4>
+            <h4 class="text-sm font-medium">
+              <!-- Usar formato específico para productos de granja -->
+              <ng-container *ngIf="item.product.animalType === 'GRANJA'">
+                {{item.product.nombre}}{{item.product.categoriaGranja ? ' - ' + item.product.categoriaGranja : ''}}
+              </ng-container>
+              <!-- Para otros productos usar fullName -->
+              <ng-container *ngIf="item.product.animalType !== 'GRANJA'">
+                {{item.product.fullName}}
+              </ng-container>
+              {{item.product.kg ? ' - ' + item.product.kg + ' KG' : ''}}
+            </h4>
             <div class="flex justify-between items-center mt-1">
               <span class="text-sm font-semibold">
                 {{utils.formatCurrency(item.product.priceMinorista)}}

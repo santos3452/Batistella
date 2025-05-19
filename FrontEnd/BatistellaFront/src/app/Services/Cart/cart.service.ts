@@ -14,6 +14,10 @@ export interface CartItem {
 export class CartService {
   private itemsSubject = new BehaviorSubject<CartItem[]>([]);
   items$: Observable<CartItem[]> = this.itemsSubject.asObservable();
+  
+  // Nuevo BehaviorSubject para controlar la visibilidad del carrito
+  private cartVisibleSubject = new BehaviorSubject<boolean>(false);
+  cartVisible$ = this.cartVisibleSubject.asObservable();
 
   constructor() { 
     // Cargar carrito desde localStorage si existe
@@ -126,5 +130,26 @@ export class CartService {
    */
   clearCart(): void {
     this.itemsSubject.next([]);
+  }
+
+  /**
+   * Abre el carrito desplegable
+   */
+  openCart(): void {
+    this.cartVisibleSubject.next(true);
+  }
+
+  /**
+   * Cierra el carrito desplegable
+   */
+  closeCart(): void {
+    this.cartVisibleSubject.next(false);
+  }
+
+  /**
+   * Alterna el estado de visibilidad del carrito
+   */
+  toggleCart(): void {
+    this.cartVisibleSubject.next(!this.cartVisibleSubject.getValue());
   }
 }

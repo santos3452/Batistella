@@ -26,6 +26,9 @@ export interface Product {
   // Fechas de creación y actualización
   createdAt?: string;
   updatedAt?: string;
+  // Campos adicionales
+  tipo?: string; // Tipo de producto (granja, cereal, etc.)
+  nombreCompleto?: string; // Nombre completo alternativo para mostrar en productos sin marca
 }
 
 @Injectable({
@@ -110,8 +113,27 @@ export class ProductService {
       // para evitar enviarlo al backend
       const fullName = this.generateProductFullName(product);
       
-      // Creamos una copia del producto con el fullName para uso local
-      const processedProduct = { ...product, fullName };
+      // Asignar tipo basado en animalType
+      let tipo: string | undefined;
+      if (product.animalType === 'GRANJA') {
+        tipo = 'granja';
+      } else if (product.animalType === 'CEREAL') {
+        tipo = 'cereal';
+      }
+      
+      // Crear nombreCompleto para productos sin marca
+      let nombreCompleto: string | undefined;
+      if (tipo === 'granja' || tipo === 'cereal') {
+        nombreCompleto = product.nombre || fullName; // Usar nombre o fullName como alternativa
+      }
+      
+      // Creamos una copia del producto con los campos adicionales
+      const processedProduct = { 
+        ...product, 
+        fullName,
+        tipo,
+        nombreCompleto
+      };
       
       return processedProduct;
     });

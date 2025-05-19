@@ -5,6 +5,7 @@ export interface ProductoPedido {
   cantidad: number;
   precioUnitario: number;
   subtotal: number;
+  kg?: number; // Kilos del producto
 }
 
 export interface Pedido {

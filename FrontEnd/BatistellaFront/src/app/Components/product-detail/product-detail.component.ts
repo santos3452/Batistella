@@ -158,6 +158,19 @@ export class ProductDetailComponent implements OnInit {
     }
   }
   
+  // Método para comprar ahora: agrega al carrito y va directo al checkout
+  buyNow(): void {
+    if (this.selectedVariant) {
+      // Agregar el producto al carrito la cantidad de veces seleccionada
+      for (let i = 0; i < this.quantity; i++) {
+        this.cartService.addToCart(this.selectedVariant);
+      }
+      
+      // Navegar directamente a la página de checkout
+      this.router.navigate(['/checkout/summary']);
+    }
+  }
+  
   // Alternar el estado de un acordeón
   toggleAccordion(section: 'devoluciones' | 'envios' | 'retiro'): void {
     this.accordionState[section] = !this.accordionState[section];

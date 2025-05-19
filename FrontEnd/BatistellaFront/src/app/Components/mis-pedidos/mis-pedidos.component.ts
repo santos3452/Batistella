@@ -1,12 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 import { PedidosService } from '../../Services/Pedidos/pedidos.service';
 import { AuthService } from '../../Services/Auth/auth.service';
 import { ProductService, Product } from '../../Services/Product/product.service';
 import { Pedido, ProductoPedido } from '../../Models/pedido';
 import { of, forkJoin } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
+import { CartService } from '../../Services/Cart/cart.service';
 
 interface ProductoPedidoConImagen extends ProductoPedido {
   imagenUrl?: string;
@@ -89,7 +90,9 @@ export class MisPedidosComponent implements OnInit {
   constructor(
     private pedidosService: PedidosService,
     private authService: AuthService,
-    private productService: ProductService
+    private productService: ProductService,
+    private cartService: CartService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -153,34 +156,38 @@ export class MisPedidosComponent implements OnInit {
       return;
     }
 
-    // Crear un arreglo para rastrear todas las solicitudes de productos
-    const solicitudesProductos: any[] = [];
-    
-    // Crear un mapa para almacenar temporalmente las URLs de imágenes por ID de producto
+    // Crear un Map para almacenar las URLs de imágenes de los productos
     const imagenesProductos = new Map<number, string>();
+    
+    // Crear observables para obtener las imágenes de los productos
+    const solicitudesProductos = pedidos.flatMap(pedido => 
+      pedido.productos.map(producto => {
+        return this.productService.getProductById(producto.productoId).pipe(
+          map(product => {
+            // Almacenar la URL de la imagen en el mapa
+            imagenesProductos.set(producto.productoId, product.imageUrl);
+            
+            // Si el producto tiene kg, lo añadimos al producto del pedido
+            if (product.kg) {
+              producto.kg = parseFloat(product.kg);
+            }
+            
+            return product;
+          }),
+          catchError(err => {
+            console.error(`Error al obtener producto ${producto.productoId}:`, err);
+            return of(null);
+          })
+        );
+      })
+    );
 
-    // Recopilar todos los IDs de productos únicos
-    const idsProductos = new Set<number>();
-    pedidos.forEach(pedido => {
-      pedido.productos.forEach(producto => {
-        idsProductos.add(producto.productoId);
-      });
-    });
-
-    // Obtener información de cada producto
-    idsProductos.forEach(productoId => {
-      const solicitud = this.productService.getProductById(productoId).pipe(
-        map((producto: Product) => {
-          imagenesProductos.set(productoId, producto.imageUrl || this.imagenPorDefecto);
-          return true;
-        }),
-        catchError(err => {
-          console.error(`Error al obtener producto ${productoId}:`, err);
-          return of(false);
-        })
-      );
-      solicitudesProductos.push(solicitud);
-    });
+    // Si no hay solicitudes de productos, procesamos los pedidos sin imágenes
+    if (solicitudesProductos.length === 0) {
+      this.pedidos = pedidos as PedidoConImagenes[];
+      this.cargando = false;
+      return;
+    }
 
     // Procesar todas las solicitudes en paralelo
     forkJoin(solicitudesProductos).subscribe({
@@ -313,5 +320,50 @@ export class MisPedidosComponent implements OnInit {
     
     // En medio del rango
     return this.page - 2 + index;
+  }
+
+  /**
+   * Convierte un ProductoPedido a un objeto Product para añadirlo al carrito
+   */
+  private transformProductoPedidoToProduct(producto: ProductoPedidoConImagen): Product {
+    return {
+      id: producto.productoId,
+      fullName: producto.nombreProducto,
+      priceMinorista: producto.precioUnitario,
+      kg: producto.kg ? producto.kg.toString() : '',
+      // Valores por defecto requeridos por la interfaz Product
+      marca: '',
+      tipoAlimento: '',
+      tipoRaza: '',
+      description: '',
+      priceMayorista: 0,
+      stock: 0,
+      imageUrl: producto.imagenUrl || this.imagenPorDefecto,
+      animalType: '',
+      activo: true
+    };
+  }
+
+  /**
+   * Repite un pedido anterior añadiendo todos los productos al carrito
+   * con las mismas cantidades y precios originales
+   */
+  repetirPedido(pedido: PedidoConImagenes): void {
+    // Primero limpiamos el carrito actual
+    this.cartService.clearCart();
+    
+    // Añadimos cada producto del pedido original al carrito
+    pedido.productos.forEach(producto => {
+      const productToAdd = this.transformProductoPedidoToProduct(producto);
+      
+      // Añadimos el producto tantas veces como la cantidad original
+      for (let i = 0; i < producto.cantidad; i++) {
+        this.cartService.addToCart(productToAdd);
+      }
+    });
+    
+    // Mostramos el carrito y navegamos a la página de checkout
+    this.cartService.openCart();
+    this.router.navigate(['/checkout']);
   }
 } 

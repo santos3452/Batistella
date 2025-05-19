@@ -65,6 +65,13 @@ export class NavbarComponent implements OnInit, OnDestroy {
       })
     );
     
+    // Suscripción al estado de visibilidad del carrito
+    this.subscription.add(
+      this.cartService.cartVisible$.subscribe(visible => {
+        this.showCart = visible;
+      })
+    );
+    
     // Suscripción al estado de autenticación
     this.subscription.add(
       this.authService.isAuthenticated$.subscribe(isAuthenticated => {
@@ -262,7 +269,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   toggleCart(): void {
-    this.showCart = !this.showCart;
+    this.cartService.toggleCart();
     if (this.showCart) {
       this.showUserMenu = false;
     }
