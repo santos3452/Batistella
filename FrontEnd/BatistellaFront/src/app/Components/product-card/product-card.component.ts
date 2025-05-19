@@ -36,6 +36,7 @@ export class ProductCardComponent implements OnInit {
   // Variables para manejar variantes
   hasVariants: boolean = false;
   selectedVariantIndex: number = 0;
+  isBaseProductSelected: boolean = true; // Nueva propiedad para controlar si el producto base está seleccionado
   currentPrice: number = 0;
   currentMinoristaPrice: number = 0;
   currentMayoristaPrice: number = 0;
@@ -44,6 +45,11 @@ export class ProductCardComponent implements OnInit {
   
   // Variable para controlar si se muestra el precio mayorista
   showMayoristaPrice: boolean = false;
+
+  // Variables para promociones de kilos gratis
+  hasPromotion: boolean = false;
+  freeKilos: string = '';
+  displayWeight: string = '';
 
   // Calcular el delay de la animación basado en el índice
   get animationDelay(): string {
@@ -78,12 +84,15 @@ export class ProductCardComponent implements OnInit {
     if (this.productGroup && this.productGroup.variants.length > 0) {
       this.hasVariants = true;
       this.product = this.productGroup.baseProduct;
-      this.selectVariant(0); // Selecciona la primera variante por defecto
+      // Inicializar con el producto base seleccionado
+      this.isBaseProductSelected = true;
+      this.selectBaseProduct();
     } else if (this.product) {
       // Modo estándar - uso directo del producto
       this.currentMinoristaPrice = this.product.priceMinorista;
       this.currentMayoristaPrice = this.product.priceMayorista || this.product.priceMinorista;
       this.currentWeight = this.product.kg;
+      this.updateWeightDisplay(this.product.kg);
       this.setPriceBasedOnRole();
     }
     
@@ -93,15 +102,78 @@ export class ProductCardComponent implements OnInit {
     });
   }
 
+  // Método para detectar y extraer los kilos gratis de una cadena de peso
+  extractFreeKilos(weightString: string): { displayWeight: string, freeKilos: string, hasPromotion: boolean } {
+    if (!weightString) {
+      return { displayWeight: '', freeKilos: '', hasPromotion: false };
+    }
+    
+    // Verificar si el formato es del tipo "XX+YYkg"
+    const promotionRegex = /^(\d+)\+(\d+)kg$/i;
+    const match = weightString.match(promotionRegex);
+    
+    if (match) {
+      // Extraer los kilos base y los kilos de promoción
+      const baseKilos = match[1];
+      const extraKilos = match[2];
+      
+      return {
+        displayWeight: `${baseKilos}kg`,
+        freeKilos: `${extraKilos}kg`,
+        hasPromotion: true
+      };
+    }
+    
+    // Si no es una promoción, devolver el peso original
+    return {
+      displayWeight: weightString,
+      freeKilos: '',
+      hasPromotion: false
+    };
+  }
+
+  // Método para actualizar el peso a mostrar
+  updateWeightDisplay(weightString: string): void {
+    const { displayWeight, freeKilos, hasPromotion } = this.extractFreeKilos(weightString);
+    this.displayWeight = displayWeight;
+    this.freeKilos = freeKilos;
+    this.hasPromotion = hasPromotion;
+  }
+
+  // Nuevo método para seleccionar el producto base
+  selectBaseProduct(): void {
+    if (!this.productGroup) return;
+    
+    this.isBaseProductSelected = true;
+    this.selectedVariantIndex = -1; // Reset del índice de variante
+    
+    const baseProduct = this.productGroup.baseProduct;
+    this.currentMinoristaPrice = baseProduct.priceMinorista;
+    this.currentMayoristaPrice = baseProduct.priceMayorista || baseProduct.priceMinorista;
+    this.currentWeight = baseProduct.kg;
+    this.updateWeightDisplay(baseProduct.kg);
+    this.selectedVariant = {
+      id: baseProduct.id as string | number,
+      localId: baseProduct.localId,
+      kg: baseProduct.kg,
+      priceMinorista: baseProduct.priceMinorista,
+      priceMayorista: baseProduct.priceMayorista || baseProduct.priceMinorista,
+      stock: baseProduct.stock
+    };
+    this.setPriceBasedOnRole();
+  }
+
   // Selecciona una variante de producto por su índice
   selectVariant(index: number): void {
     if (!this.productGroup || index >= this.productGroup.variants.length) return;
     
+    this.isBaseProductSelected = false; // Indicar que el producto base ya no está seleccionado
     this.selectedVariantIndex = index;
     this.selectedVariant = this.productGroup.variants[index];
     this.currentMinoristaPrice = this.selectedVariant.priceMinorista;
     this.currentMayoristaPrice = this.selectedVariant.priceMayorista || this.selectedVariant.priceMinorista;
     this.currentWeight = this.selectedVariant.kg;
+    this.updateWeightDisplay(this.selectedVariant.kg);
     this.setPriceBasedOnRole();
   }
   
@@ -142,17 +214,23 @@ export class ProductCardComponent implements OnInit {
     }
 
     if (this.hasVariants && this.selectedVariant && this.product) {
-      // Creamos un producto completo con los datos de la variante seleccionada
-      const productToAdd: Product = {
-        ...this.product,
-        id: this.selectedVariant.id,
-        localId: this.selectedVariant.localId,
-        kg: this.selectedVariant.kg,
-        priceMinorista: this.selectedVariant.priceMinorista,
-        priceMayorista: this.selectedVariant.priceMayorista,
-        stock: this.selectedVariant.stock
-      };
-      this.cartService.addToCart(productToAdd);
+      // Verificar si es el producto base o una variante
+      if (this.isBaseProductSelected) {
+        // Usar directamente el producto base
+        this.cartService.addToCart(this.productGroup!.baseProduct);
+      } else {
+        // Creamos un producto completo con los datos de la variante seleccionada
+        const productToAdd: Product = {
+          ...this.product,
+          id: this.selectedVariant.id,
+          localId: this.selectedVariant.localId,
+          kg: this.selectedVariant.kg,
+          priceMinorista: this.selectedVariant.priceMinorista,
+          priceMayorista: this.selectedVariant.priceMayorista,
+          stock: this.selectedVariant.stock
+        };
+        this.cartService.addToCart(productToAdd);
+      }
     } else {
       // Modo estándar
       this.cartService.addToCart(this.product);

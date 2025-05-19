@@ -45,10 +45,11 @@ export class HomeComponent implements OnInit, OnDestroy {
   private categoryTitles: Record<string, string> = {
     'PERROS': 'Alimentos para Perros',
     'GATOS': 'Alimentos para Gatos',
-    'GRANJA': 'Alimentos para Animales de Granja'
+    'GRANJA': 'Alimentos para Animales de Granja',
+    'CEREAL': 'Cereales'
   };
 
-  // Nombres de las categorías de granja
+  // Nombres de las categorías de granja (sin cereales)
   private tipoGranjaTitles: Record<string, string> = {
     'AVES': 'Alimentos para Aves',
     'PONEDORAS': 'Alimentos para Ponedoras',
@@ -56,8 +57,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     'PORCINOS': 'Alimentos para Porcinos',
     'EQUINOS': 'Alimentos para Equinos',
     'VACUNOS': 'Alimentos para Vacunos',
-    'VARIOS': 'Varios Alimentos para Granja',
-    'CEREAL': 'Cereales'
+    'VARIOS': 'Varios Alimentos para Granja'
   };
 
   get pagedProductGroups(): ProductGroup[] {
@@ -104,7 +104,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   loadProductGroups(): void {
-    // Si hay filtro de categoría de granja, siempre establecemos categoryFilter a GRANJA
+    // Si hay filtro de categoría de granja, establecemos categoryFilter a GRANJA
     if (this.tipoGranjaFilter) {
       this.categoryFilter = 'GRANJA';
     }

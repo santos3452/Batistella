@@ -103,7 +103,7 @@
     
     <h3 class="font-medium text-sm text-gray-500 mt-6 mb-2">CATEGORÍAS</h3>
     <div class="space-y-1 border-t border-gray-200 pt-2">
-      <!-- Categorías de animales -->
+      <!-- Categorías principales -->
       <a 
         *ngFor="let category of animalCategories"
         routerLink="/" 
@@ -111,14 +111,14 @@
         routerLinkActive="bg-gray-100 text-teal-600"
         [routerLinkActiveOptions]="{exact: true}"
         class="flex items-center space-x-2 text-gray-700 hover:text-teal-600 py-2 px-3 rounded-md hover:bg-gray-100"
-        (click)="closeSidebar()"
+        (click)="closeSidebar(); scrollToTop()"
       >
-        <span [class]="category.color + ' text-2xl'">{{ category.icon }}</span>
+        <span class="text-2xl" [ngClass]="category.color">{{ category.icon }}</span>
         <span>{{ category.name }}</span>
       </a>
     </div>
     
-    <!-- Nueva sección de MARCAS -->
+    <!-- Marcas -->
     <h3 class="font-medium text-sm text-gray-500 mt-6 mb-2">MARCAS</h3>
     <div class="space-y-1 border-t border-gray-200 pt-2">
       <a 
@@ -128,7 +128,7 @@
         routerLinkActive="bg-gray-100 text-teal-600"
         [routerLinkActiveOptions]="{exact: true}"
         class="flex items-center space-x-2 text-gray-700 hover:text-teal-600 py-2 px-3 rounded-md hover:bg-gray-100"
-        (click)="closeSidebar()"
+        (click)="closeSidebar(); scrollToTop()"
       >
         <!-- Mostrar icono personalizado si está disponible -->
         <img 
@@ -163,7 +163,7 @@
       </a>
     </div>
     
-    <!-- Nueva sección de VARIEDADES DE ANIMALES DE GRANJA -->
+    <!-- Variedades de animales de granja -->
     <h3 class="font-medium text-sm text-gray-500 mt-6 mb-2">ANIMALES DE GRANJA</h3>
     <div class="space-y-1 border-t border-gray-200 pt-2">
       <a 
@@ -173,7 +173,7 @@
         routerLinkActive="bg-gray-100 text-teal-600"
         [routerLinkActiveOptions]="{exact: true}"
         class="flex items-center space-x-2 text-gray-700 hover:text-teal-600 py-2 px-3 rounded-md hover:bg-gray-100"
-        (click)="closeSidebar()"
+        (click)="closeSidebar(); scrollToTop()"
       >
         <span class="text-2xl text-green-600">{{ variedad.icon }}</span>
         <span>{{ variedad.name }}</span>

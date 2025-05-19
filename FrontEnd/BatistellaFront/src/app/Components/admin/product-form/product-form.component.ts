@@ -183,8 +183,37 @@ export class ProductFormComponent implements OnInit {
       priceMinorista: ['', [Validators.required, Validators.min(0)]],
       priceMayorista: ['', [Validators.required, Validators.min(0)]],
       stock: ['', [Validators.required, Validators.min(0)]],
-      animalType: ['GRANJA'], // Siempre es GRANJA para este tipo de producto
-      activo: [true]
+      animalType: ['GRANJA'], // Siempre es GRANJA para el backend
+      activo: [true],
+      // Campo interno para mantener si es cereal (no se envía al backend)
+      _esCereal: [false]
+    });
+
+    // Escuchar cambios en el nombre para detectar cereales
+    this.productForm.get('nombre')?.valueChanges.subscribe(value => {
+      if (value && typeof value === 'string') {
+        const upperValue = value.toUpperCase();
+        // Si el nombre contiene la palabra CEREAL, marcar como cereal
+        if (upperValue.includes('CEREAL')) {
+          this.productForm.get('_esCereal')?.setValue(true);
+          // Si no hay categoría seleccionada, establecer CEREAL como categoría
+          if (!this.productForm.get('categoriaGranja')?.value) {
+            this.productForm.get('categoriaGranja')?.setValue('CEREAL');
+          }
+        } else if (this.productForm.get('categoriaGranja')?.value !== 'CEREAL') {
+          this.productForm.get('_esCereal')?.setValue(false);
+        }
+      }
+    });
+
+    // Escuchar cambios en la categoría para detectar cereales
+    this.productForm.get('categoriaGranja')?.valueChanges.subscribe(value => {
+      if (value === 'CEREAL') {
+        this.productForm.get('_esCereal')?.setValue(true);
+      } else if (this.productForm.get('_esCereal')?.value &&
+                !this.productForm.get('nombre')?.value.toUpperCase().includes('CEREAL')) {
+        this.productForm.get('_esCereal')?.setValue(false);
+      }
     });
   }
 
@@ -245,20 +274,22 @@ export class ProductFormComponent implements OnInit {
         console.log('Producto cargado para editar:', product);
         
         // Determinar el tipo de producto para saber qué formulario mostrar
-        if (product.animalType === 'GRANJA') {
+        if (product.animalType === 'GRANJA' || product.animalType === 'CEREAL') {
           this.tipoProductoSeleccionado = 'GRANJA';
           this.initFormGranja();
           
           // Asignar valores al formulario de granja
           this.productForm.patchValue({
             nombre: product.nombre || '',
-            categoriaGranja: product.categoriaGranja || '',
+            categoriaGranja: product.animalType === 'CEREAL' ? 'CEREAL' : (product.categoriaGranja || ''),
             description: product.description || '',
             kg: this.mapKgValue(product.kg),
             priceMinorista: product.priceMinorista,
             priceMayorista: product.priceMayorista,
             stock: product.stock,
-            activo: product.activo
+            animalType: 'GRANJA', // Siempre GRANJA para el backend
+            activo: product.activo,
+            _esCereal: product.animalType === 'CEREAL' || product.categoriaGranja === 'CEREAL'
           });
         } else {
           this.tipoProductoSeleccionado = 'MASCOTA';
@@ -337,13 +368,22 @@ export class ProductFormComponent implements OnInit {
     // Crear una copia del formulario para no modificar el original
     const formData = { ...this.productForm.value };
     
+    // Eliminar campo interno _esCereal que no debe enviarse al backend
+    delete formData._esCereal;
+    
     // Manejar campos según el tipo de producto
     if (this.tipoProductoSeleccionado === 'GRANJA') {
       // Para productos de granja, establecemos marca como null y eliminamos campos específicos de mascotas
       formData.marca = null;
       formData.tipoAlimento = null;
       formData.tipoRaza = null;
+      
+      // Para el backend, siempre mandamos GRANJA como animalType, 
+      // ya que el enum del backend solo acepta PERROS, GATOS o GRANJA
       formData.animalType = 'GRANJA';
+      
+      // Usamos la categoría "CEREAL" dentro de los productos de GRANJA para diferenciarlos
+      // pero el tipo para el backend siempre será GRANJA
     } else {
       // Para productos de mascotas, solo manejamos el tipo de raza
       if (formData.tipoRaza === '') {

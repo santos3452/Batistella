@@ -10,6 +10,10 @@
     <div class="absolute top-2 left-2 text-xs px-1.5 py-0.5 bg-gray-100 text-gray-800 rounded-md border border-black">
       {{ getAnimalTypeLabel(product.animalType) }}
     </div>
+    <!-- Insignia de kg gratis si hay promoción -->
+    <div *ngIf="hasPromotion" class="absolute top-2 right-2 text-xs font-bold px-2 py-0.5 bg-red-500 text-white rounded-md animate-pulse">
+      +{{ freeKilos }} GRATIS!
+    </div>
   </div>
   <div class="p-2 flex-1 flex flex-col">
     <h3 class="font-medium mb-1">{{ displayName }}</h3>
@@ -19,24 +23,67 @@
     <div *ngIf="hasVariants && productGroup" class="text-sm mb-2">
       <label for="weightSelect" class="text-xs text-gray-600 block mb-1">Peso disponible:</label>
       <div class="flex flex-wrap gap-1">
+        <!-- Mostrar el peso del producto base primero -->
+        <button 
+          [class.bg-teal-100]="isBaseProductSelected"
+          [class.border-teal-500]="isBaseProductSelected"
+          [class.text-teal-700]="isBaseProductSelected"
+          [class.opacity-50]="productGroup.baseProduct.stock === 0"
+          [disabled]="productGroup.baseProduct.stock === 0"
+          (click)="selectBaseProduct(); $event.stopPropagation()"
+          class="relative px-2 py-1 text-xs border rounded-md transition-colors hover:bg-gray-100 focus:outline-none focus:ring-1 focus:ring-teal-500"
+        >
+          {{ extractFreeKilos(productGroup.baseProduct.kg).displayWeight }}
+          <span *ngIf="productGroup.baseProduct.stock === 0" class="ml-1 text-red-500">(Sin stock)</span>
+          <!-- Indicador de kilos gratis -->
+          <span 
+            *ngIf="extractFreeKilos(productGroup.baseProduct.kg).hasPromotion" 
+            class="absolute -top-1 -right-1 flex items-center justify-center w-4 h-4 text-[9px] font-bold bg-red-500 text-white rounded-full"
+          >
+            +{{ extractFreeKilos(productGroup.baseProduct.kg).freeKilos.replace('kg', '') }}
+          </span>
+        </button>
+        
+        <!-- Luego mostrar todas las variantes -->
         <button 
           *ngFor="let variant of productGroup.variants; let i = index" 
-          [class.bg-teal-100]="i === selectedVariantIndex"
-          [class.border-teal-500]="i === selectedVariantIndex"
-          [class.text-teal-700]="i === selectedVariantIndex"
+          [class.bg-teal-100]="i === selectedVariantIndex && !isBaseProductSelected"
+          [class.border-teal-500]="i === selectedVariantIndex && !isBaseProductSelected"
+          [class.text-teal-700]="i === selectedVariantIndex && !isBaseProductSelected"
           [class.opacity-50]="variant.stock === 0"
           [disabled]="variant.stock === 0"
           (click)="selectVariant(i); $event.stopPropagation()"
-          class="px-2 py-1 text-xs border rounded-md transition-colors hover:bg-gray-100 focus:outline-none focus:ring-1 focus:ring-teal-500"
+          class="relative px-2 py-1 text-xs border rounded-md transition-colors hover:bg-gray-100 focus:outline-none focus:ring-1 focus:ring-teal-500"
         >
-          {{ variant.kg }}
+          {{ extractFreeKilos(variant.kg).displayWeight }}
           <span *ngIf="variant.stock === 0" class="ml-1 text-red-500">(Sin stock)</span>
+          <!-- Indicador de kilos gratis -->
+          <span 
+            *ngIf="extractFreeKilos(variant.kg).hasPromotion" 
+            class="absolute -top-1 -right-1 flex items-center justify-center w-4 h-4 text-[9px] font-bold bg-red-500 text-white rounded-full"
+          >
+            +{{ extractFreeKilos(variant.kg).freeKilos.replace('kg', '') }}
+          </span>
         </button>
       </div>
     </div>
     
-    <!-- Peso único para productos sin variantes -->
-    <div *ngIf="!hasVariants" class="text-xs text-gray-600 mb-2">{{ currentWeight }}</div>
+    <!-- Peso único para productos sin variantes - ahora con el mismo formato que los botones de selección -->
+    <div *ngIf="!hasVariants" class="text-sm mb-2">
+      <label for="weightSelect" class="text-xs text-gray-600 block mb-1">Peso disponible:</label>
+      <div class="flex flex-wrap gap-1">
+        <div class="relative px-2 py-1 text-xs border border-teal-500 bg-teal-100 text-teal-700 rounded-md">
+          {{ displayWeight }}
+          <!-- Indicador de kilos gratis en caso de producto sin variantes -->
+          <span 
+            *ngIf="hasPromotion" 
+            class="absolute -top-1 -right-1 flex items-center justify-center w-4 h-4 text-[9px] font-bold bg-red-500 text-white rounded-full"
+          >
+            +{{ freeKilos.replace('kg', '') }}
+          </span>
+        </div>
+      </div>
+    </div>
     
     <div class="mt-auto flex items-center justify-between">
       <!-- Precios según el rol -->

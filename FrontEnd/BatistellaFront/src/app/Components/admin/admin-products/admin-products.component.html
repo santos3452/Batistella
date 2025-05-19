@@ -310,8 +310,8 @@
             <td class="px-6 py-4 whitespace-nowrap">
               <img [src]="product.imageUrl" [alt]="product.displayName || product.nombre" class="h-10 w-10 object-cover rounded">
             </td>
-            <td class="px-6 py-4 whitespace-nowrap">{{ product.displayName || (product.nombre + ' - ' + product.categoriaGranja) }}</td>
-            <td class="px-6 py-4 whitespace-nowrap">{{ product.categoriaGranja }}</td>
+            <td class="px-6 py-4 whitespace-nowrap">{{ product.displayName || (product.nombre + (product.categoriaGranja ? ' - ' + product.categoriaGranja : '')) }}</td>
+            <td class="px-6 py-4 whitespace-nowrap">{{ product.animalType === 'CEREAL' ? 'CEREAL' : product.categoriaGranja }}</td>
             <td class="px-6 py-4 whitespace-nowrap">{{ product.kg }}</td>
             <td class="px-6 py-4 whitespace-nowrap">{{ utils.formatCurrency(product.priceMinorista) }}</td>
             <td class="px-6 py-4 whitespace-nowrap">{{ utils.formatCurrency(product.priceMayorista) }}</td>

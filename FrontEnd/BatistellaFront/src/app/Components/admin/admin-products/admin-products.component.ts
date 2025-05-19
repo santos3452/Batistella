@@ -104,10 +104,16 @@ export class AdminProductsComponent implements OnInit {
       .filter(Boolean)
       .sort();
     
-    // Extraer categorías de granja únicas
+    // Extraer categorías de granja y cereales únicas
     this.categoriasGranja = [...new Set(this.products
-      .filter(p => p.animalType === 'GRANJA')
-      .map(p => p.categoriaGranja)
+      .filter(p => p.animalType === 'GRANJA' || p.animalType === 'CEREAL')
+      .map(p => {
+        // Para cereales, usamos "CEREAL" como categoría
+        if (p.animalType === 'CEREAL') {
+          return 'CEREAL';
+        }
+        return p.categoriaGranja;
+      })
       .filter((categoria): categoria is string => categoria !== undefined))]
       .filter(Boolean)
       .sort();
@@ -126,7 +132,7 @@ export class AdminProductsComponent implements OnInit {
   }
 
   applyFilters(): void {
-    // Primero filtrar por el tipo de animal (mascota o granja)
+    // Primero filtrar por el tipo de animal (mascota o granja/cereal)
     let filteredByType: Product[];
     
     if (this.activeTab === 'MASCOTAS') {
@@ -135,7 +141,7 @@ export class AdminProductsComponent implements OnInit {
       );
     } else {
       filteredByType = this.products.filter(product => 
-        product.animalType === 'GRANJA'
+        product.animalType === 'GRANJA' || product.animalType === 'CEREAL'
       );
     }
     
@@ -165,9 +171,18 @@ export class AdminProductsComponent implements OnInit {
         
         return nameMatch && brandMatch && typeMatch && weightMatch && statusMatch;
       } else {
-        // Filtros específicos para granja
-        const categoriaGranjaMatch = !this.filterCategoriaGranja || 
-          product.categoriaGranja === this.filterCategoriaGranja;
+        // Filtros específicos para granja y cereales
+        let categoriaGranjaMatch = true;
+        
+        if (this.filterCategoriaGranja) {
+          if (this.filterCategoriaGranja === 'CEREAL') {
+            // Si se filtró por CEREAL, solo mostrar productos de tipo CEREAL
+            categoriaGranjaMatch = product.animalType === 'CEREAL';
+          } else {
+            // Si se filtró por otra categoría, solo mostrar productos de GRANJA con esa categoría
+            categoriaGranjaMatch = product.categoriaGranja === this.filterCategoriaGranja && product.animalType === 'GRANJA';
+          }
+        }
         
         return nameMatch && categoriaGranjaMatch && weightMatch && statusMatch;
       }

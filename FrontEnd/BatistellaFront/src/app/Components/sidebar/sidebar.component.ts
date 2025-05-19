@@ -67,7 +67,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
       color: 'text-green-500'
     },
     { 
-      id: 'CEREALES', 
+      id: 'CEREAL', 
       name: 'Cereales', 
       icon: '🌾', 
       color: 'text-yellow-500'
@@ -161,5 +161,9 @@ export class SidebarComponent implements OnInit, OnDestroy {
   
   closeSidebar(): void {
     this.onClose.emit();
+  }
+
+  scrollToTop(): void {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 }

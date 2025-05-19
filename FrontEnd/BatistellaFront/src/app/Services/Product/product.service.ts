@@ -29,6 +29,9 @@ export interface Product {
   // Campos adicionales
   tipo?: string; // Tipo de producto (granja, cereal, etc.)
   nombreCompleto?: string; // Nombre completo alternativo para mostrar en productos sin marca
+  // Campos internos para manejo especial de cereales (solo para el frontend)
+  _esCereal?: boolean;
+  _tipoVisual?: string; // Para mostrar un tipo visual diferente del animalType real
 }
 
 @Injectable({
@@ -71,33 +74,37 @@ export class ProductService {
     
     const parts: string[] = [];
     
-    // Añadir marca si existe
+    // Para cereales, mostrar solo el nombre
+    if (product.animalType === 'CEREAL') {
+      return product.nombre || '';
+    }
+    
+    // Para productos de granja
+    if (product.animalType === 'GRANJA') {
+      if (product.nombre) {
+        parts.push(product.nombre);
+        if (product.categoriaGranja) {
+          parts.push(product.categoriaGranja);
+        }
+        return parts.join(' - ');
+      }
+    }
+    
+    // Para productos de mascotas
     if (product.marca) {
       parts.push(product.marca);
     }
     
-    // Añadir tipo de alimento si existe
     if (product.tipoAlimento) {
-      // Reemplazar guiones bajos por espacios en tipoAlimento
       const tipoAlimentoFormateado = product.tipoAlimento.replace(/_/g, ' ');
       parts.push(tipoAlimentoFormateado);
     }
     
-    // Añadir tipo de raza solo si no es null
     if (product.tipoRaza) {
-      // Reemplazar guiones bajos por espacios en tipoRaza
       const tipoRazaFormateado = product.tipoRaza.replace(/_/g, ' ');
       parts.push(tipoRazaFormateado);
     }
     
-    // Añadir tipo de animal de granja si el animalType es GRANJA y existe tipoGranja
-    if (product.animalType === 'GRANJA' && product.tipoGranja) {
-      // Reemplazar guiones bajos por espacios en tipoGranja
-      const tipoGranjaFormateado = product.tipoGranja.replace(/_/g, ' ');
-      parts.push(tipoGranjaFormateado);
-    }
-    
-    // Unir las partes con espacios
     return parts.join(' ');
   }
 
@@ -105,37 +112,38 @@ export class ProductService {
   private processProducts(products: Product[]): Product[] {
     return products.map(product => {
       if (!product.id) {
-        // Si no tiene ID, generamos uno local y lo asignamos
         product.localId = this.generateLocalId(product);
       }
       
-      // Generamos el fullName pero no lo asignamos directamente al objeto
-      // para evitar enviarlo al backend
       const fullName = this.generateProductFullName(product);
       
-      // Asignar tipo basado en animalType
+      // Asignar tipo basado en animalType y categoriaGranja
       let tipo: string | undefined;
-      if (product.animalType === 'GRANJA') {
-        tipo = 'granja';
-      } else if (product.animalType === 'CEREAL') {
+      let internalAnimalType = product.animalType; // Mantener el tipo original para el frontend
+      
+      // Para el frontend, identificamos los cereales por su nombre o categoría
+      if (product.nombre && product.nombre.toUpperCase().includes('CEREAL') || 
+          (product.categoriaGranja && product.categoriaGranja === 'CEREAL')) {
+        // Para el frontend, los cereales tienen su propio tipo
+        internalAnimalType = 'CEREAL';
         tipo = 'cereal';
+      } else if (product.animalType === 'GRANJA') {
+        tipo = 'granja';
       }
       
       // Crear nombreCompleto para productos sin marca
       let nombreCompleto: string | undefined;
-      if (tipo === 'granja' || tipo === 'cereal') {
-        nombreCompleto = product.nombre || fullName; // Usar nombre o fullName como alternativa
+      if (internalAnimalType === 'GRANJA' || internalAnimalType === 'CEREAL') {
+        nombreCompleto = product.nombre || fullName;
       }
       
-      // Creamos una copia del producto con los campos adicionales
-      const processedProduct = { 
+      return { 
         ...product, 
         fullName,
         tipo,
+        animalType: internalAnimalType, // Usar el tipo interno para el frontend
         nombreCompleto
       };
-      
-      return processedProduct;
     });
   }
 
@@ -359,6 +367,20 @@ export class ProductService {
   getProductsGroupedByWeight(): Observable<any[]> {
     return this.getActiveProducts().pipe(
       map(products => {
+        // Crear una copia para no modificar los datos originales
+        products = products.map(product => {
+          // Para UI: Marcar cereales como tipo especial (sólo para frontend)
+          if (product.nombre && product.nombre.toUpperCase().includes('CEREAL') ||
+              (product.categoriaGranja && product.categoriaGranja === 'CEREAL')) {
+            return { 
+              ...product, 
+              _esCereal: true, // Campo interno para identificar cereales
+              _tipoVisual: 'CEREAL' // Campo visual para UI solamente
+            };
+          }
+          return { ...product, _esCereal: false };
+        }) as Product[];
+        
         // Crear un mapa para agrupar productos
         const productGroups = new Map();
         
@@ -366,48 +388,55 @@ export class ProductService {
           // La clave depende del tipo de animal
           let key = '';
           
-          // Si es un producto de granja pero en la categoría CEREAL, darle su propio tipo
-          if (product.animalType === 'GRANJA' && product.categoriaGranja === 'CEREAL') {
-            // Para cereales, tratarlos como una categoría separada
-            product.animalType = 'CEREALES'; // Cambiar el tipo a CEREALES
-            key = `CEREALES_${product.nombre}`;
+          if (product._esCereal) {
+            // Para cereales, extraer el nombre base sin la palabra CEREAL
+            const nombreBase = product.nombre?.split('-')[0]?.trim() || product.nombre;
+            key = `CEREAL_${nombreBase}`;
           } else if (product.animalType === 'GRANJA') {
             // Para productos de granja, la clave se forma con nombre y categoría
             key = `GRANJA_${product.nombre}_${product.categoriaGranja}`;
+          } else if (product.animalType === 'PERROS' || product.animalType === 'GATOS') {
+            // Para productos de mascotas, agrupar por marca, tipo de alimento y raza
+            key = `${product.marca}_${product.tipoAlimento}_${product.tipoRaza}_${product.animalType}`;
           } else {
-            // Para productos de mascota, se mantiene la clave original
+            // Para otros productos (si los hubiera)
             key = `${product.marca}_${product.tipoAlimento}_${product.tipoRaza}_${product.animalType}`;
           }
           
           if (!productGroups.has(key)) {
-            // Crear un nuevo grupo con el primer producto y su variante de peso
+            // Seleccionar el producto base (el de menor peso)
+            const baseProduct = product;
             productGroups.set(key, {
-              baseProduct: { ...product },
-              variants: [{
-                id: product.id,
-                localId: product.localId,
-                kg: product.kg,
-                priceMinorista: product.priceMinorista,
-                priceMayorista: product.priceMayorista,
-                stock: product.stock
-              }]
+              baseProduct,
+              variants: []
             });
           } else {
-            // Añadir una nueva variante al grupo existente
+            // Añadir siempre como variante para cualquier tipo de producto
+            // De esta manera nos aseguramos de incluir todas las variantes
             const group = productGroups.get(key);
-            group.variants.push({
-              id: product.id,
-              localId: product.localId,
-              kg: product.kg,
-              priceMinorista: product.priceMinorista,
-              priceMayorista: product.priceMayorista,
-              stock: product.stock
-            });
+            group.variants.push(product);
           }
         });
         
-        // Convertir el mapa en un array de grupos de productos
-        return Array.from(productGroups.values());
+        // Convertir el mapa a array y ordenar las variantes por peso
+        return Array.from(productGroups.values()).map(group => {
+          // Aplicar la misma lógica de reorganización para todos los productos, no solo cereales
+          // Incluir el producto base en las variantes para asegurar que todas las variantes estén disponibles
+          const allProducts = [group.baseProduct, ...group.variants];
+          
+          // Ordenar todos los productos por peso
+          allProducts.sort((a, b) => {
+            const weightA = parseFloat(a.kg);
+            const weightB = parseFloat(b.kg);
+            return weightA - weightB;
+          });
+          
+          // Establecer el de menor peso como base
+          group.baseProduct = allProducts[0];
+          group.variants = allProducts.slice(1);
+          
+          return group;
+        });
       })
     );
   }
@@ -438,22 +467,55 @@ export class ProductService {
     
     return this.getActiveProducts().pipe(
       map(products => {
+        // Crear copia para no modificar originales
+        products = products.map(p => {
+          // Marcar cereales para uso interno
+          const esCereal = p.nombre && p.nombre.toUpperCase().includes('CEREAL') ||
+                          (p.categoriaGranja && p.categoriaGranja === 'CEREAL');
+          return { 
+            ...p, 
+            _esCereal: esCereal ? true : false
+          };
+        });
+        
+        // Determinar si el producto base es cereal
+        const esCereal = product.nombre && product.nombre.toUpperCase().includes('CEREAL') ||
+                        (product.categoriaGranja && product.categoriaGranja === 'CEREAL');
+        
         // La lógica de filtrado depende del tipo de animal
-        if (product.animalType === 'GRANJA') {
+        if (product.animalType === 'GRANJA' && !esCereal) {
           // Para productos de granja, filtrar por nombre y categoría
           return products.filter(p => 
             p.animalType === 'GRANJA' && 
+            !p._esCereal &&
             p.nombre === product.nombre && 
             p.categoriaGranja === product.categoriaGranja
           );
+        } else if (esCereal) {
+          // Para cereales, obtener el nombre base sin la palabra "CEREAL"
+          const nombreBase = product.nombre?.split('-')[0]?.trim() || '';
+          
+          // Filtrar SOLO por la parte del nombre antes del guión
+          return products.filter(p => 
+            p._esCereal && 
+            p.nombre && nombreBase && p.nombre.includes(nombreBase)
+          ).sort((a, b) => {
+            const weightA = parseFloat(a.kg);
+            const weightB = parseFloat(b.kg);
+            return weightA - weightB;
+          });
         } else {
-          // Para productos de mascota, mantener la lógica original
+          // Para productos de mascota, filtrar por marca, tipo de alimento y raza
           return products.filter(p => 
             p.marca === product.marca && 
             p.tipoAlimento === product.tipoAlimento && 
             p.tipoRaza === product.tipoRaza &&
             p.animalType === product.animalType
-          );
+          ).sort((a, b) => {
+            const weightA = parseFloat(a.kg);
+            const weightB = parseFloat(b.kg);
+            return weightA - weightB;
+          });
         }
       })
     );
