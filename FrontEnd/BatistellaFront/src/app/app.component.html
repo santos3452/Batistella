@@ -21,13 +21,13 @@
     <app-navbar (toggleSidebar)="toggleSidebar()"></app-navbar>
   </div>
   
+  <!-- Sidebar para móvil (invisible pero presente) - Colocado FUERA del flex para que esté por encima de todo -->
+  <div class="block md:hidden z-[10000]">
+    <app-sidebar [isOpen]="sidebarOpen" (onClose)="closeSidebar()"></app-sidebar>
+  </div>
+  
   <!-- Contenido principal con sidebar -->
   <div class="flex flex-1 relative z-10">
-    <!-- Sidebar para móvil (invisible pero presente) -->
-    <div class="block md:hidden">
-      <app-sidebar [isOpen]="sidebarOpen" (onClose)="closeSidebar()"></app-sidebar>
-    </div>
-    
     <!-- Sidebar para desktop (siempre visible) -->
     <div class="hidden md:block">
       <app-sidebar [isOpen]="true" (onClose)="closeSidebar()"></app-sidebar>
