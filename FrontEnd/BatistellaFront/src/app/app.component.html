@@ -21,20 +21,15 @@
     <app-navbar (toggleSidebar)="toggleSidebar()"></app-navbar>
   </div>
   
-  <!-- Contenido principal con sidebar -->
-  <div class="flex flex-1 relative z-10">
-    <!-- Sidebar para móvil (invisible pero presente) -->
-    <div class="block md:hidden">
-      <app-sidebar [isOpen]="sidebarOpen" (onClose)="closeSidebar()"></app-sidebar>
-    </div>
-    
-    <!-- Sidebar para desktop (siempre visible) -->
+  <!-- Contenido principal SIN sidebar móvil -->
+  <div class="flex flex-1 relative">
+    <!-- Solo sidebar para desktop (siempre visible) -->
     <div class="hidden md:block">
       <app-sidebar [isOpen]="true" (onClose)="closeSidebar()"></app-sidebar>
     </div>
     
     <!-- Contenido principal -->
-    <main class="flex-1 px-4 sm:px-6 lg:px-8 py-6">
+    <main class="flex-1 px-4 sm:px-6 lg:px-8 py-6 overflow-x-hidden">
       <div class="max-w-7xl mx-auto">
         <router-outlet></router-outlet>
       </div>
@@ -126,4 +121,9 @@
       </div>
     </div>
   </footer>
+</div>
+
+<!-- Sidebar para móvil FUERA del contenedor principal para forzar que esté por encima -->
+<div *ngIf="!isAuthRoute" class="block md:hidden" style="position: relative; z-index: 999999;">
+  <app-sidebar [isOpen]="sidebarOpen" (onClose)="closeSidebar()"></app-sidebar>
 </div>

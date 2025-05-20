@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output, OnDestroy } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, OnDestroy, HostListener, Renderer2, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { ProductService } from '../../Services/Product/product.service';
@@ -108,7 +108,9 @@ export class SidebarComponent implements OnInit, OnDestroy {
   
   constructor(
     private productService: ProductService,
-    private authService: AuthService
+    private authService: AuthService,
+    private renderer: Renderer2,
+    private el: ElementRef
   ) {}
 
   ngOnInit(): void {
@@ -121,6 +123,39 @@ export class SidebarComponent implements OnInit, OnDestroy {
       // Verificar si el usuario es administrador
       this.isAdmin = user?.rol === 'ROLE_ADMIN';
     });
+    
+    // Asegurar que el sidebar esté visible cuando se abre
+    this.updateSidebarVisibility();
+  }
+  
+  @HostListener('window:resize')
+  onResize() {
+    this.updateSidebarVisibility();
+  }
+  
+  private updateSidebarVisibility() {
+    if (this.isOpen) {
+      this.renderer.setStyle(this.el.nativeElement.querySelector('aside'), 'transform', 'translateX(0)');
+      this.renderer.setStyle(document.body, 'overflow', 'hidden');
+      this.renderer.addClass(document.body, 'sidebar-open');
+      
+      // Forzar que el sidebar esté por encima de todo
+      const sidebar = this.el.nativeElement.querySelector('aside');
+      const overlay = this.el.nativeElement.querySelector('div.fixed');
+      
+      if (sidebar) {
+        this.renderer.setStyle(sidebar, 'z-index', '99999999');
+      }
+      
+      if (overlay) {
+        this.renderer.setStyle(overlay, 'z-index', '9999999');
+      }
+    } else {
+      if (window.innerWidth < 768) { // Solo en móviles
+        this.renderer.removeStyle(document.body, 'overflow');
+        this.renderer.removeClass(document.body, 'sidebar-open');
+      }
+    }
   }
   
   ngOnDestroy(): void {
@@ -161,6 +196,10 @@ export class SidebarComponent implements OnInit, OnDestroy {
   
   closeSidebar(): void {
     this.onClose.emit();
+    if (window.innerWidth < 768) { // Solo en móviles
+      this.renderer.removeStyle(document.body, 'overflow');
+      this.renderer.removeClass(document.body, 'sidebar-open');
+    }
   }
 
   scrollToTop(): void {
