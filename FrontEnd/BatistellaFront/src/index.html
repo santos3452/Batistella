@@ -7,28 +7,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    /* Estilo global para asegurar que el sidebar se muestre por encima de todo */
-    body.sidebar-open app-sidebar {
-      position: relative;
-      z-index: 999999 !important;
-    }
-    
-    body.sidebar-open app-sidebar aside {
-      z-index: 999999 !important;
-      position: fixed !important;
-    }
-    
-    body.sidebar-open app-sidebar .fixed {
-      z-index: 999998 !important;
-      position: fixed !important;
-    }
-    
-    /* Aseguramos que el contenido principal tenga un z-index menor */
-    body.sidebar-open main {
-      z-index: 1 !important;
-    }
-  </style>
 </head>
 <body>
   <app-root></app-root>

@@ -1,5 +1,5 @@
 <div 
-  class="fixed inset-0 bg-black/60 z-[9999999] transition-opacity duration-300 md:hidden"
+  class="fixed inset-0 bg-black/30 z-40 transition-opacity duration-300 md:hidden"
   [class.opacity-100]="isOpen" 
   [class.opacity-0]="!isOpen"
   [class.visible]="isOpen"
@@ -8,7 +8,7 @@
 ></div>
 
 <aside 
-  class="fixed top-0 bottom-0 left-0 w-64 h-full bg-white shadow-xl z-[99999999] transition-transform duration-300 transform overflow-y-auto md:translate-x-0 md:static md:h-auto border-r border-gray-300"
+  class="fixed top-0 bottom-0 left-0 w-64 bg-white shadow-lg z-50 transition-transform duration-300 transform md:translate-x-0 md:static md:h-auto border-r border-gray-300"
   [class.translate-x-0]="isOpen" 
   [class.-translate-x-full]="!isOpen"
 >
