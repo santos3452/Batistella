@@ -173,11 +173,21 @@ public class productServiceImpl implements productService {
         if(porcentaje < -50) {
             throw new IllegalArgumentException("No se puede hacer un descuento de mas del 50%");
         }
+        List<Products> productos;
+        String marca1 = marca.toUpperCase();
 
         if( marca != null && !marca.isEmpty()) {
-            String marca1 = marca.toUpperCase();
-            Marca enumMarca = Marca.valueOf(marca1);
-            List<Products> productos = productRepository.findByMarca(enumMarca);
+
+
+            if( perteneceAEnum(marca1)){
+
+                Marca enumMarca = Marca.valueOf(marca1);
+                 productos = productRepository.findByMarca(enumMarca);
+            }
+            else {
+                CategoriaGranja enumCategoriaGranja = CategoriaGranja.valueOf(marca1);
+                productos = productRepository.findByCategoriaGranja(enumCategoriaGranja);
+            }
 
             for (Products producto : productos) {
                 BigDecimal porcentajeDecimal = BigDecimal.valueOf(porcentaje).divide(BigDecimal.valueOf(100));
@@ -191,9 +201,9 @@ public class productServiceImpl implements productService {
 
         }
         else {
-            List<Products> productos = productRepository.findAll();
+            List<Products> productos1 = productRepository.findAll();
 
-            for (Products producto : productos) {
+            for (Products producto : productos1) {
                 BigDecimal porcentajeDecimal = BigDecimal.valueOf(porcentaje).divide(BigDecimal.valueOf(100));
                 BigDecimal nuevoPrecioMinorista = producto.getPriceMinorista().multiply(BigDecimal.ONE.add(porcentajeDecimal));
                 BigDecimal nuevoPrecioMayorista = producto.getPriceMayorista().multiply(BigDecimal.ONE.add(porcentajeDecimal));
@@ -205,6 +215,16 @@ public class productServiceImpl implements productService {
         }
 
 
+    }
+
+    public boolean perteneceAEnum(String marca) {
+        String marca1 = marca.toUpperCase();
+        for (Marca m : Marca.values()) {
+            if (m.name().equals(marca1)) {
+                return true; // La marca pertenece al enum
+            }
+        }
+        return false; // La marca no pertenece al enum
     }
 
     @Override

@@ -219,6 +219,7 @@ export class AdminProductsComponent implements OnInit {
     if (this.page > 1) {
       this.page--;
       this.loadPagedProducts();
+      window.scrollTo(0, 0);
     }
   }
 
@@ -226,6 +227,7 @@ export class AdminProductsComponent implements OnInit {
     if (this.page < this.totalPages) {
       this.page++;
       this.loadPagedProducts();
+      window.scrollTo(0, 0);
     }
   }
 
@@ -233,6 +235,7 @@ export class AdminProductsComponent implements OnInit {
     if (n >= 1 && n <= this.totalPages) {
       this.page = n;
       this.loadPagedProducts();
+      window.scrollTo(0, 0);
     }
   }
 
@@ -300,64 +303,6 @@ export class AdminProductsComponent implements OnInit {
       });
   }
 
-  // Métodos para la actualización de precios
-  openUpdatePricesModal(): void {
-    this.selectedBrand = 'TODAS'; // Valor por defecto: todas las marcas
-    this.updatePercentage = 0;
-    this.showUpdatePricesModal = true;
-  }
-
-  closeUpdatePricesModal(): void {
-    this.showUpdatePricesModal = false;
-  }
-
-  updatePrices(): void {
-    // Validar que el porcentaje esté dentro de un rango razonable
-    if (this.updatePercentage < -90 || this.updatePercentage > 100) {
-      this.utils.showToast('error', 'El porcentaje debe estar entre -90% y 100%');
-      return;
-    }
-
-    this.isUpdatingPrices = true;
-
-    this.productService.updatePricesByBrandAndPercentage(this.updatePercentage, this.selectedBrand)
-      .subscribe({
-        next: () => {
-          this.utils.showToast('success', `Precios actualizados con éxito (${this.updatePercentage > 0 ? '+' : ''}${this.updatePercentage}%)`);
-          
-          // Limpiar la caché de productos para forzar la recarga desde el servidor
-          this.productService.clearProductsCache();
-          
-          // Pequeño delay para asegurar que el backend procesó los cambios
-          setTimeout(() => {
-            this.loadProducts();
-            this.showUpdatePricesModal = false;
-            this.isUpdatingPrices = false;
-          }, 300);
-        },
-        error: (error) => {
-          console.error('Error al actualizar precios', error);
-          
-          // Verificar si realmente es un error o un "éxito" con código 200
-          if (error.status === 200) {
-            this.utils.showToast('success', `Precios actualizados con éxito (${this.updatePercentage > 0 ? '+' : ''}${this.updatePercentage}%)`);
-            
-            // Limpiar la caché y recargar
-            this.productService.clearProductsCache();
-            setTimeout(() => {
-              this.loadProducts();
-              this.showUpdatePricesModal = false;
-              this.isUpdatingPrices = false;
-            }, 300);
-          } else {
-            this.utils.showToast('error', 'Error al actualizar los precios');
-            this.showUpdatePricesModal = false;
-            this.isUpdatingPrices = false;
-          }
-        }
-      });
-  }
-
   // Formatea la fecha de última actualización de forma amigable
   formatUpdatedAt(dateString: string): string {
     if (!dateString) return 'No disponible';
@@ -365,22 +310,26 @@ export class AdminProductsComponent implements OnInit {
     try {
       // Verificar si el formato es DD/MM/YYYY HH:MM:SS
       if (dateString.includes('/')) {
+        // Ya está en formato deseado, solo necesitamos formatear la hora
         const parts = dateString.split(' ');
-        const dateParts = parts[0].split('/');
-        const date = new Date(`${dateParts[2]}-${dateParts[1]}-${dateParts[0]}T${parts[1]}`);
-        
-        // Retornar tiempo relativo (ej: "hace 2 horas")
-        return this.getTimeAgo(date);
+        // Devolvemos la fecha y la hora en formato más legible
+        return parts[0] + ' ' + parts[1].substring(0, 5); // Solo mostrar HH:MM
       }
       
-      // Si no es ese formato, intentar con formato ISO
+      // Si es formato ISO, convertir a formato DD/MM/YYYY HH:MM
       const date = new Date(dateString);
       
       if (isNaN(date.getTime())) {
         return 'Fecha inválida';
       }
       
-      return this.getTimeAgo(date);
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const year = date.getFullYear();
+      const hours = date.getHours().toString().padStart(2, '0');
+      const minutes = date.getMinutes().toString().padStart(2, '0');
+      
+      return `${day}/${month}/${year} ${hours}:${minutes}`;
     } catch (error) {
       console.error('Error parsing date', error);
       return 'Fecha inválida';
@@ -442,5 +391,80 @@ export class AdminProductsComponent implements OnInit {
       return `hace ${diffMins} minuto${diffMins > 1 ? 's' : ''}`;
     }
     return 'justo ahora';
+  }
+
+  // Métodos para la actualización de precios
+  openUpdatePricesModal(): void {
+    this.selectedBrand = 'TODAS'; // Valor por defecto: todas las marcas
+    this.updatePercentage = 0;
+    this.showUpdatePricesModal = true;
+  }
+
+  closeUpdatePricesModal(): void {
+    this.showUpdatePricesModal = false;
+  }
+
+  updatePrices(): void {
+    // Validar que el porcentaje esté dentro de un rango razonable
+    if (this.updatePercentage < -90 || this.updatePercentage > 100) {
+      this.utils.showToast('error', 'El porcentaje debe estar entre -90% y 100%');
+      return;
+    }
+
+    this.isUpdatingPrices = true;
+    
+    let mensaje: string;
+    if (this.selectedBrand === 'TODAS') {
+      mensaje = `Precios actualizados con éxito (${this.updatePercentage > 0 ? '+' : ''}${this.updatePercentage}%)`;
+    } else {
+      mensaje = `Precios de ${this.selectedBrand} actualizados con éxito (${this.updatePercentage > 0 ? '+' : ''}${this.updatePercentage}%)`;
+    }
+    
+    this.productService.updatePricesByBrandAndPercentage(this.updatePercentage, this.selectedBrand)
+      .subscribe({
+        next: () => {
+          this.utils.showToast('success', mensaje, true); // Usar true para mostrar como modal
+          
+          // Limpiar la caché de productos para forzar la recarga desde el servidor
+          this.productService.clearProductsCache();
+          
+          // Pequeño delay para asegurar que el backend procesó los cambios
+          setTimeout(() => {
+            this.loadProducts();
+            this.showUpdatePricesModal = false;
+            this.isUpdatingPrices = false;
+          }, 300);
+        },
+        error: (error) => {
+          console.error('Error al actualizar precios', error);
+          
+          // Verificar si realmente es un error o un "éxito" con código 200
+          if (error.status === 200) {
+            this.utils.showToast('success', mensaje, true); // Usar true para mostrar como modal
+            
+            // Limpiar la caché y recargar
+            this.productService.clearProductsCache();
+            setTimeout(() => {
+              this.loadProducts();
+              this.showUpdatePricesModal = false;
+              this.isUpdatingPrices = false;
+            }, 300);
+          } else {
+            this.utils.showToast('error', 'Error al actualizar los precios', true); // Usar true para mostrar como modal
+            this.showUpdatePricesModal = false;
+            this.isUpdatingPrices = false;
+          }
+        }
+      });
+  }
+
+  /**
+   * Formatea un tipo de alimento para mostrarlo sin guiones bajos
+   * @param type Tipo de alimento (con guiones bajos)
+   * @returns Tipo formateado (con espacios)
+   */
+  formatTypeDisplay(type: string): string {
+    if (!type) return '';
+    return type.replace(/_/g, ' ');
   }
 } 

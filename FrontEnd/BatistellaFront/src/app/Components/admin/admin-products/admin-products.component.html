@@ -94,7 +94,7 @@
             class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500"
           >
             <option value="">Todos los tipos</option>
-            <option *ngFor="let type of types" [value]="type">{{ type }}</option>
+            <option *ngFor="let type of types" [value]="type">{{ formatTypeDisplay(type) }}</option>
           </select>
         </div>
         
@@ -163,7 +163,7 @@
             </td>
             <td class="px-6 py-4 whitespace-nowrap">{{ product.fullName }}</td>
             <td class="px-6 py-4 whitespace-nowrap">{{ product.marca }}</td>
-            <td class="px-6 py-4 whitespace-nowrap">{{ product.animalType }}</td>
+            <td class="px-6 py-4 whitespace-nowrap">{{ formatTypeDisplay(product.tipoAlimento) }}</td>
             <td class="px-6 py-4 whitespace-nowrap">{{ product.kg }}</td>
             <td class="px-6 py-4 whitespace-nowrap">{{ utils.formatCurrency(product.priceMinorista) }}</td>
             <td class="px-6 py-4 whitespace-nowrap">{{ utils.formatCurrency(product.priceMayorista) }}</td>
@@ -461,17 +461,29 @@
       <h2 class="text-xl font-bold mb-4">Actualizar Precios</h2>
       
       <div class="mb-4">
-        <label for="selectedBrand" class="block text-sm font-medium text-gray-700 mb-1">Marca</label>
-        <select
-          id="selectedBrand"
-          [(ngModel)]="selectedBrand"
-          class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500"
-        >
-          <option value="TODAS">Todas las marcas</option>
-          <option *ngFor="let brand of brands" [value]="brand">{{ brand }}</option>
-        </select>
+        <label for="selectedBrand" class="block text-sm font-medium text-gray-700 mb-1">Marca o Tipo</label>
+        <div class="relative">
+          <select
+            id="selectedBrand"
+            [(ngModel)]="selectedBrand"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 appearance-none"
+          >
+            <option value="TODAS">Todas las marcas y tipos</option>
+            <optgroup label="Marcas">
+              <option *ngFor="let brand of brands" [value]="brand">{{ brand }}</option>
+            </optgroup>
+            <optgroup label="Tipos de Granja">
+              <option *ngFor="let categoria of categoriasGranja" [value]="categoria">{{ categoria }}</option>
+            </optgroup>
+          </select>
+          <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+            <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+            </svg>
+          </div>
+        </div>
         <p class="text-sm text-gray-500 mt-1">
-          Selecciona la marca para la que deseas actualizar los precios, o "Todas las marcas" para actualizar todos los productos.
+          Selecciona la marca o tipo de granja para actualizar los precios, o "Todas las marcas y tipos" para actualizar todos los productos.
         </p>
       </div>
       

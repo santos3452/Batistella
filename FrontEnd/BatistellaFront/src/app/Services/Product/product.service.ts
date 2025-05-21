@@ -337,6 +337,7 @@ export class ProductService {
     let url = `${this.apiUrl}/updatePrices?porcentaje=${porcentaje}`;
     
     if (marca && marca !== 'TODAS') {
+      // El backend espera siempre el parámetro como "marca", así que lo pasamos directamente
       url += `&marca=${marca}`;
     }
     
@@ -359,7 +360,7 @@ export class ProductService {
       })
     );
   }
-
+  
   /**
    * Agrupa productos que son iguales excepto por su peso (kg) y precio
    * @returns Observable con productos agrupados donde cada grupo tiene variantes de peso

@@ -270,18 +270,21 @@ export class MisPedidosComponent implements OnInit {
   prevPage(): void {
     if (this.page > 1) {
       this.page--;
+      window.scrollTo(0, 0);
     }
   }
 
   nextPage(): void {
     if (this.page < this.totalPages) {
       this.page++;
+      window.scrollTo(0, 0);
     }
   }
 
   goToPage(n: number): void {
     if (n >= 1 && n <= this.totalPages) {
       this.page = n;
+      window.scrollTo(0, 0);
     }
   }
 
