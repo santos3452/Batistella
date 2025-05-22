@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${titulo}">Pago Rechazado</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            padding: 2rem;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        h1 {
+            color: #2c3e50;
+        }
+        .error-icon {
+            color: #e74c3c;
+            font-size: 4rem;
+            margin: 1rem 0;
+        }
+        .details {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1.5rem;
+            text-align: left;
+        }
+        .button {
+            display: inline-block;
+            margin-top: 1.5rem;
+            padding: 0.75rem 1.5rem;
+            background-color: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        .button:hover {
+            background-color: #2980b9;
+        }
+        .retry-button {
+            display: inline-block;
+            margin-right: 1rem;
+            margin-top: 1.5rem;
+            padding: 0.75rem 1.5rem;
+            background-color: #27ae60;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        .retry-button:hover {
+            background-color: #2ecc71;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 th:text="${titulo}">Pago Rechazado</h1>
+        <div class="error-icon">✕</div>
+        <p th:text="${mensaje}">Lo sentimos, tu pago ha sido rechazado.</p>
+        
+        <div class="details">
+            <h3>Detalles del Pago:</h3>
+            <p><strong>ID de Pago:</strong> <span th:text="${paymentId}">-</span></p>
+            <p><strong>Estado:</strong> <span th:text="${estado}">-</span></p>
+            <p><strong>Pedido:</strong> <span th:text="${pedido}">-</span></p>
+        </div>
+        
+        <a href="/pagos-redirect/intentar-nuevamente" class="retry-button">Intentar nuevamente</a>
+        <a href="/" class="button">Volver al Inicio</a>
+    </div>
+</body>
+</html> 

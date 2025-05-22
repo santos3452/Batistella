@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class PagoResponseDTO {
     private Long id;
-    private Long pedidoId;
+    private String codigoPedido;
     private BigDecimal monto;
     private String metodo;
     private LocalDateTime fechaPago;

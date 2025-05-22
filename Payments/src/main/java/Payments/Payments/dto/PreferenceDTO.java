@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PreferenceDTO {
-    private Long pedidoId;
+    private String codigoPedido;
     private BigDecimal montoTotal;
     private String descripcion;
     private List<ItemDTO> items;

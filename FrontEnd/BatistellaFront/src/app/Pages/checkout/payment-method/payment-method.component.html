@@ -18,13 +18,13 @@
             class="border rounded-md p-4 cursor-pointer"
             [class.border-teal-500]="selectedPaymentMethod === 'mercadopago'"
             [class.bg-teal-50]="selectedPaymentMethod === 'mercadopago'"
-            (click)="selectPaymentMethod('mercadopago')"
-          >
+            (click)="selectPaymentMethod('mercadopago')">
             <div class="flex justify-between items-center">
               <div class="flex items-center">
-                <div class="w-12 h-12 flex-shrink-0 mr-4">
-                  <img src="assets/images/mercadopago.png" alt="MercadoPago" class="w-full h-full object-contain" 
-                       onerror="this.src='https://www.mercadopago.com/org-img/Manual/ManualCheckout/img/manual_mp_logo.png'">
+                <div class="w-12 h-12 flex-shrink-0 mr-4 bg-blue-100 flex items-center justify-center rounded-full">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                  </svg>
                 </div>
                 <div>
                   <h3 class="font-medium">MercadoPago</h3>
@@ -45,8 +45,7 @@
             class="border rounded-md p-4 cursor-pointer"
             [class.border-teal-500]="selectedPaymentMethod === 'whatsapp'"
             [class.bg-teal-50]="selectedPaymentMethod === 'whatsapp'"
-            (click)="selectPaymentMethod('whatsapp')"
-          >
+            (click)="selectPaymentMethod('whatsapp')">
             <div class="flex justify-between items-center">
               <div class="flex items-center">
                 <div class="w-12 h-12 flex-shrink-0 mr-4 bg-green-500 text-white rounded-full flex items-center justify-center">
@@ -132,7 +131,7 @@
         </svg>
       </div>
       <h3 class="text-lg font-medium text-gray-900 mb-2">¡Pedido Registrado Correctamente!</h3>
-      <p class="text-gray-600 mb-4">Su pedido ha sido registrado en el sistema con estado PENDIENTE. Será redirigido a WhatsApp para coordinar el pago y la entrega.</p>
+      <p class="text-gray-600 mb-4">Su pedido ha sido registrado en el sistema con estado PENDIENTE. A continuación será redirigido a WhatsApp para coordinar el pago y la entrega.</p>
       
       <!-- Resumen del pedido -->
       <div class="bg-gray-50 rounded-md p-4 mb-4 text-left">

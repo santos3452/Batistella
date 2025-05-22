@@ -6,6 +6,8 @@ import { CartService } from '../../../Services/Cart/cart.service';
 import { UtilsService } from '../../../Services/Utils/utils.service';
 import { PedidosService } from '../../../Services/Pedidos/pedidos.service';
 import { AuthService } from '../../../Services/Auth/auth.service';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../../environments/environment';
 
 interface OrderSummary {
   items: any[];
@@ -16,6 +18,21 @@ interface OrderSummary {
   deliveryNotes: string;
   isPickupSelected?: boolean;
   direccionCompleta?: string;
+}
+
+interface MercadoPagoItem {
+  titulo: string;
+  descripcion: string;
+  cantidad: number;
+  precioUnitario: number;
+}
+
+interface MercadoPagoRequest {
+  pedidoId: number;
+  codigoPedido: string;
+  montoTotal: number;
+  descripcion: string;
+  items: MercadoPagoItem[];
 }
 
 @Component({
@@ -38,7 +55,8 @@ export class PaymentMethodComponent implements OnInit {
     private cartService: CartService,
     public utils: UtilsService,
     private pedidosService: PedidosService,
-    private authService: AuthService
+    private authService: AuthService,
+    private http: HttpClient
   ) {}
 
   ngOnInit(): void {
@@ -105,22 +123,25 @@ export class PaymentMethodComponent implements OnInit {
         .subscribe({
           next: (response) => {
             console.log('Pedido creado correctamente:', response);
-            this.isLoading = false;
             
-            // Preparar mensaje para WhatsApp si es necesario
-            if (this.selectedPaymentMethod === 'whatsapp') {
-              this.prepareWhatsAppMessage();
+            // Obtener el ID y código de pedido de la respuesta
+            const pedidoId = response.id || response.pedidoId;
+            const codigoPedido = response.codigoPedido || response.codigo;
+            
+            if (!pedidoId || !codigoPedido) {
+              console.error('Error: No se recibió el ID o código del pedido');
+              this.errorMessage = 'Error al procesar el pedido. Datos incompletos.';
+              this.isLoading = false;
+              return;
             }
             
-            // Mostrar el modal de confirmación
-            this.orderCreated = true;
-            
-            // Si es MercadoPago, seguimos el flujo después de un tiempo
+            // Procesar según el método de pago seleccionado
             if (this.selectedPaymentMethod === 'mercadopago') {
-              setTimeout(() => {
-                alert('Redirigiendo a MercadoPago...');
-                this.completeOrder();
-              }, 1500);
+              this.procesarPagoMercadoPago(pedidoId, codigoPedido);
+            } else {
+              this.isLoading = false;
+              this.prepareWhatsAppMessage();
+              this.orderCreated = true;
             }
           },
           error: (error) => {
@@ -135,6 +156,62 @@ export class PaymentMethodComponent implements OnInit {
       this.errorMessage = 'Error al procesar el pago. Por favor intente nuevamente.';
       this.isLoading = false;
     }
+  }
+
+  procesarPagoMercadoPago(pedidoId: number, codigoPedido: string): void {
+    if (!this.orderSummary) {
+      this.errorMessage = 'Error al procesar el pago: información del pedido no disponible';
+      this.isLoading = false;
+      return;
+    }
+
+    // Preparar los datos para la solicitud a Mercado Pago
+    const mercadoPagoItems: MercadoPagoItem[] = this.orderSummary.items.map(item => ({
+      titulo: item.product.fullName || item.product.name,
+      descripcion: item.product.description || 'Producto Batistella',
+      cantidad: item.quantity,
+      precioUnitario: item.product.priceMinorista
+    }));
+
+    const mercadoPagoRequest: MercadoPagoRequest = {
+      pedidoId: pedidoId,
+      codigoPedido: codigoPedido,
+      montoTotal: this.orderSummary.totalAmount,
+      descripcion: `Compra en Batistella - ${codigoPedido}`,
+      items: mercadoPagoItems
+    };
+
+    console.log('Enviando solicitud a MercadoPago:', mercadoPagoRequest);
+
+    // Hacer la solicitud HTTP a la API de MercadoPago usando la URL del environment
+    this.http.post(environment.mercadoPagoUrl, mercadoPagoRequest)
+      .subscribe({
+        next: (response: any) => {
+          console.log('Respuesta de MercadoPago:', response);
+          
+          if (response && response.urlPago) {
+            console.log('Redirigiendo a:', response.urlPago);
+            
+            // Guardar información del pedido en localStorage antes de redirigir
+            this.saveOrderToHistory(pedidoId, codigoPedido, 'mercadopago');
+            
+            // Limpiar carrito
+            this.cartService.clearCart();
+            
+            // Redirigir al usuario a la página de pago de MercadoPago en la misma pestaña
+            window.location.href = response.urlPago;
+          } else {
+            console.error('Error: No se recibió el enlace de pago de MercadoPago');
+            this.errorMessage = 'Error al procesar el pago con MercadoPago. Por favor intente nuevamente.';
+            this.isLoading = false;
+          }
+        },
+        error: (error) => {
+          console.error('Error al obtener preferencia de MercadoPago:', error);
+          this.errorMessage = 'Error al conectarse con MercadoPago. Por favor intente nuevamente.';
+          this.isLoading = false;
+        }
+      });
   }
   
   // Preparar el mensaje para WhatsApp y la URL
@@ -182,17 +259,21 @@ export class PaymentMethodComponent implements OnInit {
     }
   }
   
-  private completeOrder(): void {
-    // Guardar el pedido en el historial (esto podría hacerlo un servicio)
+  private saveOrderToHistory(pedidoId: number, codigoPedido: string, paymentMethod: 'mercadopago' | 'whatsapp'): void {
+    // Guardar el pedido en el historial local
     const completedOrders = JSON.parse(localStorage.getItem('completedOrders') || '[]');
     completedOrders.push({
       ...this.orderSummary,
-      orderId: Date.now().toString(),
+      orderId: pedidoId.toString(),
+      orderCode: codigoPedido,
       orderDate: new Date().toISOString(),
-      paymentMethod: this.selectedPaymentMethod
+      paymentMethod: paymentMethod,
+      paymentStatus: 'PENDIENTE'
     });
     localStorage.setItem('completedOrders', JSON.stringify(completedOrders));
-    
+  }
+  
+  private completeOrder(): void {
     // Limpiar el carrito
     this.cartService.clearCart();
     

@@ -190,8 +190,8 @@
         <div id="tab-mercadopago" class="tab-content active">
             <form id="payment-form">
                 <div class="form-group">
-                    <label for="pedidoId">ID del Pedido:</label>
-                    <input type="number" id="pedidoId" required>
+                    <label for="pedidoId">Código del Pedido:</label>
+                    <input type="text" id="pedidoId" required>
                 </div>
                 
                 <div class="form-group">
@@ -259,8 +259,8 @@
             
             <form id="transfer-form">
                 <div class="form-group">
-                    <label for="transfer-pedidoId">ID del Pedido:</label>
-                    <input type="number" id="transfer-pedidoId" required>
+                    <label for="transfer-pedidoId">Código del Pedido:</label>
+                    <input type="text" id="transfer-pedidoId" required>
                 </div>
                 
                 <div class="form-group">
@@ -286,6 +286,12 @@
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Verificar si estamos en localhost con el puerto correcto
+            const host = window.location.host;
+            if (host.includes(':63342') || (host.includes('localhost') && !host.includes(':8080'))) {
+                alert('¡Atención! Estás accediendo a la aplicación a través de un puerto incorrecto.\n\nPor favor, accede a través de http://localhost:8080 o la URL de ngrok configurada.\n\nLa API REST está ejecutándose en el puerto 8080, no en el puerto que estás usando actualmente.');
+            }
+            
             // Verificar si estamos en localhost
             if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
                 document.getElementById('warning-localhost').classList.remove('hidden');
@@ -374,7 +380,7 @@
                 
                 // Crear objeto de datos
                 const data = {
-                    pedidoId: parseInt(pedidoId),
+                    codigoPedido: pedidoId,
                     montoTotal: parseFloat(montoTotal),
                     descripcion: descripcion,
                     items: items
@@ -389,8 +395,11 @@
                 const loadingElement = document.getElementById('loading');
                 if (loadingElement) loadingElement.classList.remove('hidden');
                 
+                // URL base desde la configuración
+                const baseUrl = window.location.origin;
+                
                 // Enviar solicitud a la API
-                fetch('/api/pagos/mercadopago/preferencia', {
+                fetch(`${baseUrl}/api/pagos/mercadopago/preferencia`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -455,8 +464,8 @@
                 const monto = document.getElementById('transfer-monto').value;
                 
                 // Validar campos básicos
-                if (!pedidoId || isNaN(parseInt(pedidoId)) || parseInt(pedidoId) <= 0) {
-                    alert('Por favor, ingresa un ID de pedido válido');
+                if (!pedidoId || pedidoId.trim() === '') {
+                    alert('Por favor, ingresa un código de pedido válido');
                     return;
                 }
                 
@@ -474,8 +483,11 @@
                 const loadingElement = document.getElementById('transfer-loading');
                 if (loadingElement) loadingElement.classList.remove('hidden');
                 
+                // URL base desde la configuración
+                const baseUrl = window.location.origin;
+                
                 // Crear URL con parámetros
-                const url = `/api/pagos/transferencia?pedidoId=${pedidoId}&monto=${monto}`;
+                const url = `${baseUrl}/api/pagos/transferencia?codigoPedido=${encodeURIComponent(pedidoId)}&monto=${monto}`;
                 
                 // Enviar solicitud a la API
                 fetch(url, {
@@ -500,7 +512,7 @@
                         <p class="success">¡Pago por transferencia registrado exitosamente!</p>
                         <p>Se ha registrado un pago por transferencia con los siguientes datos:</p>
                         <p><strong>ID de Pago:</strong> ${data.id}</p>
-                        <p><strong>ID de Pedido:</strong> ${data.pedidoId}</p>
+                        <p><strong>Código de Pedido:</strong> ${data.codigoPedido}</p>
                         <p><strong>Monto:</strong> $${data.monto}</p>
                         <p><strong>Estado:</strong> ${data.estado}</p>
                         <p><strong>Método:</strong> ${data.metodo}</p>
@@ -513,7 +525,7 @@
                     // Redireccionar a WhatsApp después de un breve retraso
                     setTimeout(() => {
                         // Construir mensaje para WhatsApp
-                        const mensaje = `Hola! He realizado un pedido con ID: ${data.pedidoId} y he elegido pagar por transferencia bancaria por un monto de $${data.monto}. ¿Podrías proporcionarme los datos para realizar la transferencia?`;
+                        const mensaje = `Hola! He realizado un pedido con código: ${data.codigoPedido} y he elegido pagar por transferencia bancaria por un monto de $${data.monto}. ¿Podrías proporcionarme los datos para realizar la transferencia?`;
                         
                         // Número de teléfono del vendedor (reemplazar con el número real)
                         const telefono = "5491123456789"; // Ejemplo: formato internacional sin el +
@@ -555,8 +567,8 @@
                 let isValid = true;
                 
                 // Validar ID de pedido
-                if (!pedidoId || isNaN(parseInt(pedidoId))) {
-                    showError('pedidoId', 'El ID del pedido debe ser un número válido');
+                if (!pedidoId || pedidoId.trim() === '') {
+                    showError('pedidoId', 'El código del pedido es obligatorio');
                     isValid = false;
                 } else {
                     clearError('pedidoId');

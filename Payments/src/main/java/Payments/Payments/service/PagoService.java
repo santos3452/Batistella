@@ -42,7 +42,7 @@ public class PagoService {
      */
     public PagoResponseDTO crearPreferenciaMercadoPago(PreferenceDTO preferenceDTO) {
         try {
-            log.info("Creando preferencia de pago para pedido: {}", preferenceDTO.getPedidoId());
+            log.info("Creando preferencia de pago para pedido: {}", preferenceDTO.getCodigoPedido());
             log.info("Cantidad de ítems: {}", preferenceDTO.getItems().size());
             
             // Preparar los ítems para la preferencia de Mercado Pago con más detalles
@@ -70,11 +70,11 @@ public class PagoService {
             
             // Configurar URLs de retorno
             String urlExito = preferenceDTO.getUrlExito() != null ? 
-                    preferenceDTO.getUrlExito() : appBaseUrl + "/pagos/exito";
+                    preferenceDTO.getUrlExito() : appBaseUrl + "/api/pagos/redirect/success";
             String urlFracaso = preferenceDTO.getUrlFracaso() != null ? 
-                    preferenceDTO.getUrlFracaso() : appBaseUrl + "/pagos/fracaso";
+                    preferenceDTO.getUrlFracaso() : appBaseUrl + "/api/pagos/redirect/error";
             String urlPendiente = preferenceDTO.getUrlPendiente() != null ? 
-                    preferenceDTO.getUrlPendiente() : appBaseUrl + "/pagos/pendiente";
+                    preferenceDTO.getUrlPendiente() : appBaseUrl + "/api/pagos/redirect/pending";
             
             log.info("URLs de redirección configuradas:");
             log.info("URL Éxito: {}", urlExito);
@@ -89,7 +89,7 @@ public class PagoService {
             
             // Crear metadatos adicionales para mejorar la visualización
             Map<String, Object> metadata = new HashMap<>();
-            metadata.put("order_id", preferenceDTO.getPedidoId().toString());
+            metadata.put("order_id", preferenceDTO.getCodigoPedido());
             metadata.put("order_type", "ecommerce_purchase");
             if (preferenceDTO.getDescripcion() != null) {
                 metadata.put("description", preferenceDTO.getDescripcion());
@@ -99,7 +99,7 @@ public class PagoService {
             var preferenceRequest = PreferenceRequest.builder()
                     .items(items)
                     .backUrls(backUrls)
-                    .externalReference(preferenceDTO.getPedidoId().toString())
+                    .externalReference(preferenceDTO.getCodigoPedido())
                     .statementDescriptor("Batistella Shop")
                     .metadata(metadata)
                     .autoReturn("approved")
@@ -109,7 +109,7 @@ public class PagoService {
             
             // Guardar el registro de pago en base de datos
             Pago pago = Pago.builder()
-                    .pedidoId(preferenceDTO.getPedidoId())
+                    .codigoPedido(preferenceDTO.getCodigoPedido())
                     .monto(preferenceDTO.getMontoTotal())
                     .metodo("mercadopago")
                     .fechaPago(null) // Se actualizará cuando se complete el pago
@@ -122,7 +122,7 @@ public class PagoService {
             // Construir y retornar la respuesta
             return PagoResponseDTO.builder()
                     .id(pago.getId())
-                    .pedidoId(pago.getPedidoId())
+                    .codigoPedido(pago.getCodigoPedido())
                     .monto(pago.getMonto())
                     .metodo(pago.getMetodo())
                     .fechaPago(pago.getFechaPago())
@@ -176,16 +176,16 @@ public class PagoService {
     /**
      * Lista todos los pagos de un pedido
      */
-    public List<Pago> listarPagosPorPedido(Long pedidoId) {
-        return pagoRepository.findByPedidoId(pedidoId);
+    public List<Pago> listarPagosPorPedido(String codigoPedido) {
+        return pagoRepository.findByCodigoPedido(codigoPedido);
     }
     
     /**
      * Registra un pago manual (efectivo, transferencia, etc.)
      */
-    public Pago registrarPagoManual(Long pedidoId, BigDecimal monto, String metodo) {
+    public Pago registrarPagoManual(String codigoPedido, BigDecimal monto, String metodo) {
         Pago pago = Pago.builder()
-                .pedidoId(pedidoId)
+                .codigoPedido(codigoPedido)
                 .monto(monto)
                 .metodo(metodo)
                 .fechaPago(LocalDateTime.now())
@@ -199,6 +199,70 @@ public class PagoService {
      * Guarda una entidad Pago en la base de datos
      */
     public Pago registrarPago(Pago pago) {
+        return pagoRepository.save(pago);
+    }
+
+    /**
+     * Procesa un retorno de pago desde Mercado Pago (callback)
+     * Esta función maneja el caso cuando el usuario regresa desde la página de Mercado Pago
+     */
+    public Pago procesarRetornoPago(String paymentId, String status, String externalReference) {
+        log.info("Procesando retorno de pago - paymentId: {}, status: {}, pedido: {}", 
+                paymentId, status, externalReference);
+        
+        // Primero intentamos buscar por payment_id (si está disponible)
+        Pago pago = null;
+        if (paymentId != null && !paymentId.isEmpty()) {
+            pago = pagoRepository.findByMercadoPagoPaymentId(paymentId);
+            if (pago != null) {
+                return actualizarEstadoPago(pago, paymentId, status);
+            }
+        }
+        
+        // Si no encontramos por payment_id, buscamos por external_reference (código pedido)
+        if (externalReference != null && !externalReference.isEmpty()) {
+            Optional<Pago> pagoOpt = pagoRepository.findLatestByCodigoPedido(externalReference);
+            if (pagoOpt.isPresent()) {
+                pago = pagoOpt.get();
+                return actualizarEstadoPago(pago, paymentId, status);
+            }
+        }
+        
+        log.warn("No se encontró registro de pago para actualizar: paymentId={}, pedido={}", 
+                paymentId, externalReference);
+        return null;
+    }
+    
+    /**
+     * Actualiza el estado de un pago con la información recibida
+     */
+    private Pago actualizarEstadoPago(Pago pago, String paymentId, String status) {
+        // Actualizar el ID de pago de Mercado Pago si no estaba establecido
+        if (pago.getMercadoPagoPaymentId() == null && paymentId != null) {
+            pago.setMercadoPagoPaymentId(paymentId);
+        }
+        
+        // Actualizar el estado según el status recibido
+        pago.setMercadoPagoStatus(status);
+        
+        switch (status) {
+            case "approved":
+                pago.setEstado("COMPLETADO");
+                pago.setFechaPago(LocalDateTime.now());
+                break;
+            case "rejected":
+                pago.setEstado("RECHAZADO");
+                break;
+            case "in_process":
+                pago.setEstado("EN_PROCESO");
+                break;
+            default:
+                pago.setEstado("PENDIENTE");
+                break;
+        }
+        
+        log.info("Actualizando pago ID: {}, Código pedido: {}, Estado: {}", 
+                pago.getId(), pago.getCodigoPedido(), pago.getEstado());
         return pagoRepository.save(pago);
     }
 } 

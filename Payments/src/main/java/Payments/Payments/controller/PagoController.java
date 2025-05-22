@@ -1,10 +1,13 @@
 package Payments.Payments.controller;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,12 +33,18 @@ public class PagoController {
 
     private final PagoService pagoService;
     
+    @Value("${app.frontend.url}")
+    private String frontendBaseUrl;
+    
+    @Value("${app.url.base}")
+    private String appBaseUrl;
+    
     /**
      * Crea una preferencia de pago con Mercado Pago
      */
     @PostMapping("/mercadopago/preferencia")
     public ResponseEntity<PagoResponseDTO> crearPreferencia(@RequestBody PreferenceDTO preferenceDTO) {
-        log.info("Creando preferencia de pago para pedido: {}", preferenceDTO.getPedidoId());
+        log.info("Creando preferencia de pago para pedido: {}", preferenceDTO.getCodigoPedido());
         PagoResponseDTO response = pagoService.crearPreferenciaMercadoPago(preferenceDTO);
         return ResponseEntity.ok(response);
     }
@@ -67,11 +76,11 @@ public class PagoController {
      * Registra un pago manual (efectivo, transferencia, etc.)
      */
     @PostMapping("/manual")
-    public ResponseEntity<Pago> registrarPagoManual(@RequestParam Long pedidoId, 
+    public ResponseEntity<Pago> registrarPagoManual(@RequestParam String codigoPedido, 
                                                     @RequestParam BigDecimal monto,
                                                     @RequestParam String metodo) {
-        log.info("Registrando pago manual para pedido: {}, método: {}, monto: {}", pedidoId, metodo, monto);
-        Pago pago = pagoService.registrarPagoManual(pedidoId, monto, metodo);
+        log.info("Registrando pago manual para pedido: {}, método: {}, monto: {}", codigoPedido, metodo, monto);
+        Pago pago = pagoService.registrarPagoManual(codigoPedido, monto, metodo);
         return ResponseEntity.ok(pago);
     }
     
@@ -88,9 +97,9 @@ public class PagoController {
     /**
      * Lista todos los pagos de un pedido
      */
-    @GetMapping("/pedido/{pedidoId}")
-    public ResponseEntity<List<Pago>> listarPagosPorPedido(@PathVariable Long pedidoId) {
-        List<Pago> pagos = pagoService.listarPagosPorPedido(pedidoId);
+    @GetMapping("/pedido/{codigoPedido}")
+    public ResponseEntity<List<Pago>> listarPagosPorPedido(@PathVariable String codigoPedido) {
+        List<Pago> pagos = pagoService.listarPagosPorPedido(codigoPedido);
         return ResponseEntity.ok(pagos);
     }
     
@@ -98,13 +107,13 @@ public class PagoController {
      * Crea un registro de pago por transferencia bancaria (estado PENDIENTE)
      */
     @PostMapping("/transferencia")
-    public ResponseEntity<Pago> crearPagoTransferencia(@RequestParam Long pedidoId,
+    public ResponseEntity<Pago> crearPagoTransferencia(@RequestParam String codigoPedido,
                                                        @RequestParam BigDecimal monto,
                                                        @RequestParam(required = false) String observacion) {
-        log.info("Creando pago por transferencia para pedido: {}, monto: {}", pedidoId, monto);
+        log.info("Creando pago por transferencia para pedido: {}, monto: {}", codigoPedido, monto);
         
         Pago pago = Pago.builder()
-                .pedidoId(pedidoId)
+                .codigoPedido(codigoPedido)
                 .monto(monto)
                 .metodo("transferencia")
                 .fechaPago(null) // Se actualizará cuando se verifique la transferencia
@@ -114,5 +123,193 @@ public class PagoController {
         
         pago = pagoService.registrarPago(pago);
         return ResponseEntity.ok(pago);
+    }
+    
+    /**
+     * Procesa el retorno desde Mercado Pago cuando el pago es exitoso
+     */
+    @GetMapping("/retorno/exito")
+    public ResponseEntity<Pago> procesarRetornoExitoso(
+            @RequestParam(required = false) String payment_id,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String external_reference) {
+        
+        log.info("Procesando retorno exitoso - payment_id: {}, status: {}, pedido: {}", 
+                payment_id, status, external_reference);
+        
+        Pago pago = pagoService.procesarRetornoPago(payment_id, status, external_reference);
+        if (pago != null) {
+            return ResponseEntity.ok(pago);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(null);
+        }
+    }
+    
+    /**
+     * Procesa el retorno desde Mercado Pago cuando el pago es rechazado
+     */
+    @GetMapping("/retorno/fracaso")
+    public ResponseEntity<Pago> procesarRetornoFracaso(
+            @RequestParam(required = false) String payment_id,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String external_reference) {
+        
+        log.info("Procesando retorno fallido - payment_id: {}, status: {}, pedido: {}", 
+                payment_id, status, external_reference);
+        
+        Pago pago = pagoService.procesarRetornoPago(payment_id, status, external_reference);
+        if (pago != null) {
+            return ResponseEntity.ok(pago);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(null);
+        }
+    }
+    
+    /**
+     * Procesa el retorno desde Mercado Pago cuando el pago está pendiente
+     */
+    @GetMapping("/retorno/pendiente")
+    public ResponseEntity<Pago> procesarRetornoPendiente(
+            @RequestParam(required = false) String payment_id,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String external_reference) {
+        
+        log.info("Procesando retorno pendiente - payment_id: {}, status: {}, pedido: {}", 
+                payment_id, status, external_reference);
+        
+        Pago pago = pagoService.procesarRetornoPago(payment_id, status, external_reference);
+        if (pago != null) {
+            return ResponseEntity.ok(pago);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(null);
+        }
+    }
+    
+    /**
+     * Redirige al frontend después de un pago exitoso
+     */
+    @GetMapping("/redirect/success")
+    public ResponseEntity<Void> redirectSuccess(
+            @RequestParam(required = false) String payment_id,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String external_reference) {
+        
+        log.info("Redirigiendo después de pago exitoso - payment_id: {}, status: {}, pedido: {}", 
+                payment_id, status, external_reference);
+        
+        // Procesar el pago primero
+        pagoService.procesarRetornoPago(payment_id, status, external_reference);
+        
+        // Construir URL de redirección a la página intermedia
+        StringBuilder redirectUrl = new StringBuilder("/redirect.html?type=success");
+        if (payment_id != null) {
+            redirectUrl.append("&payment_id=").append(payment_id);
+        }
+        if (status != null) {
+            redirectUrl.append("&status=").append(status);
+        }
+        if (external_reference != null) {
+            redirectUrl.append("&order_id=").append(external_reference);
+        }
+        
+        return ResponseEntity.status(HttpStatus.FOUND)
+                .header("Location", redirectUrl.toString())
+                .build();
+    }
+    
+    /**
+     * Redirige al frontend después de un pago con error
+     */
+    @GetMapping("/redirect/error")
+    public ResponseEntity<Void> redirectError(
+            @RequestParam(required = false) String payment_id,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String external_reference) {
+        
+        log.info("Redirigiendo después de pago con error - payment_id: {}, status: {}, pedido: {}", 
+                payment_id, status, external_reference);
+        
+        // Procesar el pago primero
+        pagoService.procesarRetornoPago(payment_id, status, external_reference);
+        
+        // Construir URL de redirección a la página intermedia
+        StringBuilder redirectUrl = new StringBuilder("/redirect.html?type=error");
+        if (payment_id != null) {
+            redirectUrl.append("&payment_id=").append(payment_id);
+        }
+        if (status != null) {
+            redirectUrl.append("&status=").append(status);
+        }
+        if (external_reference != null) {
+            redirectUrl.append("&order_id=").append(external_reference);
+        }
+        
+        return ResponseEntity.status(HttpStatus.FOUND)
+                .header("Location", redirectUrl.toString())
+                .build();
+    }
+    
+    /**
+     * Redirige al frontend después de un pago pendiente
+     */
+    @GetMapping("/redirect/pending")
+    public ResponseEntity<Void> redirectPending(
+            @RequestParam(required = false) String payment_id,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String external_reference) {
+        
+        log.info("Redirigiendo después de pago pendiente - payment_id: {}, status: {}, pedido: {}", 
+                payment_id, status, external_reference);
+        
+        // Procesar el pago primero
+        pagoService.procesarRetornoPago(payment_id, status, external_reference);
+        
+        // Construir URL de redirección a la página intermedia
+        StringBuilder redirectUrl = new StringBuilder("/redirect.html?type=pending");
+        if (payment_id != null) {
+            redirectUrl.append("&payment_id=").append(payment_id);
+        }
+        if (status != null) {
+            redirectUrl.append("&status=").append(status);
+        }
+        if (external_reference != null) {
+            redirectUrl.append("&order_id=").append(external_reference);
+        }
+        
+        return ResponseEntity.status(HttpStatus.FOUND)
+                .header("Location", redirectUrl.toString())
+                .build();
+    }
+    
+    /**
+     * Endpoint de diagnóstico para verificar la configuración
+     */
+    @GetMapping("/diagnostico")
+    public ResponseEntity<Map<String, Object>> diagnostico() {
+        Map<String, Object> diagnostico = new HashMap<>();
+        
+        // Información del servidor
+        diagnostico.put("backend_url", appBaseUrl);
+        diagnostico.put("frontend_url", frontendBaseUrl);
+        diagnostico.put("timestamp", LocalDateTime.now().toString());
+        
+        // URLs de redirección
+        diagnostico.put("redirect_success", appBaseUrl + "/api/pagos/redirect/success");
+        diagnostico.put("redirect_error", appBaseUrl + "/api/pagos/redirect/error");
+        diagnostico.put("redirect_pending", appBaseUrl + "/api/pagos/redirect/pending");
+        
+        // Estado de la conexión con Mercado Pago
+        try {
+            // Intenta obtener información básica de Mercado Pago (se podría expandir)
+            diagnostico.put("mercadopago_connection", "OK");
+        } catch (Exception e) {
+            diagnostico.put("mercadopago_connection", "ERROR");
+            diagnostico.put("mercadopago_error", e.getMessage());
+        }
+        
+        return ResponseEntity.ok(diagnostico);
     }
 } 

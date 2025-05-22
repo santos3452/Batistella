@@ -1,0 +1,103 @@
+<div class="container mx-auto max-w-4xl px-4 py-8">
+  <!-- Spinner de carga -->
+  <div *ngIf="isLoading" class="flex justify-center items-center h-64">
+    <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-teal-500"></div>
+  </div>
+
+  <!-- Mensaje de error -->
+  <div *ngIf="errorMessage" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6" role="alert">
+    <p>{{ errorMessage }}</p>
+  </div>
+
+  <!-- Contenido principal -->
+  <div *ngIf="!isLoading && !errorMessage" class="bg-white rounded-lg shadow-lg overflow-hidden">
+    <!-- Encabezado -->
+    <div class="bg-teal-500 p-6 text-white">
+      <div class="flex items-center mb-4">
+        <div class="bg-white rounded-full p-2 mr-4">
+          <svg class="h-8 w-8 text-teal-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <h1 class="text-2xl font-bold">¡Pago Exitoso!</h1>
+      </div>
+      <p class="text-lg">Tu pedido ha sido confirmado y pagado correctamente.</p>
+    </div>
+
+    <!-- Información del pedido -->
+    <div class="p-6">
+      <div class="mb-6">
+        <h2 class="text-lg font-medium mb-2">Detalles del pedido</h2>
+        <div *ngIf="pedidoInfo" class="bg-gray-50 p-4 rounded-md">
+          <div class="flex justify-between mb-2">
+            <span class="text-gray-600">Código de pedido:</span>
+            <span class="font-medium">{{ pedidoInfo.codigoPedido || 'No disponible' }}</span>
+          </div>
+          <div class="flex justify-between mb-2">
+            <span class="text-gray-600">Monto total:</span>
+            <span class="font-medium">{{ utils.formatCurrency(pedidoInfo.monto) }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-600">Estado:</span>
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+              {{ pedidoInfo.estado || 'PAGADO' }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Información de pago -->
+      <div class="mb-6">
+        <h2 class="text-lg font-medium mb-2">Información del pago</h2>
+        <div class="bg-gray-50 p-4 rounded-md">
+          <div class="flex justify-between mb-2">
+            <span class="text-gray-600">ID de pago:</span>
+            <span class="font-medium">{{ paymentId || 'No disponible' }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-600">ID de orden:</span>
+            <span class="font-medium">{{ merchantOrderId || 'No disponible' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Productos -->
+      <div *ngIf="pedidoInfo && pedidoInfo.items" class="mb-6">
+        <h2 class="text-lg font-medium mb-2">Productos</h2>
+        <div class="bg-gray-50 p-4 rounded-md">
+          <ul class="divide-y divide-gray-200">
+            <li *ngFor="let item of pedidoInfo.items" class="py-2 flex justify-between">
+              <div>
+                <span>{{ item.product ? item.product.fullName : item.titulo || 'Producto' }}</span>
+                <span class="text-gray-500 ml-2">x{{ item.quantity || item.cantidad }}</span>
+              </div>
+              <span class="font-medium">{{ utils.formatCurrency((item.product ? item.product.priceMinorista * item.quantity : item.precioUnitario * item.cantidad)) }}</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Mensaje adicional -->
+      <div class="bg-teal-50 border-l-4 border-teal-400 p-4 mb-6">
+        <p class="text-teal-700">
+          Te enviaremos un correo electrónico con la confirmación y detalles de tu pedido. 
+          ¡Gracias por tu compra!
+        </p>
+      </div>
+
+      <!-- Botones -->
+      <div class="flex flex-col sm:flex-row justify-between gap-4">
+        <button 
+          (click)="volverAInicio()" 
+          class="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-md transition focus:outline-none focus:ring-2 focus:ring-gray-300">
+          Volver a Inicio
+        </button>
+        <button 
+          (click)="verPedidos()" 
+          class="px-6 py-3 bg-teal-600 hover:bg-teal-700 text-white rounded-md transition focus:outline-none focus:ring-2 focus:ring-teal-500">
+          Ver Mis Pedidos
+        </button>
+      </div>
+    </div>
+  </div>
+</div> 
