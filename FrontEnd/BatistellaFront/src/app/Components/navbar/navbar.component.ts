@@ -288,4 +288,18 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.authService.logout();
     this.router.navigate(['/login']);
   }
+
+  // Método para manejar el clic en elementos del menú de usuario
+  navigateToProtectedRoute(route: string): void {
+    // Verificar si el usuario sigue autenticado (token válido)
+    if (!this.authService.isAuthenticated()) {
+      console.log('Token expirado o inválido al navegar');
+      this.logout();
+      return;
+    }
+    
+    // Si está autenticado, permitir la navegación
+    this.showUserMenu = false;
+    this.router.navigate([route]);
+  }
 }

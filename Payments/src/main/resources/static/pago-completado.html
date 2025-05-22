@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pago Completado</title>
+    <style>
+        body {font-family: Arial; margin: 0; padding: 20px; background-color: #f5f5f5;}
+        .container {max-width: 800px; margin: 0 auto; background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center;}
+        h1 {color: #003087;}
+        .success-icon {font-size: 64px; color: #00c853; margin: 20px 0;}
+        .details {margin: 20px 0; text-align: left; padding: 15px; background-color: #f0f8ff; border-radius: 4px;}
+        .button {background-color: #009ee3; color: white; text-decoration: none; padding: 10px 15px; border-radius: 4px; display: inline-block;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>¡Pago Completado!</h1>
+        <div class="success-icon">✓</div>
+        <p>Tu pago ha sido procesado exitosamente.</p>
+        
+        <div class="details" id="payment-details">
+            <h3>Detalles del Pago:</h3>
+            <div id="details-content"></div>
+        </div>
+        
+        <a href="/" class="button">Volver al Inicio</a>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const paymentId = urlParams.get('payment_id');
+            const status = urlParams.get('status');
+            const externalReference = urlParams.get('external_reference');
+            
+            const detailsContent = document.getElementById('details-content');
+            
+            if (paymentId && status) {
+                detailsContent.innerHTML = `
+                    <p><strong>ID de Pago:</strong> ${paymentId}</p>
+                    <p><strong>Estado:</strong> ${status}</p>
+                    ${externalReference ? `<p><strong>Pedido:</strong> ${externalReference}</p>` : ''}
+                `;
+            } else {
+                detailsContent.innerHTML = '<p>No se encontraron detalles del pago.</p>';
+            }
+        });
+    </script>
+</body>
+</html> 

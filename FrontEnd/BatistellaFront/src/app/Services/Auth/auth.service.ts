@@ -43,6 +43,13 @@ export class AuthService {
     
     if (userData && token) {
       try {
+        // Verificar si el token ha expirado
+        if (this.isTokenExpired(token)) {
+          console.log('Token expirado al cargar el usuario');
+          this.logout();
+          return;
+        }
+        
         const user = JSON.parse(userData);
         this.currentUserSubject.next(user);
         this.isAuthenticatedSubject.next(true);
@@ -51,6 +58,41 @@ export class AuthService {
         console.error('Error al cargar los datos del usuario:', error);
         this.logout();
       }
+    }
+  }
+
+  /**
+   * Verifica si el token JWT está expirado
+   * @param token Token JWT
+   * @returns true si el token está expirado, false si es válido
+   */
+  private isTokenExpired(token: string): boolean {
+    try {
+      // Decodificar el payload del token (segunda parte del JWT)
+      const parts = token.split('.');
+      if (parts.length !== 3) {
+        return true; // Token inválido
+      }
+      
+      // Decodificar la parte del payload (Base64Url)
+      const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+      
+      // Verificar si tiene fecha de expiración
+      if (!payload.exp) {
+        return false; // Si no tiene fecha de expiración, lo consideramos válido
+      }
+      
+      // Convertir a milisegundos y comparar con la fecha actual
+      const expDate = new Date(payload.exp * 1000);
+      const now = new Date();
+      
+      console.log('Fecha de expiración del token:', expDate);
+      console.log('Fecha actual:', now);
+      
+      return expDate < now;
+    } catch (error) {
+      console.error('Error al verificar la expiración del token:', error);
+      return true; // En caso de error, consideramos que está expirado
     }
   }
 
@@ -283,6 +325,17 @@ export class AuthService {
    * Comprueba si el usuario actual está autenticado
    */
   isAuthenticated(): boolean {
+    // Verificar primero si el token ha expirado
+    const token = localStorage.getItem('token');
+    if (!token || this.isTokenExpired(token)) {
+      // Si el token no existe o está expirado, cerrar sesión
+      if (token) {
+        console.log('Token expirado al verificar autenticación');
+        this.logout();
+      }
+      return false;
+    }
+    
     return this.isAuthenticatedSubject.value;
   }
 

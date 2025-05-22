@@ -48,10 +48,8 @@
     <!-- Enlace a Mis Pedidos (solo visible para usuarios autenticados) -->
     <a 
       *ngIf="isLoggedIn"
-      routerLink="/mis-pedidos" 
-      routerLinkActive="bg-gray-100 text-teal-600"
-      class="flex items-center space-x-2 text-gray-700 hover:text-teal-600 py-2 px-3 rounded-md hover:bg-gray-100 mt-2"
-      (click)="closeSidebar()"
+      (click)="navigateToProtectedRoute('/mis-pedidos')" 
+      class="flex items-center space-x-2 text-gray-700 hover:text-teal-600 py-2 px-3 rounded-md hover:bg-gray-100 mt-2 cursor-pointer"
     >
       <svg xmlns="http://www.w3.org/2000/svg" width="31" height="31" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>

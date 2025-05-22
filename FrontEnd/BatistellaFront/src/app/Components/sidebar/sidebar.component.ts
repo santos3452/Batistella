@@ -4,6 +4,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 import { ProductService } from '../../Services/Product/product.service';
 import { AuthService } from '../../Services/Auth/auth.service';
 import { Subscription } from 'rxjs';
+import { Router } from '@angular/router';
 
 interface Category {
   id: string;
@@ -108,7 +109,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
   
   constructor(
     private productService: ProductService,
-    private authService: AuthService
+    private authService: AuthService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -165,5 +167,20 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   scrollToTop(): void {
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // Método para gestionar la navegación a rutas protegidas
+  navigateToProtectedRoute(route: string): void {
+    // Verificar si el usuario sigue autenticado (token válido)
+    if (this.isLoggedIn && !this.authService.isAuthenticated()) {
+      console.log('Token expirado o inválido al navegar desde sidebar');
+      // Cerrar sesión y redireccionar al login
+      this.authService.logout();
+      return;
+    }
+    
+    // Si está autenticado o la ruta no requiere autenticación, permitir la navegación
+    this.closeSidebar();
+    this.router.navigate([route]);
   }
 }

@@ -6,6 +6,7 @@ import { UserService } from '../../Services/Auth/user.service';
 import { LocationService, Location } from '../../Services/Utils/location.service';
 import { firstValueFrom, debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 import { User, Address, UpdateUserDto, UpdateAddressDto } from '../../Models/user';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-profile',
@@ -52,7 +53,8 @@ export class ProfileComponent implements OnInit {
   constructor(
     private authService: AuthService,
     private userService: UserService,
-    private locationService: LocationService
+    private locationService: LocationService,
+    private router: Router
   ) {
     // Configura el observable de búsqueda con debounce
     this.searchTerms.pipe(
@@ -64,6 +66,13 @@ export class ProfileComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    // Verificar si el token sigue siendo válido
+    if (!this.authService.isAuthenticated()) {
+      console.log('Token expirado al acceder al perfil');
+      this.router.navigate(['/login']);
+      return;
+    }
+    
     this.isLoading = true;
     
     // Primero obtenemos los datos actuales del usuario

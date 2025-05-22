@@ -96,6 +96,13 @@ export class MisPedidosComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    // Verificar si el token sigue siendo válido
+    if (!this.authService.isAuthenticated()) {
+      console.log('Token expirado al acceder a mis pedidos');
+      this.router.navigate(['/login']);
+      return;
+    }
+    
     this.cargarPedidos();
   }
 

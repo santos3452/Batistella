@@ -202,7 +202,7 @@
         
         <!-- Menú desplegable del usuario -->
         <div *ngIf="showUserMenu" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50 py-1">
-          <a routerLink="/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-teal-600">
+          <a (click)="navigateToProtectedRoute('/profile')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-teal-600 cursor-pointer">
             <div class="flex items-center space-x-2">
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
@@ -211,7 +211,7 @@
               <span>Mi Perfil</span>
             </div>
           </a>
-          <a routerLink="/mis-pedidos" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-teal-600">
+          <a (click)="navigateToProtectedRoute('/mis-pedidos')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-teal-600 cursor-pointer">
             <div class="flex items-center space-x-2">
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
@@ -223,7 +223,7 @@
           </a>
           
           <!-- Opción solo para administradores -->
-          <a *ngIf="isAdmin" routerLink="/admin/products" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-teal-600">
+          <a *ngIf="isAdmin" (click)="navigateToProtectedRoute('/admin/products')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-teal-600 cursor-pointer">
             <div class="flex items-center space-x-2">
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>

@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prueba de Pagos con Mercado Pago</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #003087;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #009ee3;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #007eb5;
+        }
+        .items-container {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+        }
+        .item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f0f8ff;
+            border-radius: 4px;
+        }
+        .hidden {
+            display: none;
+        }
+        .success {
+            color: green;
+        }
+        .error {
+            color: red;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            color: #856404;
+        }
+        .error-field {
+            border: 1px solid #d32f2f !important;
+            background-color: #ffebee;
+        }
+        .error-message {
+            color: #d32f2f;
+            font-size: 12px;
+            margin-top: 4px;
+        }
+        .required {
+            color: #d32f2f;
+        }
+        textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+        }
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 10px;
+        }
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #009ee3;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .remove-item {
+            background-color: #f44336;
+            margin-top: 5px;
+            margin-bottom: 15px;
+        }
+        .remove-item:hover {
+            background-color: #d32f2f;
+        }
+        /* Estilos para pestañas */
+        .tabs-container {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            border-bottom: none;
+            border-radius: 4px 4px 0 0;
+            margin-right: 5px;
+        }
+        .tab.active {
+            background-color: #fff;
+            border-color: #ddd;
+            color: #009ee3;
+            font-weight: bold;
+            margin-bottom: -1px;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Estilos para la información bancaria */
+        .bank-info {
+            background-color: #e8f4fd;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            border-left: 4px solid #009ee3;
+        }
+        .info-box {
+            background-color: #f0f8ff;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Prueba de Pagos con Mercado Pago</h1>
+        
+        <div id="warning-localhost" class="warning hidden">
+            <strong>¡ADVERTENCIA!</strong> Estás utilizando el entorno local (localhost) para pruebas.
+            <p>Mercado Pago no permite URLs de retorno que usen localhost. Para realizar pruebas completas, configura ngrok u otra herramienta similar.</p>
+            <p>Consulta <a href="README-NGROK.md" target="_blank">README-NGROK.md</a> para más información sobre cómo configurar Ngrok.</p>
+        </div>
+        
+        <!-- Tabs de navegación -->
+        <div class="tabs-container">
+            <div class="tab active" data-tab="mercadopago">Pago con Mercado Pago</div>
+            <div class="tab" data-tab="transferencia">Pago por Transferencia</div>
+        </div>
+
+        <!-- Formulario de Mercado Pago -->
+        <div id="tab-mercadopago" class="tab-content active">
+            <form id="payment-form">
+                <div class="form-group">
+                    <label for="pedidoId">ID del Pedido:</label>
+                    <input type="number" id="pedidoId" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="montoTotal">Monto Total:</label>
+                    <input type="number" id="montoTotal" step="0.01" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="descripcion">Descripción:</label>
+                    <input type="text" id="descripcion" required>
+                </div>
+                
+                <h3>Productos</h3>
+                <div id="items-container" class="items-container">
+                    <div class="item">
+                        <div class="form-group">
+                            <label>Título del producto: <span class="required">*</span></label>
+                            <input type="text" class="item-titulo" placeholder="Ej: Camiseta de algodón" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Descripción:</label>
+                            <textarea class="item-descripcion" placeholder="Ej: Camiseta 100% algodón, talla L, color azul" rows="2"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Cantidad: <span class="required">*</span></label>
+                            <input type="number" class="item-cantidad" min="1" value="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Precio Unitario: <span class="required">*</span></label>
+                            <input type="number" class="item-precio" step="0.01" placeholder="99.99" required>
+                        </div>
+                        <button type="button" class="remove-item">Eliminar</button>
+                    </div>
+                </div>
+                
+                <button type="button" id="add-item">Agregar Producto</button>
+                
+                <div class="form-group" style="margin-top: 20px;">
+                    <button type="submit" id="submit-btn">Crear Preferencia de Pago</button>
+                    <div id="loading" class="loading hidden">
+                        <div class="loading-spinner"></div>
+                        <span>Procesando...</span>
+                    </div>
+                </div>
+            </form>
+            
+            <div id="result" class="result hidden">
+                <h3>Resultado:</h3>
+                <div id="result-content"></div>
+                <div id="payment-link" class="hidden">
+                    <h4>Enlace de Pago:</h4>
+                    <a href="#" id="mp-link" target="_blank">Ir a Pagar</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Formulario de Transferencia Bancaria -->
+        <div id="tab-transferencia" class="tab-content">
+            <h2>Pago por Transferencia Bancaria</h2>
+            
+            <div class="info-box">
+                <p>Al elegir esta opción, se generará un registro de pago pendiente y serás redirigido a WhatsApp para coordinar los detalles con el vendedor.</p>
+                <p>El vendedor te proporcionará los datos para realizar la transferencia y verificará el pago una vez realizado.</p>
+            </div>
+            
+            <form id="transfer-form">
+                <div class="form-group">
+                    <label for="transfer-pedidoId">ID del Pedido:</label>
+                    <input type="number" id="transfer-pedidoId" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="transfer-monto">Monto de la Transferencia:</label>
+                    <input type="number" id="transfer-monto" step="0.01" required>
+                </div>
+                
+                <div class="form-group">
+                    <button type="submit" id="transfer-submit-btn">Confirmar Pago por Transferencia</button>
+                    <div id="transfer-loading" class="loading hidden">
+                        <div class="loading-spinner"></div>
+                        <span>Procesando...</span>
+                    </div>
+                </div>
+            </form>
+            
+            <div id="transfer-result" class="result hidden">
+                <h3>Resultado:</h3>
+                <div id="transfer-result-content"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Verificar si estamos en localhost
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                document.getElementById('warning-localhost').classList.remove('hidden');
+            }
+            
+            // Manejar las pestañas
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // Eliminar clase active de todas las pestañas
+                    tabs.forEach(t => t.classList.remove('active'));
+                    // Agregar clase active a la pestaña actual
+                    this.classList.add('active');
+                    
+                    // Ocultar todos los contenidos de pestañas
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    
+                    // Mostrar el contenido de la pestaña seleccionada
+                    const tabId = `tab-${this.getAttribute('data-tab')}`;
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+            
+            // Agregar un nuevo producto
+            document.getElementById('add-item').addEventListener('click', function() {
+                const container = document.getElementById('items-container');
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'item';
+                itemDiv.innerHTML = `
+                    <div class="form-group">
+                        <label>Título del producto: <span class="required">*</span></label>
+                        <input type="text" class="item-titulo" placeholder="Ej: Camiseta de algodón" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Descripción:</label>
+                        <textarea class="item-descripcion" placeholder="Ej: Camiseta 100% algodón, talla L, color azul" rows="2"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Cantidad: <span class="required">*</span></label>
+                        <input type="number" class="item-cantidad" min="1" value="1" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Precio Unitario: <span class="required">*</span></label>
+                        <input type="number" class="item-precio" step="0.01" placeholder="99.99" required>
+                    </div>
+                    <button type="button" class="remove-item">Eliminar</button>
+                `;
+                container.appendChild(itemDiv);
+                
+                // Agregar evento para eliminar producto
+                itemDiv.querySelector('.remove-item').addEventListener('click', function() {
+                    container.removeChild(itemDiv);
+                });
+            });
+            
+            // Enviar formulario para crear preferencia de pago con Mercado Pago
+            document.getElementById('payment-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Validar campos
+                const form = this;
+                const isValid = validateForm(form);
+                if (!isValid) {
+                    return;
+                }
+                
+                // Obtener datos del formulario
+                const pedidoId = document.getElementById('pedidoId').value;
+                const montoTotal = document.getElementById('montoTotal').value;
+                const descripcion = document.getElementById('descripcion').value;
+                
+                // Obtener productos
+                const items = [];
+                const itemElements = document.querySelectorAll('.item');
+                
+                itemElements.forEach(function(item) {
+                    items.push({
+                        titulo: item.querySelector('.item-titulo').value,
+                        descripcion: item.querySelector('.item-descripcion').value || item.querySelector('.item-titulo').value,
+                        cantidad: parseInt(item.querySelector('.item-cantidad').value),
+                        precioUnitario: parseFloat(item.querySelector('.item-precio').value)
+                    });
+                });
+                
+                // Crear objeto de datos
+                const data = {
+                    pedidoId: parseInt(pedidoId),
+                    montoTotal: parseFloat(montoTotal),
+                    descripcion: descripcion,
+                    items: items
+                };
+                
+                // Deshabilitar botón de envío
+                const submitBtn = document.getElementById('submit-btn');
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Procesando...';
+                
+                // Mostrar loading
+                const loadingElement = document.getElementById('loading');
+                if (loadingElement) loadingElement.classList.remove('hidden');
+                
+                // Enviar solicitud a la API
+                fetch('/api/pagos/mercadopago/preferencia', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error al crear la preferencia de pago');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Mostrar resultado exitoso
+                    const resultDiv = document.getElementById('result');
+                    const resultContent = document.getElementById('result-content');
+                    const paymentLink = document.getElementById('payment-link');
+                    const mpLink = document.getElementById('mp-link');
+                    
+                    resultDiv.classList.remove('hidden');
+                    resultContent.innerHTML = `
+                        <p class="success">¡Preferencia de pago creada exitosamente!</p>
+                        <p><strong>ID de Pago:</strong> ${data.id}</p>
+                        <p><strong>Estado:</strong> ${data.estado}</p>
+                        <p><strong>Monto:</strong> $${data.monto}</p>
+                        <p><strong>ID de Preferencia MP:</strong> ${data.mercadoPagoPreferenceId}</p>
+                    `;
+                    
+                    if (data.urlPago) {
+                        paymentLink.classList.remove('hidden');
+                        mpLink.href = data.urlPago;
+                    }
+                })
+                .catch(error => {
+                    // Mostrar error
+                    const resultDiv = document.getElementById('result');
+                    const resultContent = document.getElementById('result-content');
+                    
+                    resultDiv.classList.remove('hidden');
+                    resultContent.innerHTML = `
+                        <p class="error">Error: ${error.message}</p>
+                        <p>Si estás usando localhost, recuerda que Mercado Pago requiere URLs públicas. Configura Ngrok como se explica en las instrucciones.</p>
+                    `;
+                })
+                .finally(() => {
+                    // Ocultar loading
+                    const loadingElement = document.getElementById('loading');
+                    if (loadingElement) loadingElement.classList.add('hidden');
+                    
+                    // Restaurar botón de envío
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Crear Preferencia de Pago';
+                });
+            });
+            
+            // Formulario de transferencia bancaria
+            document.getElementById('transfer-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Obtener datos del formulario
+                const pedidoId = document.getElementById('transfer-pedidoId').value;
+                const monto = document.getElementById('transfer-monto').value;
+                
+                // Validar campos básicos
+                if (!pedidoId || isNaN(parseInt(pedidoId)) || parseInt(pedidoId) <= 0) {
+                    alert('Por favor, ingresa un ID de pedido válido');
+                    return;
+                }
+                
+                if (!monto || isNaN(parseFloat(monto)) || parseFloat(monto) <= 0) {
+                    alert('Por favor, ingresa un monto válido mayor a 0');
+                    return;
+                }
+                
+                // Deshabilitar botón de envío
+                const submitBtn = document.getElementById('transfer-submit-btn');
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Procesando...';
+                
+                // Mostrar loading
+                const loadingElement = document.getElementById('transfer-loading');
+                if (loadingElement) loadingElement.classList.remove('hidden');
+                
+                // Crear URL con parámetros
+                const url = `/api/pagos/transferencia?pedidoId=${pedidoId}&monto=${monto}`;
+                
+                // Enviar solicitud a la API
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error al registrar el pago por transferencia');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Mostrar resultado exitoso
+                    const resultDiv = document.getElementById('transfer-result');
+                    const resultContent = document.getElementById('transfer-result-content');
+                    
+                    resultDiv.classList.remove('hidden');
+                    resultContent.innerHTML = `
+                        <p class="success">¡Pago por transferencia registrado exitosamente!</p>
+                        <p>Se ha registrado un pago por transferencia con los siguientes datos:</p>
+                        <p><strong>ID de Pago:</strong> ${data.id}</p>
+                        <p><strong>ID de Pedido:</strong> ${data.pedidoId}</p>
+                        <p><strong>Monto:</strong> $${data.monto}</p>
+                        <p><strong>Estado:</strong> ${data.estado}</p>
+                        <p><strong>Método:</strong> ${data.metodo}</p>
+                        <p class="info">En breve serás redirigido a WhatsApp para coordinar los detalles con el vendedor...</p>
+                    `;
+                    
+                    // Limpiar formulario
+                    document.getElementById('transfer-form').reset();
+                    
+                    // Redireccionar a WhatsApp después de un breve retraso
+                    setTimeout(() => {
+                        // Construir mensaje para WhatsApp
+                        const mensaje = `Hola! He realizado un pedido con ID: ${data.pedidoId} y he elegido pagar por transferencia bancaria por un monto de $${data.monto}. ¿Podrías proporcionarme los datos para realizar la transferencia?`;
+                        
+                        // Número de teléfono del vendedor (reemplazar con el número real)
+                        const telefono = "5491123456789"; // Ejemplo: formato internacional sin el +
+                        
+                        // Construir URL de WhatsApp
+                        const whatsappUrl = `https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`;
+                        
+                        // Redireccionar a WhatsApp
+                        window.location.href = whatsappUrl;
+                    }, 3000); // Redireccionar después de 3 segundos
+                })
+                .catch(error => {
+                    // Mostrar error
+                    const resultDiv = document.getElementById('transfer-result');
+                    const resultContent = document.getElementById('transfer-result-content');
+                    
+                    resultDiv.classList.remove('hidden');
+                    resultContent.innerHTML = `
+                        <p class="error">Error: ${error.message}</p>
+                    `;
+                })
+                .finally(() => {
+                    // Ocultar loading
+                    const loadingElement = document.getElementById('transfer-loading');
+                    if (loadingElement) loadingElement.classList.add('hidden');
+                    
+                    // Restaurar botón de envío
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Confirmar Pago por Transferencia';
+                });
+            });
+            
+            // Función para validar el formulario
+            function validateForm(form) {
+                const pedidoId = document.getElementById('pedidoId').value;
+                const montoTotal = document.getElementById('montoTotal').value;
+                const items = document.querySelectorAll('.item');
+                
+                let isValid = true;
+                
+                // Validar ID de pedido
+                if (!pedidoId || isNaN(parseInt(pedidoId))) {
+                    showError('pedidoId', 'El ID del pedido debe ser un número válido');
+                    isValid = false;
+                } else {
+                    clearError('pedidoId');
+                }
+                
+                // Validar monto total
+                if (!montoTotal || isNaN(parseFloat(montoTotal)) || parseFloat(montoTotal) <= 0) {
+                    showError('montoTotal', 'El monto total debe ser un número mayor a 0');
+                    isValid = false;
+                } else {
+                    clearError('montoTotal');
+                }
+                
+                // Validar que haya al menos un item
+                if (items.length === 0) {
+                    alert('Debe agregar al menos un producto');
+                    isValid = false;
+                }
+                
+                // Validar cada item
+                items.forEach((item, index) => {
+                    const titulo = item.querySelector('.item-titulo').value;
+                    const cantidad = item.querySelector('.item-cantidad').value;
+                    const precio = item.querySelector('.item-precio').value;
+                    
+                    if (!titulo || titulo.trim() === '') {
+                        item.querySelector('.item-titulo').classList.add('error-field');
+                        isValid = false;
+                    } else {
+                        item.querySelector('.item-titulo').classList.remove('error-field');
+                    }
+                    
+                    if (!cantidad || isNaN(parseInt(cantidad)) || parseInt(cantidad) <= 0) {
+                        item.querySelector('.item-cantidad').classList.add('error-field');
+                        isValid = false;
+                    } else {
+                        item.querySelector('.item-cantidad').classList.remove('error-field');
+                    }
+                    
+                    if (!precio || isNaN(parseFloat(precio)) || parseFloat(precio) <= 0) {
+                        item.querySelector('.item-precio').classList.add('error-field');
+                        isValid = false;
+                    } else {
+                        item.querySelector('.item-precio').classList.remove('error-field');
+                    }
+                });
+                
+                return isValid;
+            }
+            
+            // Funciones para mostrar y limpiar errores
+            function showError(elementId, message) {
+                const element = document.getElementById(elementId);
+                element.classList.add('error-field');
+                
+                // Crear o actualizar mensaje de error
+                let errorElement = element.parentElement.querySelector('.error-message');
+                if (!errorElement) {
+                    errorElement = document.createElement('div');
+                    errorElement.className = 'error-message';
+                    element.parentElement.appendChild(errorElement);
+                }
+                errorElement.textContent = message;
+            }
+            
+            function clearError(elementId) {
+                const element = document.getElementById(elementId);
+                element.classList.remove('error-field');
+                
+                // Eliminar mensaje de error si existe
+                const errorElement = element.parentElement.querySelector('.error-message');
+                if (errorElement) {
+                    errorElement.remove();
+                }
+            }
+        });
+    </script>
+</body>
+</html> 
