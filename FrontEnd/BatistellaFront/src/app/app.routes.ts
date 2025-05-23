@@ -13,11 +13,11 @@ import { AuthGuard } from './Services/Auth/auth.guard';
 import { AdminGuard } from './Services/Auth/admin.guard';
 import { OrderSummaryComponent } from './Pages/checkout/order-summary/order-summary.component';
 import { PaymentMethodComponent } from './Pages/checkout/payment-method/payment-method.component';
+import { AdminPanelComponent } from './Components/admin/admin-panel/admin-panel.component';
+import { AdminPedidosComponent } from './Components/admin/admin-pedidos/admin-pedidos.component';
 import { PaymentSuccessComponent } from './Pages/checkout/payment-status/payment-success/payment-success.component';
 import { PaymentErrorComponent } from './Pages/checkout/payment-status/payment-error/payment-error.component';
 import { PaymentPendingComponent } from './Pages/checkout/payment-status/payment-pending/payment-pending.component';
-import { AdminPanelComponent } from './Components/admin/admin-panel/admin-panel.component';
-import { AdminPedidosComponent } from './Components/admin/admin-pedidos/admin-pedidos.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -63,8 +63,20 @@ export const routes: Routes = [
     component: PaymentMethodComponent, 
     canActivate: [AuthGuard] 
   },
-  { path: 'checkout/payment/success', component: PaymentSuccessComponent },
-  { path: 'checkout/payment/error', component: PaymentErrorComponent },
-  { path: 'checkout/payment/pending', component: PaymentPendingComponent },
+  { 
+    path: 'checkout/success', 
+    component: PaymentSuccessComponent, 
+    canActivate: [AuthGuard] 
+  },
+  { 
+    path: 'checkout/error', 
+    component: PaymentErrorComponent, 
+    canActivate: [AuthGuard] 
+  },
+  { 
+    path: 'checkout/pending', 
+    component: PaymentPendingComponent, 
+    canActivate: [AuthGuard] 
+  },
   { path: '**', redirectTo: '' }
 ];

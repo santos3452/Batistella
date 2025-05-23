@@ -88,7 +88,7 @@
             }
             
             // Construir la URL de redirección
-            let redirectUrl = `http://localhost:4200/checkout/payment/${type}`;
+            let redirectUrl = `http://localhost:4200/checkout/${type}`;
             let params = [];
             
             if (paymentId) params.push(`payment_id=${paymentId}`);
