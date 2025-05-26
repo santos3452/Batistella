@@ -3,9 +3,7 @@ package Payments.Payments.controller;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -13,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -20,8 +19,15 @@ import org.springframework.web.bind.annotation.RestController;
 
 import Payments.Payments.dto.PagoResponseDTO;
 import Payments.Payments.dto.PreferenceDTO;
+import Payments.Payments.exception.PagoNotFoundException;
 import Payments.Payments.model.Pago;
 import Payments.Payments.service.PagoService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -29,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping("/api/pagos")
 @RequiredArgsConstructor
 @Slf4j
+@Tag(name = "Pagos", description = "API para gestionar pagos")
 public class PagoController {
 
     private final PagoService pagoService;
@@ -42,8 +49,19 @@ public class PagoController {
     /**
      * Crea una preferencia de pago con Mercado Pago
      */
+    @Operation(
+        summary = "Crear preferencia de pago con Mercado Pago",
+        description = "Crea una preferencia de pago en Mercado Pago para un pedido"
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Preferencia creada correctamente"),
+        @ApiResponse(responseCode = "400", description = "Datos de solicitud inválidos"),
+        @ApiResponse(responseCode = "500", description = "Error al crear la preferencia")
+    })
     @PostMapping("/mercadopago/preferencia")
-    public ResponseEntity<PagoResponseDTO> crearPreferencia(@RequestBody PreferenceDTO preferenceDTO) {
+    public ResponseEntity<PagoResponseDTO> crearPreferencia(
+            @Parameter(description = "Datos para crear la preferencia de pago") 
+            @RequestBody PreferenceDTO preferenceDTO) {
         log.info("Creando preferencia de pago para pedido: {}", preferenceDTO.getCodigoPedido());
         PagoResponseDTO response = pagoService.crearPreferenciaMercadoPago(preferenceDTO);
         return ResponseEntity.ok(response);
@@ -52,8 +70,14 @@ public class PagoController {
     /**
      * Endpoint para procesar las notificaciones (webhooks) de Mercado Pago
      */
+    @Operation(
+        summary = "Procesar webhooks de Mercado Pago",
+        description = "Recibe y procesa notificaciones de cambios en los pagos desde Mercado Pago"
+    )
     @PostMapping("/webhooks/mercadopago")
-    public ResponseEntity<String> procesarWebhookMercadoPago(@RequestBody Map<String, Object> payload) {
+    public ResponseEntity<String> procesarWebhookMercadoPago(
+            @Parameter(description = "Datos de la notificación de Mercado Pago") 
+            @RequestBody Map<String, Object> payload) {
         log.info("Recibida notificación de Mercado Pago: {}", payload);
         
         try {
@@ -75,41 +99,32 @@ public class PagoController {
     /**
      * Registra un pago manual (efectivo, transferencia, etc.)
      */
+    @Operation(
+        summary = "Registrar pago manual",
+        description = "Registra un pago manual (efectivo, transferencia, etc.)"
+    )
     @PostMapping("/manual")
-    public ResponseEntity<Pago> registrarPagoManual(@RequestParam String codigoPedido, 
-                                                    @RequestParam BigDecimal monto,
-                                                    @RequestParam String metodo) {
+    public ResponseEntity<Pago> registrarPagoManual(
+            @Parameter(description = "Código del pedido") @RequestParam String codigoPedido, 
+            @Parameter(description = "Monto del pago") @RequestParam BigDecimal monto,
+            @Parameter(description = "Método de pago") @RequestParam String metodo) {
         log.info("Registrando pago manual para pedido: {}, método: {}, monto: {}", codigoPedido, metodo, monto);
         Pago pago = pagoService.registrarPagoManual(codigoPedido, monto, metodo);
         return ResponseEntity.ok(pago);
     }
     
     /**
-     * Obtiene un pago por su ID
-     */
-    @GetMapping("/{id}")
-    public ResponseEntity<Pago> obtenerPago(@PathVariable Long id) {
-        Optional<Pago> pago = pagoService.buscarPorId(id);
-        return pago.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
-    }
-    
-    /**
-     * Lista todos los pagos de un pedido
-     */
-    @GetMapping("/pedido/{codigoPedido}")
-    public ResponseEntity<List<Pago>> listarPagosPorPedido(@PathVariable String codigoPedido) {
-        List<Pago> pagos = pagoService.listarPagosPorPedido(codigoPedido);
-        return ResponseEntity.ok(pagos);
-    }
-    
-    /**
      * Crea un registro de pago por transferencia bancaria (estado PENDIENTE)
      */
+    @Operation(
+        summary = "Crear pago por transferencia",
+        description = "Registra un pago por transferencia bancaria en estado pendiente"
+    )
     @PostMapping("/transferencia")
-    public ResponseEntity<Pago> crearPagoTransferencia(@RequestParam String codigoPedido,
-                                                       @RequestParam BigDecimal monto,
-                                                       @RequestParam(required = false) String observacion) {
+    public ResponseEntity<Pago> crearPagoTransferencia(
+            @Parameter(description = "Código del pedido") @RequestParam String codigoPedido,
+            @Parameter(description = "Monto del pago") @RequestParam BigDecimal monto,
+            @Parameter(description = "Observación (opcional)") @RequestParam(required = false) String observacion) {
         log.info("Creando pago por transferencia para pedido: {}, monto: {}", codigoPedido, monto);
         
         Pago pago = Pago.builder()
@@ -123,6 +138,63 @@ public class PagoController {
         
         pago = pagoService.registrarPago(pago);
         return ResponseEntity.ok(pago);
+    }
+
+    /**
+     * Obtiene el estado de un pago por su codigo de pedido
+     */
+    @Operation(
+        summary = "Obtener estado de pago",
+        description = "Obtiene el estado actual de un pago por su código de pedido"
+    )
+    @GetMapping("/estado/{codigoPedido}")
+    public ResponseEntity<String> obtenerEstadoPago(
+            @Parameter(description = "Código del pedido") @PathVariable String codigoPedido) {
+        log.info("Obteniendo estado de pago para pedido: {}", codigoPedido);
+
+        String estado = pagoService.buscarPorCodigoDePedido(codigoPedido);
+        if (estado != null) {
+            return ResponseEntity.ok(estado);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("No se encontró el estado del pago para el pedido: " + codigoPedido);
+        }
+    }
+    
+    /**
+     * Cambia el estado de un pago por su código de pedido
+     * Requiere autenticación con rol ADMINISTRADOR
+     */
+    @Operation(
+        summary = "Cambiar estado de pago",
+        description = "Cambia el estado de un pago por su código de pedido. Requiere rol ADMINISTRADOR.",
+        security = @SecurityRequirement(name = "JWT")
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Estado actualizado correctamente"),
+        @ApiResponse(responseCode = "403", description = "No autorizado - Se requiere rol ADMINISTRADOR"),
+        @ApiResponse(responseCode = "404", description = "No se encontró el pago"),
+        @ApiResponse(responseCode = "500", description = "Error al cambiar el estado")
+    })
+    @PutMapping("/cambiarEstado")
+    public ResponseEntity<String> cambiarEstadoPago(
+            @Parameter(description = "Código del pedido") @RequestParam String codigoPedido, 
+            @Parameter(description = "Nuevo estado del pago") @RequestParam String estado) {
+        
+        log.info("Cambiando estado de pago para pedido: {} a: {}", codigoPedido, estado);
+        
+        try {
+            pagoService.cambiarEstadoPago(codigoPedido, estado);
+            return ResponseEntity.ok("Estado del pago actualizado correctamente");
+        } catch (PagoNotFoundException e) {
+            log.warn("Intento de cambiar estado a pago inexistente: {}", codigoPedido);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(e.getMessage());
+        } catch (Exception e) {
+            log.error("Error al cambiar el estado del pago", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al cambiar el estado del pago: " + e.getMessage());
+        }
     }
     
     /**

@@ -139,9 +139,28 @@ export class PaymentMethodComponent implements OnInit {
             if (this.selectedPaymentMethod === 'mercadopago') {
               this.procesarPagoMercadoPago(pedidoId, codigoPedido);
             } else {
-              this.isLoading = false;
-              this.prepareWhatsAppMessage();
-              this.orderCreated = true;
+              if (!this.orderSummary) {
+                this.errorMessage = 'Error: información del pedido no disponible';
+                this.isLoading = false;
+                return;
+              }
+              // Registrar el pago manual antes de mostrar el modal de WhatsApp
+              this.registrarPagoManual(codigoPedido, this.orderSummary.totalAmount)
+                .subscribe({
+                  next: (pagoResponse) => {
+                    console.log('Pago manual registrado:', pagoResponse);
+                    this.isLoading = false;
+                    this.prepareWhatsAppMessage(codigoPedido);
+                    this.orderCreated = true;
+                  },
+                  error: (error) => {
+                    console.error('Error al registrar pago manual:', error);
+                    // Continuamos con WhatsApp aunque falle el registro del pago
+                    this.isLoading = false;
+                    this.prepareWhatsAppMessage(codigoPedido);
+                    this.orderCreated = true;
+                  }
+                });
             }
           },
           error: (error) => {
@@ -156,6 +175,17 @@ export class PaymentMethodComponent implements OnInit {
       this.errorMessage = 'Error al procesar el pago. Por favor intente nuevamente.';
       this.isLoading = false;
     }
+  }
+
+  // Método para registrar el pago manual
+  private registrarPagoManual(codigoPedido: string, monto: number) {
+    const params = {
+      codigoPedido: codigoPedido,
+      monto: monto.toString(),
+      metodo: 'Transferencia'
+    };
+
+    return this.http.post(environment.pagoManualUrl, null, { params });
   }
 
   procesarPagoMercadoPago(pedidoId: number, codigoPedido: string): void {
@@ -215,11 +245,16 @@ export class PaymentMethodComponent implements OnInit {
   }
   
   // Preparar el mensaje para WhatsApp y la URL
-  private prepareWhatsAppMessage(): void {
+  private prepareWhatsAppMessage(codigoPedido?: string): void {
     if (!this.orderSummary) return;
     
     // Crear el mensaje para WhatsApp
     let message = `*Nuevo Pedido de Batistella*\n\n`;
+    
+    if (codigoPedido) {
+      message += `*Código de Pedido:* ${codigoPedido}\n\n`;
+    }
+    
     message += `*Productos:*\n`;
     
     this.orderSummary.items.forEach(item => {
@@ -236,7 +271,7 @@ export class PaymentMethodComponent implements OnInit {
       message += `*Notas:* ${this.orderSummary.deliveryNotes}\n\n`;
     }
     
-    message += `Hola, quisiera confirmar este pedido para pagar en efectivo. El pedido ya fue registrado en el sistema con estado PENDIENTE. ¡Gracias!`;
+    message += `Hola, quisiera confirmar este pedido para pagar por transferencia. El pedido ya fue registrado en el sistema. ¡Gracias!`;
     
     // Codificar el mensaje para la URL
     const encodedMessage = encodeURIComponent(message);

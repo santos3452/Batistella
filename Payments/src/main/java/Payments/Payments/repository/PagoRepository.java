@@ -14,7 +14,7 @@ import Payments.Payments.model.Pago;
 public interface PagoRepository extends JpaRepository<Pago, Long> {
     
     // Buscar pagos por codigoPedido
-    List<Pago> findByCodigoPedido(String codigoPedido);
+    Pago findByCodigoPedido(String codigoPedido);
     
     // Buscar el pago más reciente por código de pedido
     @Query(value = "SELECT * FROM pagos p WHERE p.codigo_pedido = :codigoPedido ORDER BY p.id DESC LIMIT 1", nativeQuery = true)

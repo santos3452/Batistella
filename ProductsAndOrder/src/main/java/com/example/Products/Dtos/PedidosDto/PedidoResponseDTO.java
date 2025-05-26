@@ -22,6 +22,7 @@ public class PedidoResponseDTO {
     private BigDecimal total;
     private String domicilio;
     private List<PedidoProductoResponseDTO> productos;
+    private String estadoPago;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 } 
