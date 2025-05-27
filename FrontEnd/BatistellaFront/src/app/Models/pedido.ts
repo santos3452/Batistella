@@ -10,6 +10,7 @@ export interface ProductoPedido {
 
 export interface Pedido {
   id: number;
+  codigoPedido?: string;
   usuarioId: number;
   fechaPedido: string;
   estado: string;
@@ -18,4 +19,5 @@ export interface Pedido {
   createdAt: string;
   updatedAt: string;
   domicilio?: string;
+  metodoPago?: string;
 } 

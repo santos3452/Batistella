@@ -56,11 +56,12 @@
             [(ngModel)]="filterFecha"
             class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500"
           >
+          <p class="text-xs text-gray-500 mt-1">Formato: DD/MM/AAAA</p>
         </div>
 
         <!-- Filtro por estado -->
         <div>
-          <label for="filterEstado" class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+          <label for="filterEstado" class="block text-sm font-medium text-gray-700 mb-1">Estado Pedido</label>
           <select 
             id="filterEstado" 
             [(ngModel)]="filterEstado"
@@ -68,6 +69,19 @@
           >
             <option value="">Todos los estados</option>
             <option *ngFor="let estado of estados" [value]="estado">{{ estado }}</option>
+          </select>
+        </div>
+        
+        <!-- Filtro por estado de pago -->
+        <div class="md:col-start-1">
+          <label for="filterEstadoPago" class="block text-sm font-medium text-gray-700 mb-1">Estado Pago</label>
+          <select 
+            id="filterEstadoPago" 
+            [(ngModel)]="filterEstadoPago"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500"
+          >
+            <option value="">Todos los estados</option>
+            <option *ngFor="let estadoPago of estadosPago" [value]="estadoPago">{{ estadoPago }}</option>
           </select>
         </div>
       </div>
@@ -110,7 +124,10 @@
               Fecha
             </th>
             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Estado
+              Estado Pedido
+            </th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Estado Pago
             </th>
             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Total
@@ -151,6 +168,12 @@
                 {{ pedido.estado }}
               </span>
             </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <span *ngIf="pedido.estadoPago" [class]="'px-2 py-1 text-xs font-medium rounded-full ' + getEstadoPagoClass(pedido.estadoPago)">
+                {{ pedido.estadoPago }}
+              </span>
+              <span *ngIf="!pedido.estadoPago" class="text-sm text-gray-500">-</span>
+            </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
               ${{ pedido.total.toLocaleString('es-AR') }}
             </td>
@@ -169,10 +192,19 @@
                 <button 
                   (click)="openUpdateStatusModal(pedido)" 
                   class="text-blue-600 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 p-1.5 rounded-md"
-                  title="Cambiar estado"
+                  title="Cambiar estado pedido"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </button>
+                <button 
+                  (click)="openUpdatePaymentStatusModal(pedido)" 
+                  class="text-green-600 hover:text-green-900 bg-green-50 hover:bg-green-100 p-1.5 rounded-md"
+                  title="Cambiar estado pago"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </button>
               </div>
@@ -288,13 +320,30 @@
             <p class="text-base">{{ selectedPedido.fechaPedido }}</p>
           </div>
           <div>
-            <p class="text-sm font-medium text-gray-500">Estado</p>
+            <p class="text-sm font-medium text-gray-500">Estado Pedido</p>
             <p>
               <span [class]="'px-2 py-1 text-xs font-medium rounded-full ' + getEstadoClass(selectedPedido.estado)">
                 {{ selectedPedido.estado }}
               </span>
               <span class="block text-xs text-gray-500 mt-1">Última actualización: {{ selectedPedido.updatedAt }}</span>
             </p>
+          </div>
+          <div>
+            <p class="text-sm font-medium text-gray-500">Estado Pago</p>
+            <p *ngIf="selectedPedido.estadoPago" class="mt-1">
+              <span [class]="'px-2 py-1 text-xs font-medium rounded-full ' + getEstadoPagoClass(selectedPedido.estadoPago)">
+                {{ selectedPedido.estadoPago }}
+              </span>
+            </p>
+            <p *ngIf="!selectedPedido.estadoPago" class="text-sm text-gray-500">No hay información de pago</p>
+          </div>
+          <div>
+            <p class="text-sm font-medium text-gray-500">Método de Pago</p>
+            <p class="text-base">{{ selectedPedido.metodoPago || 'No especificado' }}</p>
+          </div>
+          <div>
+            <p class="text-sm font-medium text-gray-500">Fecha de Pago</p>
+            <p class="text-base">{{ selectedPedido.fechaPago || 'No especificado' }}</p>
           </div>
           <div class="col-span-2">
             <p class="text-sm font-medium text-gray-500">Domicilio de entrega</p>
@@ -406,6 +455,70 @@
       <button 
         (click)="updatePedidoStatus()" 
         class="px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 font-medium"
+        [disabled]="isLoading"
+      >
+        <svg *ngIf="isLoading" class="animate-spin inline -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        Guardar Cambios
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Actualización de Estado de Pago -->
+<div *ngIf="showUpdatePaymentStatusModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center">
+  <div class="relative mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white">
+    <div class="flex justify-between items-center border-b pb-3">
+      <h3 class="text-xl font-semibold text-gray-900">Actualizar Estado de Pago</h3>
+      <button (click)="closeUpdatePaymentStatusModal()" class="text-gray-400 hover:text-gray-500">
+        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+    <div class="mt-4">
+      <div *ngIf="selectedPedido" class="space-y-4">
+        <div>
+          <p class="text-sm font-medium text-gray-500">Código de Pedido</p>
+          <p class="text-base">{{ selectedPedido.codigoPedido }}</p>
+        </div>
+        <div>
+          <p class="text-sm font-medium text-gray-500">Cliente</p>
+          <p class="text-base">{{ selectedPedido.nombreCompletoUsuario }}</p>
+        </div>
+        <div>
+          <p class="text-sm font-medium text-gray-500">Estado de Pago Actual</p>
+          <p *ngIf="selectedPedido.estadoPago" class="mt-1">
+            <span [class]="'px-2 py-1 text-xs font-medium rounded-full ' + getEstadoPagoClass(selectedPedido.estadoPago)">
+              {{ selectedPedido.estadoPago }}
+            </span>
+          </p>
+          <p *ngIf="!selectedPedido.estadoPago" class="text-sm text-gray-500">No especificado</p>
+        </div>
+        <div>
+          <label for="nuevoEstadoPago" class="block text-sm font-medium text-gray-700 mb-1">Nuevo Estado de Pago</label>
+          <select 
+            id="nuevoEstadoPago" 
+            [(ngModel)]="nuevoEstadoPago"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500"
+          >
+            <option *ngFor="let estado of estadosPago" [value]="estado">{{ estado }}</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="mt-6 border-t pt-3 flex justify-end space-x-2">
+      <button 
+        (click)="closeUpdatePaymentStatusModal()" 
+        class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 font-medium"
+      >
+        Cancelar
+      </button>
+      <button 
+        (click)="updatePedidoPaymentStatus()" 
+        class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 font-medium"
         [disabled]="isLoading"
       >
         <svg *ngIf="isLoading" class="animate-spin inline -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

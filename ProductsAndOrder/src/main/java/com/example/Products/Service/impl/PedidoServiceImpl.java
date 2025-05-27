@@ -20,8 +20,12 @@ import jakarta.transaction.Transactional;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.http.ResponseEntity;
+import com.example.Products.Dtos.PagoDto.PagoResponseDTO;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -49,6 +53,12 @@ public class PedidoServiceImpl implements PedidoService {
     
     @Autowired
     private JwtService jwtService;
+
+    @Autowired
+    private RestTemplate restTemplate;
+    
+    @Value("${payment.service.url}")
+    private String paymentServiceUrl;
 
     /**
      * Genera un código de pedido único con el formato: PED-XXNNNNN
@@ -324,6 +334,36 @@ public class PedidoServiceImpl implements PedidoService {
             .collect(Collectors.toList());
         
         responseDTO.setProductos(productosResponse);
+        
+        // Obtener los datos de pago desde el servicio externo
+        try {
+            // Construir la URL reemplazando el placeholder {codigoPedido} con el código real
+            String url = paymentServiceUrl.replace("{codigoPedido}", pedido.getCodigoPedido());
+            System.out.println("Consultando servicio de pagos en URL: " + url);
+            
+            ResponseEntity<PagoResponseDTO> response = restTemplate.getForEntity(url, PagoResponseDTO.class);
+            
+            System.out.println("Respuesta del servicio de pagos: " + response.getStatusCode());
+            
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                PagoResponseDTO pagoInfo = response.getBody();
+                responseDTO.setEstadoPago(pagoInfo.getEstado());
+                responseDTO.setMetodoPago(pagoInfo.getMetodo());
+                responseDTO.setFechaPago(pagoInfo.getFechaPago());
+                System.out.println("Datos de pago obtenidos: Estado=" + pagoInfo.getEstado() + 
+                                  ", Método=" + pagoInfo.getMetodo() + 
+                                  ", Fecha=" + pagoInfo.getFechaPago());
+            } else {
+                System.out.println("La respuesta del servicio de pagos no contiene datos o no es exitosa");
+            }
+        } catch (Exception e) {
+            // Si hay un error en la comunicación con el servicio de pago, 
+            // simplemente continuamos sin los datos de pago
+            // Registramos el error con más detalle
+            System.err.println("Error al obtener datos de pago: " + e.getMessage());
+            e.printStackTrace();
+        }
+        
         return responseDTO;
     }
 } 

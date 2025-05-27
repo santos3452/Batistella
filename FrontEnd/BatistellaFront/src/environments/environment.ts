@@ -7,5 +7,6 @@ export const environment: Environment = {
     usersUrl: 'http://localhost:8081/api/users',
     pedidosUrl: 'http://localhost:8083/api/pedidos',
     mercadoPagoUrl: 'https://b349-181-4-8-15.ngrok-free.app/api/pagos/mercadopago/preferencia',
-    pagoManualUrl: 'https://b349-181-4-8-15.ngrok-free.app/api/pagos/manual'
+    pagoManualUrl: 'https://b349-181-4-8-15.ngrok-free.app/api/pagos/manual',
+    pagosUrl: 'http://localhost:8080/api/pagos'
 };

@@ -23,6 +23,8 @@ public class PedidoResponseDTO {
     private String domicilio;
     private List<PedidoProductoResponseDTO> productos;
     private String estadoPago;
+    private String metodoPago;
+    private LocalDateTime fechaPago;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 } 

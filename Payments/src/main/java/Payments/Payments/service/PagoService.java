@@ -12,7 +12,7 @@ public interface PagoService {
     
     void procesarNotificacionPago(String paymentId, String status);
 
-    String buscarPorCodigoDePedido(String codigoPedido);
+    PagoResponseDTO buscarPorCodigoDePedido(String codigoPedido);
 
     Pago registrarPagoManual(String codigoPedido, BigDecimal monto, String metodo);
 

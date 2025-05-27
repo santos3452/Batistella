@@ -157,10 +157,16 @@ public class PagoServiceImpl implements PagoService {
     }
 
     @Override
-    public String buscarPorCodigoDePedido(String codigoPedido) {
+    public PagoResponseDTO buscarPorCodigoDePedido(String codigoPedido) {
         Optional<Pago> pagoOpt = pagoRepository.findLatestByCodigoPedido(codigoPedido);
         if (pagoOpt.isPresent()) {
-            return pagoOpt.get().getEstado();
+            PagoResponseDTO pagoResponseDTO = PagoResponseDTO.builder()
+                    .codigoPedido(pagoOpt.get().getCodigoPedido())
+                    .metodo(pagoOpt.get().getMetodo())
+                    .fechaPago(pagoOpt.get().getFechaPago())
+                    .estado(pagoOpt.get().getEstado())
+                    .build();
+            return pagoResponseDTO;
         }
         return null;
     }

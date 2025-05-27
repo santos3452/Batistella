@@ -6,4 +6,5 @@ export interface Environment {
     pedidosUrl: string;
     mercadoPagoUrl: string;
     pagoManualUrl: string;
+    pagosUrl: string;
 } 

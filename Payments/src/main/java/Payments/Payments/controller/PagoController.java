@@ -148,11 +148,11 @@ public class PagoController {
         description = "Obtiene el estado actual de un pago por su código de pedido"
     )
     @GetMapping("/estado/{codigoPedido}")
-    public ResponseEntity<String> obtenerEstadoPago(
+    public ResponseEntity<?> obtenerEstadoPago(
             @Parameter(description = "Código del pedido") @PathVariable String codigoPedido) {
         log.info("Obteniendo estado de pago para pedido: {}", codigoPedido);
 
-        String estado = pagoService.buscarPorCodigoDePedido(codigoPedido);
+        PagoResponseDTO estado = pagoService.buscarPorCodigoDePedido(codigoPedido);
         if (estado != null) {
             return ResponseEntity.ok(estado);
         } else {

@@ -260,6 +260,32 @@ export class PedidosService {
     );
   }
 
+  // Actualizar el estado de pago de un pedido
+  actualizarEstadoPago(codigoPedido: string, nuevoEstado: string): Observable<any> {
+    const token = localStorage.getItem('token');
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`
+    });
+    
+    return this.http.put(
+      `${environment.pagosUrl}/cambiarEstado?codigoPedido=${codigoPedido}&estado=${nuevoEstado}`, 
+      {}, 
+      { 
+        headers,
+        responseType: 'text' // Especificamos que esperamos texto plano, no JSON
+      }
+    ).pipe(
+      tap(() => {
+        // Limpiar la caché para que se actualice en la próxima solicitud
+        this.clearPedidosCache();
+      }),
+      catchError(error => {
+        console.error('Error al actualizar estado de pago:', error);
+        return throwError(() => new Error('No se pudo actualizar el estado de pago. Intente nuevamente más tarde.'));
+      })
+    );
+  }
+
   // Crear un nuevo pedido
   crearPedido(usuarioId: number, productos: {productoId: number, cantidad: number}[], domicilioDeEntrega: string): Observable<any> {
     const token = localStorage.getItem('token');

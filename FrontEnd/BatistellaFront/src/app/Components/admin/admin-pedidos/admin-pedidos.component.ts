@@ -30,6 +30,9 @@ interface Pedido {
   createdAt: string;
   updatedAt: string;
   domicilio?: string;
+  estadoPago?: string;
+  metodoPago?: string;
+  fechaPago?: string;
 }
 
 interface PedidoResponse {
@@ -57,10 +60,12 @@ export class AdminPedidosComponent implements OnInit {
   filterCodigo: string = '';
   filterNombreUsuario: string = '';
   filterEstado: string = '';
+  filterEstadoPago: string = '';
   filterFecha: string = '';
   
   // Opciones de filtros
   estados: string[] = ['PENDIENTE', 'CONFIRMADO', 'ENTREGADO', 'CANCELADO'];
+  estadosPago: string[] = ['COMPLETADO', 'PENDIENTE', 'RECHAZADO'];
 
   // Paginación
   currentPage: number = 1;
@@ -76,6 +81,10 @@ export class AdminPedidosComponent implements OnInit {
   // Modal de actualización de estado
   showUpdateStatusModal = false;
   nuevoEstado: string = '';
+
+  // Modal de actualización de estado de pago
+  showUpdatePaymentStatusModal = false;
+  nuevoEstadoPago: string = '';
 
   constructor(
     private http: HttpClient,
@@ -118,7 +127,21 @@ export class AdminPedidosComponent implements OnInit {
     // Limpiar espacios en blanco en los filtros
     const codigoPedido = this.filterCodigo?.trim() || '';
     const estado = this.filterEstado?.trim() || '';
-    const fecha = this.filterFecha?.trim() || '';
+    
+    // Formatear la fecha al formato DD/MM/AAAA que espera el backend
+    let fecha = '';
+    if (this.filterFecha?.trim()) {
+      // Convertir formato YYYY-MM-DD (HTML input date) a DD/MM/AAAA
+      const fechaObj = new Date(this.filterFecha);
+      if (!isNaN(fechaObj.getTime())) {
+        const dia = fechaObj.getDate().toString().padStart(2, '0');
+        const mes = (fechaObj.getMonth() + 1).toString().padStart(2, '0');
+        const anio = fechaObj.getFullYear();
+        fecha = `${dia}/${mes}/${anio}`;
+      } else {
+        fecha = this.filterFecha.trim();
+      }
+    }
 
     console.log('Enviando petición con parámetros:', {
       page,
@@ -217,13 +240,90 @@ export class AdminPedidosComponent implements OnInit {
   }
 
   applyFilters(): void {
-    // Limpiar páginas disponibles ya que los filtros pueden cambiar los resultados
+    console.log('Aplicando filtros con valores:', {
+      codigo: this.filterCodigo,
+      nombreUsuario: this.filterNombreUsuario,
+      estado: this.filterEstado,
+      estadoPago: this.filterEstadoPago,
+      fecha: this.filterFecha
+    });
+    
+    // Limpiar páginas disponibles al aplicar nuevos filtros
     this.availablePages = [];
     
-    // Para filtro por nombre de usuario y para el resto de filtros
-    // que requieren nueva consulta al servidor
-    this.currentPage = 1; // Volver a la primera página
-    this.loadPedidos();
+    // Restablecer página actual a 1
+    this.currentPage = 1;
+    
+    // Si tenemos pedidos locales, aplicamos filtros sobre ellos
+    if (this.pedidos.length > 0) {
+      this.filteredPedidos = [...this.pedidos];
+      
+      // Filtrar por código de pedido
+      if (this.filterCodigo) {
+        this.filteredPedidos = this.filteredPedidos.filter(pedido => 
+          pedido.codigoPedido?.toLowerCase().includes(this.filterCodigo.toLowerCase())
+        );
+      }
+      
+      // Filtrar por nombre de usuario
+      if (this.filterNombreUsuario) {
+        this.filteredPedidos = this.filteredPedidos.filter(pedido => 
+          pedido.nombreCompletoUsuario?.toLowerCase().includes(this.filterNombreUsuario.toLowerCase())
+        );
+      }
+      
+      // Filtrar por estado
+      if (this.filterEstado) {
+        this.filteredPedidos = this.filteredPedidos.filter(pedido => 
+          pedido.estado === this.filterEstado
+        );
+      }
+      
+      // Filtrar por estado de pago
+      if (this.filterEstadoPago) {
+        this.filteredPedidos = this.filteredPedidos.filter(pedido => 
+          pedido.estadoPago === this.filterEstadoPago
+        );
+      }
+      
+      // Filtrar por fecha (solo consideramos la parte de la fecha, no la hora)
+      if (this.filterFecha) {
+        const fechaFiltro = new Date(this.filterFecha);
+        fechaFiltro.setHours(0, 0, 0, 0); // Normalizar a inicio del día
+        
+        this.filteredPedidos = this.filteredPedidos.filter(pedido => {
+          // Intentar convertir la fecha del pedido al formato correcto
+          let fechaPedido: Date;
+          
+          if (pedido.fechaPedido.includes('/')) {
+            // Formato DD/MM/AAAA
+            const partes = pedido.fechaPedido.split('/');
+            if (partes.length === 3) {
+              const dia = parseInt(partes[0]);
+              const mes = parseInt(partes[1]) - 1; // Los meses en JS van de 0 a 11
+              const anio = parseInt(partes[2].split(' ')[0]); // Eliminar parte de la hora si existe
+              fechaPedido = new Date(anio, mes, dia);
+              fechaPedido.setHours(0, 0, 0, 0); // Normalizar a inicio del día
+            } else {
+              return false; // Formato inválido
+            }
+          } else {
+            // Intentar como formato ISO
+            fechaPedido = new Date(pedido.fechaPedido);
+            fechaPedido.setHours(0, 0, 0, 0); // Normalizar a inicio del día
+          }
+          
+          if (isNaN(fechaPedido.getTime())) {
+            return false; // Fecha inválida
+          }
+          
+          return fechaPedido.getTime() === fechaFiltro.getTime();
+        });
+      }
+    } else {
+      // Si no tenemos datos locales, hacer la petición al backend
+      this.loadPedidos();
+    }
     
     // Verificar las primeras 5 páginas con los nuevos filtros
     this.checkAvailablePages(1, 5);
@@ -233,6 +333,7 @@ export class AdminPedidosComponent implements OnInit {
     this.filterCodigo = '';
     this.filterNombreUsuario = '';
     this.filterEstado = '';
+    this.filterEstadoPago = '';
     this.filterFecha = '';
     
     // Limpiar páginas disponibles ya que estamos reiniciando los filtros
@@ -292,6 +393,17 @@ export class AdminPedidosComponent implements OnInit {
     this.selectedPedido = null;
   }
 
+  openUpdatePaymentStatusModal(pedido: Pedido): void {
+    this.selectedPedido = pedido;
+    this.nuevoEstadoPago = pedido.estadoPago || '';
+    this.showUpdatePaymentStatusModal = true;
+  }
+
+  closeUpdatePaymentStatusModal(): void {
+    this.showUpdatePaymentStatusModal = false;
+    this.selectedPedido = null;
+  }
+
   updatePedidoStatus(): void {
     if (!this.selectedPedido || !this.selectedPedido.id) return;
     
@@ -322,6 +434,37 @@ export class AdminPedidosComponent implements OnInit {
       });
   }
 
+  updatePedidoPaymentStatus(): void {
+    if (!this.selectedPedido || !this.selectedPedido.codigoPedido) return;
+    
+    this.isLoading = true;
+    
+    this.pedidosService.actualizarEstadoPago(this.selectedPedido.codigoPedido, this.nuevoEstadoPago)
+      .subscribe({
+        next: (response) => {
+          this.utils.showToast('success', 'Estado de pago actualizado con éxito');
+          
+          // Actualizar el estado en la lista local
+          const index = this.pedidos.findIndex(p => p.codigoPedido === this.selectedPedido?.codigoPedido);
+          if (index !== -1) {
+            this.pedidos[index].estadoPago = this.nuevoEstadoPago;
+            // Actualizar también la fecha de modificación
+            this.pedidos[index].updatedAt = new Date().toLocaleString('es-AR');
+            this.applyFilters(); // Aplicar filtros para actualizar la vista
+          }
+          
+          this.closeUpdatePaymentStatusModal();
+          this.isLoading = false;
+          this.loadPedidos(); // Refrescar la tabla
+        },
+        error: (error) => {
+          console.error('Error al actualizar estado del pago', error);
+          this.utils.showToast('error', 'Ocurrió un error al actualizar el estado del pago');
+          this.isLoading = false;
+        }
+      });
+  }
+
   getEstadoClass(estado: string): string {
     switch (estado) {
       case 'PENDIENTE':
@@ -331,6 +474,19 @@ export class AdminPedidosComponent implements OnInit {
       case 'ENTREGADO':
         return 'bg-green-100 text-green-800';
       case 'CANCELADO':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  }
+
+  getEstadoPagoClass(estadoPago: string): string {
+    switch (estadoPago) {
+      case 'COMPLETADO':
+        return 'bg-green-100 text-green-800';
+      case 'PENDIENTE':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'RECHAZADO':
         return 'bg-red-100 text-red-800';
       default:
         return 'bg-gray-100 text-gray-800';
@@ -377,7 +533,21 @@ export class AdminPedidosComponent implements OnInit {
     // Limpiar espacios en blanco en los filtros
     const codigoPedido = this.filterCodigo?.trim() || '';
     const estado = this.filterEstado?.trim() || '';
-    const fecha = this.filterFecha?.trim() || '';
+    
+    // Formatear la fecha al formato DD/MM/AAAA que espera el backend
+    let fecha = '';
+    if (this.filterFecha?.trim()) {
+      // Convertir formato YYYY-MM-DD (HTML input date) a DD/MM/AAAA
+      const fechaObj = new Date(this.filterFecha);
+      if (!isNaN(fechaObj.getTime())) {
+        const dia = fechaObj.getDate().toString().padStart(2, '0');
+        const mes = (fechaObj.getMonth() + 1).toString().padStart(2, '0');
+        const anio = fechaObj.getFullYear();
+        fecha = `${dia}/${mes}/${anio}`;
+      } else {
+        fecha = this.filterFecha.trim();
+      }
+    }
     
     // Crear un array de consultas para las páginas a verificar
     const pageQueries: Array<Observable<any>> = [];
