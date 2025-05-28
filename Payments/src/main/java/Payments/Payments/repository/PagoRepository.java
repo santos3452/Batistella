@@ -31,4 +31,7 @@ public interface PagoRepository extends JpaRepository<Pago, Long> {
     
     // Buscar pagos por ID de pago de Mercado Pago
     Pago findByMercadoPagoPaymentId(String paymentId);
+    
+    // Buscar pagos pendientes con status null
+    List<Pago> findByEstadoAndMercadoPagoStatusIsNull(String estado);
 } 

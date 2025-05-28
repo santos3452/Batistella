@@ -20,6 +20,7 @@ public class PreferenceDTO {
     private String urlExito;
     private String urlFracaso;
     private String urlPendiente;
+    private String urlCancelacion;
     
     @Data
     @Builder

@@ -304,8 +304,20 @@ public class PagoController {
         log.info("Redirigiendo después de pago con error - payment_id: {}, status: {}, pedido: {}", 
                 payment_id, status, external_reference);
         
+        // Si no hay status, usamos "cancelled" para que se marque como CANCELADO
+        String estadoActual = (status == null || status.isEmpty() || "null".equals(status)) ? "cancelled" : status;
+        
         // Procesar el pago primero
-        pagoService.procesarRetornoPago(payment_id, status, external_reference);
+        pagoService.procesarRetornoPago(payment_id, estadoActual, external_reference);
+        
+        // Si tenemos el código de pedido pero no tenemos payment_id, marcar como CANCELADO directamente
+        if (external_reference != null && (payment_id == null || payment_id.isEmpty())) {
+            try {
+                pagoService.cambiarEstadoPago(external_reference, "CANCELADO");
+            } catch (Exception e) {
+                log.warn("No se pudo actualizar el estado del pago para el pedido: {}", external_reference);
+            }
+        }
         
         // Construir URL de redirección a la página intermedia
         StringBuilder redirectUrl = new StringBuilder("/redirect.html?type=error");
@@ -314,6 +326,8 @@ public class PagoController {
         }
         if (status != null) {
             redirectUrl.append("&status=").append(status);
+        } else {
+            redirectUrl.append("&status=cancelled");
         }
         if (external_reference != null) {
             redirectUrl.append("&order_id=").append(external_reference);

@@ -9,6 +9,7 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import com.mercadopago.client.preference.PreferenceBackUrlsRequest;
@@ -66,7 +67,8 @@ public class PagoServiceImpl implements PagoService {
             }
             
             String urlExito = preferenceDTO.getUrlExito() != null ? 
-                    preferenceDTO.getUrlExito() : appBaseUrl + "/api/pagos/redirect/success";
+                   preferenceDTO.getUrlExito() : appBaseUrl + "/api/pagos/redirect/success";
+
             String urlFracaso = preferenceDTO.getUrlFracaso() != null ? 
                     preferenceDTO.getUrlFracaso() : appBaseUrl + "/api/pagos/redirect/error";
             String urlPendiente = preferenceDTO.getUrlPendiente() != null ? 
@@ -106,7 +108,7 @@ public class PagoServiceImpl implements PagoService {
                     .monto(preferenceDTO.getMontoTotal())
                     .metodo("mercadopago")
                     .fechaPago(null)
-                    .estado("PENDIENTE")
+                    .estado("CANCELADO")
                     .mercadoPagoPreferenceId(preference.getId())
                     .build();
             
@@ -255,11 +257,39 @@ public class PagoServiceImpl implements PagoService {
                 pago.setEstado("EN_PROCESO");
                 break;
             default:
-                pago.setEstado("PENDIENTE");
+                pago.setEstado("CANCELADO");
                 break;
         }
         log.info("Actualizando pago ID: {}, Código pedido: {}, Estado: {}", 
                 pago.getId(), pago.getCodigoPedido(), pago.getEstado());
         return pagoRepository.save(pago);
+    }
+    
+    @Override
+    public int actualizarPagosPendientesNulos() {
+        log.info("Buscando pagos pendientes con datos nulos para actualizar a CANCELADO");
+        List<Pago> pagosPendientes = pagoRepository.findByEstadoAndMercadoPagoStatusIsNull("PENDIENTE");
+        
+        int contador = 0;
+        for (Pago pago : pagosPendientes) {
+            log.info("Actualizando pago pendiente a CANCELADO - ID: {}, Pedido: {}", 
+                    pago.getId(), pago.getCodigoPedido());
+            pago.setEstado("CANCELADO");
+            pagoRepository.save(pago);
+            contador++;
+        }
+        
+        log.info("Total de pagos actualizados de PENDIENTE a CANCELADO: {}", contador);
+        return contador;
+    }
+
+    /**
+     * Job programado que ejecuta cada hora para verificar pagos pendientes antiguos
+     * y los cambia a estado CANCELADO
+     */
+    @Scheduled(cron = "0 0 * * * *") // Ejecutar cada hora en el minuto 0
+    public void verificarPagosPendientesAntiguos() {
+        log.info("Ejecutando verificación programada de pagos pendientes antiguos");
+        actualizarPagosPendientesNulos();
     }
 } 

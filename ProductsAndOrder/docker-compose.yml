@@ -19,6 +19,7 @@ services:
       # Microservicio de usuarios
       - MICROSERVICE_USUARIOS_URL=${USER_SERVICE_URL}
       - TOKEN=${USER_SERVICE_TOKEN}
+      - MICROSERVICE_PAYMENT_URL=${PAYMENT_SERVICE_URL}
     volumes:
       - product-images:/app/images
     networks:
