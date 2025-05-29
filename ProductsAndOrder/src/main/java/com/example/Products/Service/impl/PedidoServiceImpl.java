@@ -353,6 +353,21 @@ public class PedidoServiceImpl implements PedidoService {
                 System.out.println("Datos de pago obtenidos: Estado=" + pagoInfo.getEstado() + 
                                   ", Método=" + pagoInfo.getMetodo() + 
                                   ", Fecha=" + pagoInfo.getFechaPago());
+                
+                // Actualizar automáticamente el estado del pedido si el pago está CANCELADO o RECHAZADO
+                if (pagoInfo.getEstado() != null && 
+                    (pagoInfo.getEstado().equals("CANCELADO") || pagoInfo.getEstado().equals("RECHAZADO")) && 
+                    pedido.getEstado() != EstadoPedido.CANCELADO) {
+                    
+                    // Actualizar el estado del pedido en la base de datos
+                    pedido.setEstado(EstadoPedido.CANCELADO);
+                    pedido.setUpdatedAt(LocalDateTime.now());
+                    pedidoRepository.save(pedido);
+                    
+                    // Actualizar el DTO de respuesta
+                    responseDTO.setEstado(EstadoPedido.CANCELADO);
+                    System.out.println("Pedido " + pedido.getCodigoPedido() + " actualizado a CANCELADO porque el pago está " + pagoInfo.getEstado());
+                }
             } else {
                 System.out.println("La respuesta del servicio de pagos no contiene datos o no es exitosa");
             }

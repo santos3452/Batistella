@@ -1,5 +1,5 @@
 // app.component.ts
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { NavbarComponent } from './Components/navbar/navbar.component';
 import { SidebarComponent } from './Components/sidebar/sidebar.component';
@@ -18,13 +18,14 @@ export class AppComponent implements OnInit {
   isLoginRoute = false;
   isAuthRoute = false;
   currentYear = new Date().getFullYear();
+  isMobile = false;
   
   // Iconos de animales (emojis) para el fondo dinámico
   animalIcons: string[] = [
     // Perros
     '🐶', '🐕', '🦮', '🐕‍🦺', '🐩', '🐺', '🦊',
     // Gatos
-    '🐱', '🐈', '🐈‍⬛', '😸', '😹', '😻', '😼', '😽', '🙀', '😿', '😾',
+    '🐱', '🐈', '🐈‍', '😸', '😹', '😻', '😼', '😽', '🙀', '😿', '😾',
     // Animales de granja
     '🐄', '🐮', '🐷', '🐖', '🐴', '🐎', '🦄', '🐔', '🐓', '🐑', '🐏', '🦙', '🐐', '🐂', '🦬', '🦃'
   ];
@@ -35,10 +36,29 @@ export class AppComponent implements OnInit {
   
   // Datos precalculados para cada icono (para evitar reinicio en navegación)
   animalData: {x: number, y: number, icon: string, delay: number}[] = [];
+  
+  // Cantidad de emojis a mostrar (se ajustará según el dispositivo)
+  emojiCount = 100;
 
   constructor(private router: Router) {
+    // Verificar si es dispositivo móvil al iniciar
+    this.checkIfMobile();
     // Generamos los datos de todos los iconos una sola vez al crear el componente
     this.generateAnimalData();
+  }
+
+  // Listener para detectar cambios en el tamaño de la ventana
+  @HostListener('window:resize', ['$event'])
+  onResize() {
+    this.checkIfMobile();
+    this.generateAnimalData(); // Regenerar datos cuando cambia el tamaño
+  }
+
+  // Verificar si es dispositivo móvil
+  checkIfMobile() {
+    this.isMobile = window.innerWidth < 768; // Consideramos móvil si el ancho es menor a 768px
+    // Ajustar cantidad de emojis según dispositivo
+    this.emojiCount = this.isMobile ? 10 : 100;
   }
 
   ngOnInit() {
@@ -63,7 +83,7 @@ export class AppComponent implements OnInit {
   // Genera datos para todos los iconos una sola vez
   generateAnimalData() {
     this.animalData = [];
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < this.emojiCount; i++) {
       const position = this.getGridPosition(i);
       this.animalData.push({
         x: position.x,
@@ -72,6 +92,11 @@ export class AppComponent implements OnInit {
         delay: i * 0.2
       });
     }
+  }
+
+  // Genera array con los índices para el ngFor según la cantidad de emojis a mostrar
+  get emojiIndices(): number[] {
+    return Array.from({ length: this.emojiCount }, (_, i) => i);
   }
 
   toggleSidebar() {

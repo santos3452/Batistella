@@ -65,7 +65,7 @@ export class AdminPedidosComponent implements OnInit {
   
   // Opciones de filtros
   estados: string[] = ['PENDIENTE', 'CONFIRMADO', 'ENTREGADO', 'CANCELADO'];
-  estadosPago: string[] = ['COMPLETADO', 'PENDIENTE', 'RECHAZADO'];
+  estadosPago: string[] = ['COMPLETADO', 'PENDIENTE', 'RECHAZADO', 'CANCELADO'];
 
   // Paginación
   currentPage: number = 1;
@@ -487,6 +487,8 @@ export class AdminPedidosComponent implements OnInit {
       case 'PENDIENTE':
         return 'bg-yellow-100 text-yellow-800';
       case 'RECHAZADO':
+        return 'bg-red-100 text-red-800';
+      case 'CANCELADO':
         return 'bg-red-100 text-red-800';
       default:
         return 'bg-gray-100 text-gray-800';

@@ -35,15 +35,6 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        .btn {
-            display: inline-block;
-            background-color: #009ee3;
-            color: white;
-            padding: 10px 20px;
-            text-decoration: none;
-            border-radius: 4px;
-            margin-top: 20px;
-        }
     </style>
 </head>
 <body>
@@ -51,9 +42,7 @@
         <h1>Procesando el pago</h1>
         <p id="status-message">Estamos procesando la información de tu pago. Serás redirigido automáticamente en unos segundos...</p>
         <div class="loader"></div>
-        <p id="countdown">Redirigiendo en 5 segundos...</p>
-        <div id="error-details" style="display: none; color: #d32f2f; margin: 15px 0; padding: 10px; background-color: #ffebee; border-radius: 4px;"></div>
-        <a href="#" id="redirect-link" class="btn">Continuar ahora</a>
+        <p id="countdown">Redirigiendo en 3 segundos...</p>
     </div>
 
     <script>
@@ -67,21 +56,10 @@
             
             // Actualizar mensaje según el tipo
             const statusMessage = document.getElementById('status-message');
-            const errorDetails = document.getElementById('error-details');
             
             if (type === 'error') {
                 statusMessage.textContent = 'Hubo un problema con tu pago.';
                 document.querySelector('h1').textContent = 'Pago no completado';
-                
-                // Mostrar detalles del error si existen
-                if (status || paymentId) {
-                    errorDetails.style.display = 'block';
-                    errorDetails.innerHTML = `
-                        <strong>Detalles:</strong><br>
-                        ${status ? 'Estado: ' + status + '<br>' : ''}
-                        ${paymentId ? 'ID de pago: ' + paymentId : ''}
-                    `;
-                }
             } else if (type === 'pending') {
                 statusMessage.textContent = 'Tu pago está pendiente de confirmación.';
                 document.querySelector('h1').textContent = 'Pago en procesamiento';
@@ -99,11 +77,8 @@
                 redirectUrl += '?' + params.join('&');
             }
             
-            // Actualizar el enlace de redirección manual
-            document.getElementById('redirect-link').href = redirectUrl;
-            
             // Contador regresivo
-            let seconds = 5;
+            let seconds = 3;
             const countdownElement = document.getElementById('countdown');
             const interval = setInterval(function() {
                 seconds--;
@@ -114,11 +89,6 @@
                     window.location.href = redirectUrl;
                 }
             }, 1000);
-            
-            // También permitir redirección manual
-            document.getElementById('redirect-link').addEventListener('click', function(e) {
-                clearInterval(interval);
-            });
         });
     </script>
 </body>

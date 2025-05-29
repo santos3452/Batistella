@@ -22,15 +22,5 @@ public interface PagoService {
 
     void cambiarEstadoPago(String codigoPedido, String status);
     
-    /**
-     * Cancela un pago buscándolo por su ID de preferencia de Mercado Pago
-     * @param preferenceId ID de preferencia de Mercado Pago
-     */
-    void cancelarPagoPorPreferenceId(String preferenceId);
-    
-    /**
-     * Actualiza los pagos pendientes con status null a CANCELADO
-     * @return Número de pagos actualizados
-     */
-    int actualizarPagosPendientesNulos();
+
 } 

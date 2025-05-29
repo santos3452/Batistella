@@ -9,6 +9,7 @@ import com.example.UsersAndLogin.Security.CustomUserDetailsService;
 import com.example.UsersAndLogin.Security.JwtUtils;
 import com.example.UsersAndLogin.Service.UserService;
 import com.example.UsersAndLogin.Service.EmailService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -19,6 +20,11 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
+
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -30,14 +36,19 @@ public class AuthController {
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final RestTemplate restTemplate;
+    
+    @Value("${notification.service.url:http://localhost:8085}")
+    private String notificationServiceUrl;
 
-    public AuthController(AuthenticationManager authManager, CustomUserDetailsService uds, JwtUtils jwtUtils, UserService userService, PasswordEncoder passwordEncoder, EmailService emailService) {
+    public AuthController(AuthenticationManager authManager, CustomUserDetailsService uds, JwtUtils jwtUtils, UserService userService, PasswordEncoder passwordEncoder, EmailService emailService, RestTemplate restTemplate) {
         this.authManager = authManager;
         this.uds = uds;
         this.jwtUtils = jwtUtils;
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
+        this.restTemplate = restTemplate;
     }
 
     @PostMapping("/login")
@@ -85,7 +96,34 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody UserDto userDto) {
         try {
-            userService.createUser(userDto);
+            // Registrar el usuario
+            UserEntity createdUser = userService.createUser(userDto);
+            
+            // Notificar al servicio de notificaciones
+            try {
+                // Acceder a los campos a través de los getters generados por Lombok
+                String email = createdUser.getEmail();
+                String name = createdUser.getNombre();
+                
+                // Construir la URL sin codificar manualmente los parámetros
+                // UriComponentsBuilder codificará automáticamente los parámetros
+                String url = UriComponentsBuilder.fromHttpUrl(notificationServiceUrl)
+                        .path("/api/notifications/user/register/html")
+                        .queryParam("email", email)
+                        .queryParam("name", name)
+                        .toUriString();
+                
+                System.out.println("Enviando notificación de registro a: " + url);
+                
+                // Realizar la llamada GET al servicio externo
+                restTemplate.getForEntity(url, String.class);
+                
+                // No esperamos la respuesta para no bloquear el registro
+            } catch (Exception e) {
+                // Solo loguear el error, no afecta el flujo principal
+                System.err.println("Error al enviar notificación de registro: " + e.getMessage());
+            }
+            
             return ResponseEntity.status(HttpStatus.CREATED).body("Usuario registrado exitosamente");
         } catch (IllegalArgumentException e) {
             return ResponseEntity
