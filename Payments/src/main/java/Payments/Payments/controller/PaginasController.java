@@ -3,6 +3,7 @@ package Payments.Payments.controller;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -18,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 public class PaginasController {
 
     private final PagoService pagoService;
+    private final PagoController pagoController;
 
     /**
      * Página de pago exitoso
@@ -27,13 +29,22 @@ public class PaginasController {
             @RequestParam(required = false) String payment_id,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String external_reference,
+            @RequestHeader(value = "Authorization", required = false) String authorizationHeader,
             Model model) {
         
         log.info("Mostrando página de éxito - payment_id: {}, status: {}, pedido: {}", 
                 payment_id, status, external_reference);
         
+        // Obtener token del header o del mapa en PagoController
+        String token = null;
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            token = authorizationHeader.substring(7);
+        } else if (external_reference != null) {
+            token = pagoController.getTokenForPedido(external_reference);
+        }
+        
         // Procesamos y actualizamos el pago primero
-        Pago pago = pagoService.procesarRetornoPago(payment_id, status, external_reference);
+        Pago pago = pagoService.procesarRetornoPago(payment_id, status, external_reference, token);
         
         // Añadimos datos al modelo para la vista
         model.addAttribute("titulo", "¡Pago Completado!");
@@ -54,13 +65,22 @@ public class PaginasController {
             @RequestParam(required = false) String payment_id,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String external_reference,
+            @RequestHeader(value = "Authorization", required = false) String authorizationHeader,
             Model model) {
         
         log.info("Mostrando página de fracaso - payment_id: {}, status: {}, pedido: {}", 
                 payment_id, status, external_reference);
         
+        // Obtener token del header o del mapa en PagoController
+        String token = null;
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            token = authorizationHeader.substring(7);
+        } else if (external_reference != null) {
+            token = pagoController.getTokenForPedido(external_reference);
+        }
+        
         // Procesamos y actualizamos el pago primero
-        Pago pago = pagoService.procesarRetornoPago(payment_id, status, external_reference);
+        Pago pago = pagoService.procesarRetornoPago(payment_id, status, external_reference, token);
         
         // Añadimos datos al modelo para la vista
         model.addAttribute("titulo", "Pago Rechazado");
@@ -81,13 +101,22 @@ public class PaginasController {
             @RequestParam(required = false) String payment_id,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String external_reference,
+            @RequestHeader(value = "Authorization", required = false) String authorizationHeader,
             Model model) {
         
         log.info("Mostrando página de pendiente - payment_id: {}, status: {}, pedido: {}", 
                 payment_id, status, external_reference);
         
+        // Obtener token del header o del mapa en PagoController
+        String token = null;
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            token = authorizationHeader.substring(7);
+        } else if (external_reference != null) {
+            token = pagoController.getTokenForPedido(external_reference);
+        }
+        
         // Procesamos y actualizamos el pago primero
-        Pago pago = pagoService.procesarRetornoPago(payment_id, status, external_reference);
+        Pago pago = pagoService.procesarRetornoPago(payment_id, status, external_reference, token);
         
         // Añadimos datos al modelo para la vista
         model.addAttribute("titulo", "Pago en Procesamiento");

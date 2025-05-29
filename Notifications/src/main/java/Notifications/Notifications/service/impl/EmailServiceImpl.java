@@ -7,13 +7,10 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 import Notifications.Notifications.service.EmailService;
-import jakarta.mail.BodyPart;
 import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
-import jakarta.mail.Multipart;
-import jakarta.mail.internet.MimeBodyPart;
+import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
-import jakarta.mail.internet.MimeMultipart;
 
 @Service
 public class EmailServiceImpl implements EmailService {
@@ -42,29 +39,13 @@ public class EmailServiceImpl implements EmailService {
     public void sendHtmlMessage(String to, String subject, String htmlContent) {
         try {
             MimeMessage message = emailSender.createMimeMessage();
-            message.setFrom(fromEmail);
+            message.setFrom(new InternetAddress(fromEmail));
             message.setRecipients(Message.RecipientType.TO, to);
             message.setSubject(subject);
             
-            // Crear una parte multipart
-            Multipart multipart = new MimeMultipart("alternative");
+            // Configurar el contenido directamente
+            message.setContent(htmlContent, "text/html; charset=UTF-8");
             
-            // Crear la parte HTML con codificación base64
-            BodyPart htmlPart = new MimeBodyPart();
-            htmlPart.setContent(htmlContent, "text/html; charset=UTF-8");
-            ((MimeBodyPart) htmlPart).setHeader("Content-Transfer-Encoding", "base64");
-            
-            // Agregar la parte HTML al multipart
-            multipart.addBodyPart(htmlPart);
-            
-            // Establecer el contenido del mensaje
-            message.setContent(multipart);
-            
-            // Establecer encabezados adicionales
-            message.setHeader("MIME-Version", "1.0");
-            message.saveChanges();
-            
-            // Enviar el mensaje
             emailSender.send(message);
         } catch (MessagingException e) {
             throw new RuntimeException("Error al enviar correo HTML: " + e.getMessage(), e);

@@ -9,6 +9,8 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.mercadopago.client.preference.PreferenceBackUrlsRequest;
@@ -23,6 +25,7 @@ import Payments.Payments.dto.PreferenceDTO;
 import Payments.Payments.exception.PagoNotFoundException;
 import Payments.Payments.model.Pago;
 import Payments.Payments.repository.PagoRepository;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -34,13 +37,24 @@ public class PagoServiceImpl implements PagoService {
     private final PagoRepository pagoRepository;
     private final PreferenceClient preferenceClient;
     private final Environment environment;
+    private final HttpClientService httpClientService;
     
     @Value("${app.url.base}")
     private String appBaseUrl;
     
     @Override
+    @SecurityRequirement(name = "bearerAuth")
     public PagoResponseDTO crearPreferenciaMercadoPago(PreferenceDTO preferenceDTO) {
         try {
+            // Obtener token del Bearer Authentication
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String token = null;
+            
+            if (authentication != null && authentication.getCredentials() != null) {
+                token = authentication.getCredentials().toString();
+                log.info("Token Bearer recibido correctamente");
+            }
+            
             log.info("Creando preferencia de pago para pedido: {}", preferenceDTO.getCodigoPedido());
             log.info("Cantidad de ítems: {}", preferenceDTO.getItems().size());
             
@@ -193,7 +207,7 @@ public class PagoServiceImpl implements PagoService {
     }
 
     @Override
-    public Pago procesarRetornoPago(String paymentId, String status, String externalReference) {
+    public Pago procesarRetornoPago(String paymentId, String status, String externalReference, String authToken) {
         log.info("Procesando retorno de pago - paymentId: {}, status: {}, pedido: {}", 
                 paymentId, status, externalReference);
         
@@ -201,7 +215,18 @@ public class PagoServiceImpl implements PagoService {
         if (paymentId != null && !paymentId.isEmpty()) {
             pago = pagoRepository.findByMercadoPagoPaymentId(paymentId);
             if (pago != null) {
-                return actualizarEstadoPago(pago, paymentId, status);
+                pago = actualizarEstadoPago(pago, paymentId, status);
+                
+                // Si el pago está completado, obtener detalles del pedido y enviar notificación
+                if ("COMPLETADO".equals(pago.getEstado())) {
+                    try {
+                        enviarNotificacionPedidoCompletado(pago, authToken);
+                    } catch (Exception e) {
+                        log.error("Error al enviar notificación de pedido completado: {}", e.getMessage());
+                    }
+                }
+                
+                return pago;
             }
         }
         
@@ -209,7 +234,18 @@ public class PagoServiceImpl implements PagoService {
             Optional<Pago> pagoOpt = pagoRepository.findLatestByCodigoPedido(externalReference);
             if (pagoOpt.isPresent()) {
                 pago = pagoOpt.get();
-                return actualizarEstadoPago(pago, paymentId, status);
+                pago = actualizarEstadoPago(pago, paymentId, status);
+                
+                // Si el pago está completado, obtener detalles del pedido y enviar notificación
+                if ("COMPLETADO".equals(pago.getEstado())) {
+                    try {
+                        enviarNotificacionPedidoCompletado(pago, authToken);
+                    } catch (Exception e) {
+                        log.error("Error al enviar notificación de pedido completado: {}", e.getMessage());
+                    }
+                }
+                
+                return pago;
             }
         }
         
@@ -219,7 +255,7 @@ public class PagoServiceImpl implements PagoService {
     }
 
     @Override
-    public void cambiarEstadoPago(String codigoPedido, String status) {
+    public void cambiarEstadoPago(String codigoPedido, String status, String authToken) {
         log.info("Cambiando estado de pago para pedido: {} a: {}", codigoPedido, status);
         Optional<Pago> pagoOpt = pagoRepository.findLatestByCodigoPedido(codigoPedido);
         
@@ -230,6 +266,13 @@ public class PagoServiceImpl implements PagoService {
             // Actualizar fecha de pago si el estado es COMPLETADO
             if ("COMPLETADO".equals(status)) {
                 pago.setFechaPago(LocalDateTime.now());
+                
+                // Enviar notificación de pago completado
+                try {
+                    enviarNotificacionPedidoCompletado(pago, authToken);
+                } catch (Exception e) {
+                    log.error("Error al enviar notificación de pedido completado: {}", e.getMessage());
+                }
             }
             
             pagoRepository.save(pago);
@@ -240,7 +283,89 @@ public class PagoServiceImpl implements PagoService {
         }
     }
 
-
+    /**
+     * Método para enviar notificación de pedido completado
+     * @param pago Objeto pago con los datos del pago completado
+     * @param authToken Token de autorización a usar
+     */
+    private void enviarNotificacionPedidoCompletado(Pago pago, String authToken) {
+        log.info("Enviando notificación de pedido completado para el pedido: {}", pago.getCodigoPedido());
+        
+        // Usar el token proporcionado o intentar obtenerlo del contexto de seguridad si no se proporcionó
+        String token = authToken;
+        
+        if (token == null || token.isEmpty()) {
+            // Intentar obtener token del contexto de seguridad
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication != null && authentication.getCredentials() != null) {
+                token = authentication.getCredentials().toString();
+                log.info("Token obtenido del SecurityContext para la notificación");
+            } else {
+                log.warn("No se encontró token de autorización para consultar el pedido");
+                return; // No hay token, no podemos continuar
+            }
+        } else {
+            log.info("Usando token proporcionado para la notificación");
+        }
+        
+        // Consultar detalles del pedido
+        Map<String, Object> pedidoData = httpClientService.obtenerDetallesPedido(pago.getCodigoPedido(), token);
+        
+        if (pedidoData == null) {
+            log.warn("No se pudo obtener información del pedido: {}", pago.getCodigoPedido());
+            return;
+        }
+        
+        // Actualizar datos del estado de pago en el objeto pedido
+        pedidoData.put("estadoPago", pago.getEstado());
+        pedidoData.put("metodoPago", pago.getMetodo());
+        pedidoData.put("fechaPago", pago.getFechaPago() != null ? pago.getFechaPago().toString() : null);
+        
+        // Extraer email del usuario desde los datos del pedido
+        String email = null;
+        if (pedidoData.containsKey("email")) {
+            email = (String) pedidoData.get("email");
+        } else if (pedidoData.containsKey("sub")) {
+            email = (String) pedidoData.get("sub");
+        }
+        
+        // Si no hay email en los datos del pedido, intentar extraerlo del token
+        if (email == null || email.isEmpty()) {
+            try {
+                // Extraer email del payload del token (suponiendo que está en formato JWT)
+                String[] tokenParts = token.split("\\.");
+                if (tokenParts.length == 3) {
+                    String payload = new String(java.util.Base64.getUrlDecoder().decode(tokenParts[1]));
+                    // Intentar extraer el email del payload (esto depende del formato exacto del token)
+                    if (payload.contains("\"sub\":")) {
+                        String[] parts = payload.split("\"sub\":");
+                        if (parts.length > 1) {
+                            String subPart = parts[1].split(",")[0];
+                            email = subPart.replaceAll("\"", "").trim();
+                            log.info("Email extraído del token JWT: {}", email);
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("No se pudo extraer el email del token: {}", e.getMessage());
+            }
+        }
+        
+        // Si no se encontró email, no podemos enviar la notificación
+        if (email == null || email.isEmpty()) {
+            log.warn("No se pudo determinar el email del usuario para el pedido: {}", pago.getCodigoPedido());
+            return;
+        }
+        
+        // Enviar notificación
+        boolean enviado = httpClientService.enviarNotificacionPago(email, pedidoData);
+        
+        if (enviado) {
+            log.info("Notificación de pago enviada exitosamente al email: {}", email);
+        } else {
+            log.warn("No se pudo enviar la notificación de pago al email: {}", email);
+        }
+    }
 
     private Pago actualizarEstadoPago(Pago pago, String paymentId, String status) {
         if (pago.getMercadoPagoPaymentId() == null && paymentId != null) {
@@ -267,8 +392,4 @@ public class PagoServiceImpl implements PagoService {
                 pago.getId(), pago.getCodigoPedido(), pago.getEstado());
         return pagoRepository.save(pago);
     }
-    
-
-
-
 } 

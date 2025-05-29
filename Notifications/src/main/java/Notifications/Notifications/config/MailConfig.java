@@ -30,25 +30,22 @@ public class MailConfig {
         mailSender.setPort(port);
         mailSender.setUsername(username);
         mailSender.setPassword(password);
+        mailSender.setDefaultEncoding("UTF-8");
         
         Properties props = mailSender.getJavaMailProperties();
         props.put("mail.transport.protocol", "smtp");
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.starttls.enable", "true");
         
-        // Propiedades para evitar problemas de codificación
-        props.put("mail.smtp.allow8bitmime", "true");
-        props.put("mail.smtps.allow8bitmime", "true");
-        props.put("mail.mime.charset", "UTF-8");
-        props.put("mail.mime.encodeparameters", "false");
-        props.put("mail.mime.encodefilename", "false");
-        props.put("mail.mime.decodetext.strict", "false");
-        props.put("mail.mime.qp.ignoreonerror", "true");
-        props.put("mail.mime.base64.ignoreonerror", "true");
-        props.put("mail.mime.splitlongparameters", "false");
-        
-        // Configurar el debug para ver los problemas
+        // Configuración mejorada para clientes de correo
         props.put("mail.debug", "true");
+        props.put("mail.smtp.connectiontimeout", "5000");
+        props.put("mail.smtp.timeout", "5000");
+        props.put("mail.smtp.writetimeout", "5000");
+        
+        // Configuración para asegurar la correcta interpretación del HTML
+        props.put("mail.mime.charset", "UTF-8");
+        props.put("mail.transport.protocol.rfc822", "smtp");
         
         return mailSender;
     }

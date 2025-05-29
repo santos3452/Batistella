@@ -1,5 +1,7 @@
 package Notifications.Notifications.service;
 
+import Notifications.Notifications.dto.PedidoDTO;
+
 /**
  * Servicio para la gestión de plantillas de correos electrónicos
  */
@@ -28,4 +30,12 @@ public interface EmailTemplateService {
      * @return Contenido HTML del correo
      */
     String generateSimpleEmailContent(String name);
+    
+    /**
+     * Genera el contenido HTML para un correo de confirmación de pago
+     * 
+     * @param pedido Información del pedido confirmado
+     * @return Contenido HTML del correo
+     */
+    String generatePaymentConfirmationEmailContent(PedidoDTO pedido);
 } 

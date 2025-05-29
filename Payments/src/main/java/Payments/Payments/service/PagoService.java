@@ -18,9 +18,9 @@ public interface PagoService {
 
     Pago registrarPago(Pago pago);
 
-    Pago procesarRetornoPago(String paymentId, String status, String externalReference);
+    Pago procesarRetornoPago(String paymentId, String status, String externalReference, String authToken);
 
-    void cambiarEstadoPago(String codigoPedido, String status);
+    void cambiarEstadoPago(String codigoPedido, String status, String authToken);
     
 
 } 

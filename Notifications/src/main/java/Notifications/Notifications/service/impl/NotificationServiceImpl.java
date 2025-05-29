@@ -1,12 +1,11 @@
 package Notifications.Notifications.service.impl;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import Notifications.Notifications.dto.PedidoDTO;
 import Notifications.Notifications.entity.Notification;
 import Notifications.Notifications.repository.NotificationRepository;
 import Notifications.Notifications.service.EmailService;
@@ -29,45 +28,7 @@ public class NotificationServiceImpl implements NotificationService {
         this.emailTemplateService = emailTemplateService;
     }
 
-    @Override
-    public Notification saveNotification(Notification notification) {
-        return notificationRepository.save(notification);
-    }
 
-    @Override
-    public List<Notification> findAllNotifications() {
-        return notificationRepository.findAll();
-    }
-
-    @Override
-    public Optional<Notification> findNotificationById(Long id) {
-        return notificationRepository.findById(id);
-    }
-
-    @Override
-    public List<Notification> findNotificationsByRecipient(String recipient) {
-        return notificationRepository.findByRecipient(recipient);
-    }
-
-    @Override
-    public List<Notification> findNotificationsByType(String type) {
-        return notificationRepository.findByType(type);
-    }
-
-    @Override
-    public List<Notification> findNotificationsBySentAtBetween(LocalDateTime start, LocalDateTime end) {
-        return notificationRepository.findBySentAtBetween(start, end);
-    }
-
-    @Override
-    public List<Notification> findNotificationsBySuccess(boolean success) {
-        return notificationRepository.findBySuccess(success);
-    }
-
-    @Override
-    public void deleteNotification(Long id) {
-        notificationRepository.deleteById(id);
-    }
 
     @Override
     public Notification sendNotification(String recipient, String type, String message) {
@@ -75,11 +36,11 @@ public class NotificationServiceImpl implements NotificationService {
         notification.setRecipient(recipient);
         notification.setType(type);
         
-        // Para tipos HTML o WELCOME, solo guardamos un mensaje genérico
-        if (type.equals("HTML") || type.equals("WELCOME")) {
+        // Para tipos de mensaje HTML, guardamos un mensaje genérico
+        if (type.equals("HTML") || type.equals("WELCOME") || type.equals("PAYMENT_CONFIRMATION")) {
             notification.setMessage("Mensaje enviado correctamente");
         } else {
-            // Para mensajes de texto plano, podemos limitar la longitud para evitar errores
+            // Para mensajes de texto plano, limitamos la longitud
             if (message != null && message.length() > 250) {
                 notification.setMessage(message.substring(0, 247) + "...");
             } else {
@@ -93,12 +54,8 @@ public class NotificationServiceImpl implements NotificationService {
             // Enviar el correo electrónico según el tipo de notificación
             String subject = getSubjectByType(type);
             
-            // Enviar como HTML si es tipo HTML o WELCOME
-            if (type.equals("HTML") || type.equals("WELCOME")) {
-                emailService.sendHtmlMessage(recipient, subject, message);
-            } else {
-                emailService.sendSimpleMessage(recipient, subject, message);
-            }
+            // Enviar todos los mensajes como HTML
+            emailService.sendHtmlMessage(recipient, subject, message);
             
             notification.setSuccess(true);
             return notificationRepository.save(notification);
@@ -126,6 +83,8 @@ public class NotificationServiceImpl implements NotificationService {
                 return "Recordatorio de Batistella";
             case "HTML":
                 return "Notificación HTML de Batistella";
+            case "PAYMENT_CONFIRMATION":
+                return "¡Tu pago ha sido confirmado! - Batistella";
             default:
                 return "Notificación de Batistella";
         }
@@ -138,14 +97,8 @@ public class NotificationServiceImpl implements NotificationService {
     }
     
     @Override
-    public Notification sendAlternativeWelcomeEmail(String email, String name) {
-        String htmlContent = emailTemplateService.generateAlternativeWelcomeEmailContent(name);
-        return sendNotification(email, "WELCOME", htmlContent);
-    }
-    
-    @Override
-    public Notification sendSimpleEmail(String email, String name) {
-        String htmlContent = emailTemplateService.generateSimpleEmailContent(name);
-        return sendNotification(email, "WELCOME", htmlContent);
+    public Notification sendPaymentConfirmationEmail(String email, PedidoDTO pedido) {
+        String htmlContent = emailTemplateService.generatePaymentConfirmationEmailContent(pedido);
+        return sendNotification(email, "PAYMENT_CONFIRMATION", htmlContent);
     }
 } 

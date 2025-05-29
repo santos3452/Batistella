@@ -31,4 +31,6 @@ COMMENT ON COLUMN pagos.estado IS 'Estado del pago (PENDIENTE, COMPLETADO, RECHA
 COMMENT ON COLUMN pagos.mp_payment_id IS 'ID de pago de Mercado Pago (si aplica)';
 COMMENT ON COLUMN pagos.mp_preference_id IS 'ID de preferencia de Mercado Pago (si aplica)';
 COMMENT ON COLUMN pagos.mp_status IS 'Estado del pago en Mercado Pago';
-COMMENT ON COLUMN pagos.mp_status_detail IS 'Detalle adicional del estado en Mercado Pago'; 
+COMMENT ON COLUMN pagos.mp_status_detail IS 'Detalle adicional del estado en Mercado Pago';
+COMMENT ON COLUMN pagos.auth_token IS 'Token de autenticación';
+COMMENT ON COLUMN pagos.email_usuario IS 'Correo electrónico del usuario'; 

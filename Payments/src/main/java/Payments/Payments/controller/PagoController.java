@@ -2,17 +2,23 @@ package Payments.Payments.controller;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -46,23 +52,46 @@ public class PagoController {
     @Value("${app.url.base}")
     private String appBaseUrl;
     
+    // Mapa para almacenar tokens por código de pedido
+    private final Map<String, String> tokensPorPedido = new ConcurrentHashMap<>();
+    
     /**
      * Crea una preferencia de pago con Mercado Pago
      */
     @Operation(
         summary = "Crear preferencia de pago con Mercado Pago",
-        description = "Crea una preferencia de pago en Mercado Pago para un pedido"
+        description = "Crea una preferencia de pago en Mercado Pago para un pedido",
+        security = @SecurityRequirement(name = "bearerAuth")
     )
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Preferencia creada correctamente"),
         @ApiResponse(responseCode = "400", description = "Datos de solicitud inválidos"),
+        @ApiResponse(responseCode = "401", description = "No autorizado - Se requiere autenticación"),
         @ApiResponse(responseCode = "500", description = "Error al crear la preferencia")
     })
     @PostMapping("/mercadopago/preferencia")
     public ResponseEntity<PagoResponseDTO> crearPreferencia(
             @Parameter(description = "Datos para crear la preferencia de pago") 
-            @RequestBody PreferenceDTO preferenceDTO) {
+            @RequestBody PreferenceDTO preferenceDTO,
+            @RequestHeader(value = "Authorization", required = false) String authorizationHeader) {
+        
         log.info("Creando preferencia de pago para pedido: {}", preferenceDTO.getCodigoPedido());
+        
+        // Extraer el token y guardarlo en el mapa
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            String token = authorizationHeader.substring(7);
+            tokensPorPedido.put(preferenceDTO.getCodigoPedido(), token);
+            log.info("Token guardado para el pedido: {}", preferenceDTO.getCodigoPedido());
+            
+            // Mantener la lógica para establecer el token en el SecurityContext
+            Authentication currentAuth = SecurityContextHolder.getContext().getAuthentication();
+            if (currentAuth == null || currentAuth.getCredentials() == null) {
+                UsernamePasswordAuthenticationToken auth = 
+                        new UsernamePasswordAuthenticationToken(null, token, Collections.emptyList());
+                SecurityContextHolder.getContext().setAuthentication(auth);
+            }
+        }
+        
         PagoResponseDTO response = pagoService.crearPreferenciaMercadoPago(preferenceDTO);
         return ResponseEntity.ok(response);
     }
@@ -184,7 +213,10 @@ public class PagoController {
         log.info("Cambiando estado de pago para pedido: {} a: {}", codigoPedido, estado);
         
         try {
-            pagoService.cambiarEstadoPago(codigoPedido, estado);
+            // Obtener el token guardado para este pedido
+            String token = tokensPorPedido.get(codigoPedido);
+            
+            pagoService.cambiarEstadoPago(codigoPedido, estado, token);
             return ResponseEntity.ok("Estado del pago actualizado correctamente");
         } catch (PagoNotFoundException e) {
             log.warn("Intento de cambiar estado a pago inexistente: {}", codigoPedido);
@@ -204,12 +236,22 @@ public class PagoController {
     public ResponseEntity<Pago> procesarRetornoExitoso(
             @RequestParam(required = false) String payment_id,
             @RequestParam(required = false) String status,
-            @RequestParam(required = false) String external_reference) {
+            @RequestParam(required = false) String external_reference,
+            @RequestHeader(value = "Authorization", required = false) String authorizationHeader) {
         
         log.info("Procesando retorno exitoso - payment_id: {}, status: {}, pedido: {}", 
                 payment_id, status, external_reference);
         
-        Pago pago = pagoService.procesarRetornoPago(payment_id, status, external_reference);
+        // Intentar establecer el token en el SecurityContext
+        establecerTokenEnSecurityContext(authorizationHeader);
+        
+        // Obtener el token guardado para este pedido
+        String token = (external_reference != null) ? tokensPorPedido.get(external_reference) : null;
+        if (token != null) {
+            log.info("Token recuperado del mapa para el pedido: {}", external_reference);
+        }
+        
+        Pago pago = pagoService.procesarRetornoPago(payment_id, status, external_reference, token);
         if (pago != null) {
             return ResponseEntity.ok(pago);
         } else {
@@ -225,12 +267,22 @@ public class PagoController {
     public ResponseEntity<Pago> procesarRetornoFracaso(
             @RequestParam(required = false) String payment_id,
             @RequestParam(required = false) String status,
-            @RequestParam(required = false) String external_reference) {
+            @RequestParam(required = false) String external_reference,
+            @RequestHeader(value = "Authorization", required = false) String authorizationHeader) {
         
         log.info("Procesando retorno fallido - payment_id: {}, status: {}, pedido: {}", 
                 payment_id, status, external_reference);
         
-        Pago pago = pagoService.procesarRetornoPago(payment_id, status, external_reference);
+        // Intentar establecer el token en el SecurityContext
+        establecerTokenEnSecurityContext(authorizationHeader);
+        
+        // Obtener el token guardado para este pedido
+        String token = (external_reference != null) ? tokensPorPedido.get(external_reference) : null;
+        if (token != null) {
+            log.info("Token recuperado del mapa para el pedido: {}", external_reference);
+        }
+        
+        Pago pago = pagoService.procesarRetornoPago(payment_id, status, external_reference, token);
         if (pago != null) {
             return ResponseEntity.ok(pago);
         } else {
@@ -246,12 +298,22 @@ public class PagoController {
     public ResponseEntity<Pago> procesarRetornoPendiente(
             @RequestParam(required = false) String payment_id,
             @RequestParam(required = false) String status,
-            @RequestParam(required = false) String external_reference) {
+            @RequestParam(required = false) String external_reference,
+            @RequestHeader(value = "Authorization", required = false) String authorizationHeader) {
         
         log.info("Procesando retorno pendiente - payment_id: {}, status: {}, pedido: {}", 
                 payment_id, status, external_reference);
         
-        Pago pago = pagoService.procesarRetornoPago(payment_id, status, external_reference);
+        // Intentar establecer el token en el SecurityContext
+        establecerTokenEnSecurityContext(authorizationHeader);
+        
+        // Obtener el token guardado para este pedido
+        String token = (external_reference != null) ? tokensPorPedido.get(external_reference) : null;
+        if (token != null) {
+            log.info("Token recuperado del mapa para el pedido: {}", external_reference);
+        }
+        
+        Pago pago = pagoService.procesarRetornoPago(payment_id, status, external_reference, token);
         if (pago != null) {
             return ResponseEntity.ok(pago);
         } else {
@@ -267,13 +329,23 @@ public class PagoController {
     public ResponseEntity<Void> redirectSuccess(
             @RequestParam(required = false) String payment_id,
             @RequestParam(required = false) String status,
-            @RequestParam(required = false) String external_reference) {
+            @RequestParam(required = false) String external_reference,
+            @RequestHeader(value = "Authorization", required = false) String authorizationHeader) {
         
         log.info("Redirigiendo después de pago exitoso - payment_id: {}, status: {}, pedido: {}", 
                 payment_id, status, external_reference);
         
+        // Intentar establecer el token en el SecurityContext
+        establecerTokenEnSecurityContext(authorizationHeader);
+        
+        // Obtener el token guardado para este pedido
+        String token = (external_reference != null) ? tokensPorPedido.get(external_reference) : null;
+        if (token != null) {
+            log.info("Token recuperado del mapa para el pedido: {}", external_reference);
+        }
+        
         // Procesar el pago primero
-        pagoService.procesarRetornoPago(payment_id, status, external_reference);
+        pagoService.procesarRetornoPago(payment_id, status, external_reference, token);
         
         // Construir URL de redirección a la página intermedia
         StringBuilder redirectUrl = new StringBuilder("/redirect.html?type=success");
@@ -299,21 +371,31 @@ public class PagoController {
     public ResponseEntity<Void> redirectError(
             @RequestParam(required = false) String payment_id,
             @RequestParam(required = false) String status,
-            @RequestParam(required = false) String external_reference) {
+            @RequestParam(required = false) String external_reference,
+            @RequestHeader(value = "Authorization", required = false) String authorizationHeader) {
         
         log.info("Redirigiendo después de pago con error - payment_id: {}, status: {}, pedido: {}", 
                 payment_id, status, external_reference);
+        
+        // Intentar establecer el token en el SecurityContext
+        establecerTokenEnSecurityContext(authorizationHeader);
+        
+        // Obtener el token guardado para este pedido
+        String token = (external_reference != null) ? tokensPorPedido.get(external_reference) : null;
+        if (token != null) {
+            log.info("Token recuperado del mapa para el pedido: {}", external_reference);
+        }
         
         // Si no hay status, usamos "cancelled" para que se marque como CANCELADO
         String estadoActual = (status == null || status.isEmpty() || "null".equals(status)) ? "cancelled" : status;
         
         // Procesar el pago primero
-        pagoService.procesarRetornoPago(payment_id, estadoActual, external_reference);
+        pagoService.procesarRetornoPago(payment_id, estadoActual, external_reference, token);
         
         // Si tenemos el código de pedido pero no tenemos payment_id, marcar como CANCELADO directamente
         if (external_reference != null && (payment_id == null || payment_id.isEmpty())) {
             try {
-                pagoService.cambiarEstadoPago(external_reference, "CANCELADO");
+                pagoService.cambiarEstadoPago(external_reference, "CANCELADO", token);
             } catch (Exception e) {
                 log.warn("No se pudo actualizar el estado del pago para el pedido: {}", external_reference);
             }
@@ -345,13 +427,23 @@ public class PagoController {
     public ResponseEntity<Void> redirectPending(
             @RequestParam(required = false) String payment_id,
             @RequestParam(required = false) String status,
-            @RequestParam(required = false) String external_reference) {
+            @RequestParam(required = false) String external_reference,
+            @RequestHeader(value = "Authorization", required = false) String authorizationHeader) {
         
         log.info("Redirigiendo después de pago pendiente - payment_id: {}, status: {}, pedido: {}", 
                 payment_id, status, external_reference);
         
+        // Intentar establecer el token en el SecurityContext
+        establecerTokenEnSecurityContext(authorizationHeader);
+        
+        // Obtener el token guardado para este pedido
+        String token = (external_reference != null) ? tokensPorPedido.get(external_reference) : null;
+        if (token != null) {
+            log.info("Token recuperado del mapa para el pedido: {}", external_reference);
+        }
+        
         // Procesar el pago primero
-        pagoService.procesarRetornoPago(payment_id, status, external_reference);
+        pagoService.procesarRetornoPago(payment_id, status, external_reference, token);
         
         // Construir URL de redirección a la página intermedia
         StringBuilder redirectUrl = new StringBuilder("/redirect.html?type=pending");
@@ -368,6 +460,35 @@ public class PagoController {
         return ResponseEntity.status(HttpStatus.FOUND)
                 .header("Location", redirectUrl.toString())
                 .build();
+    }
+    
+    /**
+     * Método auxiliar para establecer el token en el SecurityContext
+     */
+    private void establecerTokenEnSecurityContext(String authorizationHeader) {
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            String token = authorizationHeader.substring(7);
+            
+            // Si el SecurityContext no tiene el token, lo establecemos manualmente
+            Authentication currentAuth = SecurityContextHolder.getContext().getAuthentication();
+            if (currentAuth == null || currentAuth.getCredentials() == null) {
+                UsernamePasswordAuthenticationToken auth = 
+                        new UsernamePasswordAuthenticationToken(null, token, Collections.emptyList());
+                SecurityContextHolder.getContext().setAuthentication(auth);
+                log.info("Token establecido manualmente en el SecurityContext para el procesamiento de retorno");
+            }
+        } else {
+            log.warn("No se recibió header de autorización en el retorno del pago");
+        }
+    }
+
+    /**
+     * Obtiene el token almacenado para un código de pedido específico
+     * @param codigoPedido Código del pedido
+     * @return Token almacenado o null si no existe
+     */
+    public String getTokenForPedido(String codigoPedido) {
+        return tokensPorPedido.get(codigoPedido);
     }
     
     /**
@@ -395,6 +516,10 @@ public class PagoController {
             diagnostico.put("mercadopago_connection", "ERROR");
             diagnostico.put("mercadopago_error", e.getMessage());
         }
+        
+        // Información sobre tokens almacenados
+        diagnostico.put("tokens_pedidos_count", tokensPorPedido.size());
+        diagnostico.put("tokens_pedidos_keys", tokensPorPedido.keySet());
         
         return ResponseEntity.ok(diagnostico);
     }

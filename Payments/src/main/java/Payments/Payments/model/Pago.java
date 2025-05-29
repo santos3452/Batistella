@@ -29,16 +29,16 @@ public class Pago {
     @Column(name = "codigo_pedido", nullable = false)
     private String codigoPedido;
     
-    @Column(nullable = false)
+    @Column(name = "monto", precision = 10, scale = 2, nullable = false)
     private BigDecimal monto;
     
-    @Column(nullable = false)
+    @Column(name = "metodo", nullable = false)
     private String metodo;
     
     @Column(name = "fecha_pago")
     private LocalDateTime fechaPago;
     
-    @Column(nullable = false)
+    @Column(name = "estado", nullable = false)
     private String estado;
     
     // Campos adicionales para la transacción con Mercado Pago

@@ -49,9 +49,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (jwtUtil.validateToken(token)) {
                 Collection<? extends GrantedAuthority> authorities = jwtUtil.extractRoles(token);
                 
-                // Crear una autenticación sin username (solo nos interesa validar los roles)
+                // Guardar el token como credentials en el objeto Authentication
+                // Principal: null (no tenemos un usuario específico)
+                // Credentials: token (para poder accederlo después)
+                // Authorities: roles extraídos del token
                 UsernamePasswordAuthenticationToken authentication = 
-                        new UsernamePasswordAuthenticationToken(null, null, authorities);
+                        new UsernamePasswordAuthenticationToken(
+                            null, // principal (no extraemos username ya que no está implementado)
+                            token, // credentials (token completo para accederlo después)
+                            authorities // authorities
+                        );
                 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
                 log.debug("JWT válido procesado. Roles extraídos: {}", 

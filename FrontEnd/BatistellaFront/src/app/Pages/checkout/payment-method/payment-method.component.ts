@@ -6,7 +6,7 @@ import { CartService } from '../../../Services/Cart/cart.service';
 import { UtilsService } from '../../../Services/Utils/utils.service';
 import { PedidosService } from '../../../Services/Pedidos/pedidos.service';
 import { AuthService } from '../../../Services/Auth/auth.service';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 
 interface OrderSummary {
@@ -213,8 +213,19 @@ export class PaymentMethodComponent implements OnInit {
 
     console.log('Enviando solicitud a MercadoPago:', mercadoPagoRequest);
 
-    // Hacer la solicitud HTTP a la API de MercadoPago usando la URL del environment
-    this.http.post(environment.mercadoPagoUrl, mercadoPagoRequest)
+    // Obtener el token de autenticación
+    const token = localStorage.getItem('token');
+    console.log('Token para MercadoPago:', token);
+
+    // Crear headers con el token explícitamente
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    });
+
+    // Hacer la solicitud HTTP a la API de MercadoPago usando la URL del environment y los headers
+    this.http.post(environment.mercadoPagoUrl, mercadoPagoRequest, { headers })
       .subscribe({
         next: (response: any) => {
           console.log('Respuesta de MercadoPago:', response);
