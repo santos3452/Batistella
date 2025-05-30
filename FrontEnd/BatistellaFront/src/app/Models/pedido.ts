@@ -12,6 +12,7 @@ export interface Pedido {
   id: number;
   codigoPedido?: string;
   usuarioId: number;
+  email?: string;
   fechaPedido: string;
   estado: string;
   total: number;

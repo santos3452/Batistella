@@ -47,6 +47,9 @@ public class JwtService {
     
     // Caché para almacenar los nombres completos de los usuarios
     private ConcurrentHashMap<Long, String> userFullNameCache = new ConcurrentHashMap<>();
+    
+    // Caché para almacenar los emails de los usuarios
+    private ConcurrentHashMap<Long, String> userEmailCache = new ConcurrentHashMap<>();
 
     /**
      * Extrae el ID del usuario del token JWT en el contexto de seguridad actual
@@ -265,5 +268,57 @@ public class JwtService {
      */
     public boolean isUserAuthorizedOrAdmin(Long requestedUserId) {
         return isUserAuthorized(requestedUserId) || isAdmin();
+    }
+
+    /**
+     * Obtiene el email de un usuario desde la caché
+     * Si no está en caché, intenta obtenerlo del microservicio de usuarios
+     * @param userId ID del usuario
+     * @return Email o "email@notfound.com" si no se puede obtener
+     */
+    public String getUserEmailFromCache(Long userId) {
+        // Primero intentamos obtener el email de la caché
+        String emailUsuario = userEmailCache.get(userId);
+
+        // Si no está en caché, intentamos obtenerlo del microservicio de usuarios
+        if (emailUsuario == null) {
+            try {
+                // Solo si eres administrador o es tu propio ID
+                if (isAdmin() || isUserAuthorized(userId)) {
+                    String url = usuariosServiceUrl + "/getUserByID/" + userId;
+                    logger.info("Consultando email de usuario en: {}", url);
+                    String token = extractJwtFromRequest(request);
+
+                    HttpHeaders headers = new HttpHeaders();
+                    headers.set("Authorization", "Bearer "+ token);
+                    headers.set("accept", "application/hal+json");
+
+                    HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
+
+                    ResponseEntity<UsuarioDTO> response = restTemplate.exchange(
+                            url,
+                            HttpMethod.GET,
+                            requestEntity,
+                            UsuarioDTO.class
+                    );
+
+                    UsuarioDTO usuario = response.getBody();
+                    if (usuario != null && usuario.getEmail() != null) {
+                        emailUsuario = usuario.getEmail();
+                        userEmailCache.put(userId, emailUsuario);
+                    } else {
+                        emailUsuario = "email@notfound.com";
+                    }
+                } else {
+                    // No tienes permisos para acceder a este usuario
+                    emailUsuario = "email@notfound.com";
+                }
+            } catch (RestClientException e) {
+                logger.error("Error al consultar el email del usuario: {}", e.getMessage());
+                emailUsuario = "email@notfound.com";
+            }
+        }
+
+        return emailUsuario;
     }
 } 

@@ -143,72 +143,178 @@ public class EmailTemplateServiceImpl implements EmailTemplateService {
         
         StringBuilder productosHtml = new StringBuilder();
         
-        // Generar filas de productos de forma más simple
+        // Generar filas de productos usando tabla simple para máxima compatibilidad
         for (ProductoPedidoDTO producto : pedido.getProductos()) {
-            productosHtml.append("<div style='padding: 8px 0; border-bottom: 1px solid #e0e0e0;'>")
-                .append("<div style='display: inline-block; width: 50%;'>").append(producto.getNombreProducto()).append("</div>")
-                .append("<div style='display: inline-block; width: 15%; text-align: center;'>").append(producto.getCantidad()).append("</div>")
-                .append("<div style='display: inline-block; width: 15%; text-align: right;'>$").append(producto.getPrecioUnitario()).append("</div>")
-                .append("<div style='display: inline-block; width: 15%; text-align: right;'>$").append(producto.getSubtotal()).append("</div>")
-                .append("</div>");
+            productosHtml.append("<tr>")
+                .append("<td style='padding: 10px; border-bottom: 1px solid #e0e0e0;'>").append(producto.getNombreProducto()).append("</td>")
+                .append("<td style='padding: 10px; border-bottom: 1px solid #e0e0e0; text-align: center;'>").append(producto.getCantidad()).append("</td>")
+                .append("<td style='padding: 10px; border-bottom: 1px solid #e0e0e0; text-align: right;'>$").append(producto.getPrecioUnitario()).append("</td>")
+                .append("<td style='padding: 10px; border-bottom: 1px solid #e0e0e0; text-align: right;'>$").append(producto.getSubtotal()).append("</td>")
+                .append("</tr>");
         }
         
-        return "<html>" +
+        return "<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Transitional//EN' 'http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd'>" +
+            "<html xmlns='http://www.w3.org/1999/xhtml'>" +
             "<head>" +
-            "<meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>" +
+            "<meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />" +
+            "<meta name='viewport' content='width=device-width, initial-scale=1.0'/>" +
+            "<style type='text/css'>" +
+            "@media screen and (max-width: 525px) {" +
+            "  table[class='responsive-table'] {width: 100% !important;}" +
+            "  td[class='padding'] {padding: 10px 5% 15px 5% !important;}" +
+            "  td[class='padding-copy'] {padding: 10px 5% 10px 5% !important; text-align: center;}" +
+            "  td[class='padding-meta'] {padding: 30px 5% 0px 5% !important; text-align: center;}" +
+            "  td[class='no-pad'] {padding: 0 0 10px 0 !important;}" +
+            "  td[class='no-padding'] {padding: 0 !important;}" +
+            "  td[class='section-padding'] {padding: 10px 15px 10px 15px !important;}" +
+            "  td[class='section-header'] {padding: 10px 15px 10px 15px !important;}" +
+            "  td[class='mobile-wrapper'] {padding: 10px 5% 15px 5% !important;}" +
+            "  table[class='mobile-button-container'] {margin: 0 auto; width: 100% !important;}" +
+            "  a[class='mobile-button'] {width: 80% !important; padding: 15px !important; border: 0 !important; font-size: 16px !important;}" +
+            "  td[class='mobile-hide'] {display: none !important;}" +
+            "  td[class='mobile-show'] {display: block !important;}" +
+            "}" +
+            "</style>" +
             "</head>" +
-            "<body style='margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; color: #333;'>" +
-            "<div style='max-width: 600px; margin: 0 auto; padding: 20px;'>" +
+            "<body style='margin: 0; padding: 0;'>" +
             
-            // Logo
-            "<div style='text-align: center; padding: 20px 0;'>" +
-            "<img src='" + logoUrl + "' alt='Batistella Logo' style='max-width: 180px;'>" +
-            "</div>" +
+            "<!-- ESTRUCTURA PRINCIPAL -->" +
+            "<table border='0' cellpadding='0' cellspacing='0' width='100%'>" +
+            "  <tr>" +
+            "    <td align='center' bgcolor='#ffffff'>" +
             
-            // Título
-            "<div style='text-align: center; padding: 20px 0;'>" +
-            "<h1 style='color: #333; margin: 0; font-size: 24px;'>¡Tu pago se procesó correctamente!</h1>" +
-            "<p style='font-size: 18px; margin: 10px 0;'>Tu pedido ha sido confirmado</p>" +
-            "<p style='margin: 10px 0;'>¡Muchas gracias por comprar en Batistella!</p>" +
-            "</div>" +
+            "      <!-- CONTENEDOR PRINCIPAL -->" +
+            "      <table border='0' cellpadding='0' cellspacing='0' width='600' class='responsive-table'>" +
+            "        <tr>" +
+            "          <td>" +
             
-            // Detalles del pedido
-            "<div style='background-color: #f9f9f9; border: 1px solid #ddd; padding: 15px; margin: 20px 0;'>" +
-            "<h2 style='color: #333; margin: 0 0 15px 0; font-size: 18px;'>Detalles del Pedido #" + pedido.getCodigoPedido() + "</h2>" +
-            "<p style='margin: 8px 0;'><strong>Fecha:</strong> " + pedido.getFechaPedido() + "</p>" +
-            "<p style='margin: 8px 0;'><strong>Cliente:</strong> " + pedido.getNombreCompletoUsuario() + "</p>" +
-            "<p style='margin: 8px 0;'><strong>Dirección de entrega:</strong> " + pedido.getDomicilio() + "</p>" +
+            "            <!-- BLOQUE DEL LOGO -->" +
+            "            <table width='100%' border='0' cellspacing='0' cellpadding='0'>" +
+            "              <tr>" +
+            "                <td align='center' class='padding'>" +
+            "                  <table border='0' cellspacing='0' cellpadding='0'>" +
+            "                    <tr>" +
+            "                      <td>" +
+            "                        <a href='#' target='_blank'>" +
+            "                          <img src='" + logoUrl + "' width='180' border='0' alt='Batistella Logo' style='display: block; color: #666666; font-family: Helvetica, Arial, sans-serif; font-size: 16px;' />" +
+            "                        </a>" +
+            "                      </td>" +
+            "                    </tr>" +
+            "                  </table>" +
+            "                </td>" +
+            "              </tr>" +
+            "            </table>" +
             
-            // Encabezados de productos
-            "<div style='margin-top: 20px; background-color: #f1f1f1; padding: 10px 0; font-weight: bold;'>" +
-            "<div style='display: inline-block; width: 50%;'>Producto</div>" +
-            "<div style='display: inline-block; width: 15%; text-align: center;'>Cant.</div>" +
-            "<div style='display: inline-block; width: 15%; text-align: right;'>Precio</div>" +
-            "<div style='display: inline-block; width: 15%; text-align: right;'>Subtotal</div>" +
-            "</div>" +
+            "            <!-- BLOQUE DEL TÍTULO -->" +
+            "            <table width='100%' border='0' cellspacing='0' cellpadding='0'>" +
+            "              <tr>" +
+            "                <td align='center' class='padding'>" +
+            "                  <table width='100%' border='0' cellspacing='0' cellpadding='0' class='mobile-button-container'>" +
+            "                    <tr>" +
+            "                      <td align='center' style='font-size: 22px; font-family: Helvetica, Arial, sans-serif; color: #333333; padding-top: 10px;' class='padding-copy'>" +
+            "                        ¡Tu pago se procesó correctamente!" +
+            "                      </td>" +
+            "                    </tr>" +
+            "                    <tr>" +
+            "                      <td align='center' style='font-size: 16px; font-family: Helvetica, Arial, sans-serif; color: #333333; padding-top: 10px;' class='padding-copy'>" +
+            "                        Tu pedido ha sido confirmado" +
+            "                      </td>" +
+            "                    </tr>" +
+            "                    <tr>" +
+            "                      <td align='center' style='font-size: 14px; font-family: Helvetica, Arial, sans-serif; color: #333333; padding-top: 10px;' class='padding-copy'>" +
+            "                        ¡Muchas gracias por comprar en Batistella!" +
+            "                      </td>" +
+            "                    </tr>" +
+            "                  </table>" +
+            "                </td>" +
+            "              </tr>" +
+            "            </table>" +
             
-            // Productos
+            "            <!-- BLOQUE DE DETALLES DEL PEDIDO -->" +
+            "            <table width='100%' border='0' cellspacing='0' cellpadding='0'>" +
+            "              <tr>" +
+            "                <td align='center' class='padding'>" +
+            "                  <table width='100%' border='0' cellspacing='0' cellpadding='0' bgcolor='#f8f8f8' style='border: 1px solid #e0e0e0; border-radius: 4px;'>" +
+            "                    <tr>" +
+            "                      <td class='padding-copy' style='font-size: 16px; font-family: Helvetica, Arial, sans-serif; color: #333333; padding: 15px; border-bottom: 1px solid #e0e0e0;'>" +
+            "                        <strong>Detalles del Pedido #" + pedido.getCodigoPedido() + "</strong>" +
+            "                      </td>" +
+            "                    </tr>" +
+            "                    <tr>" +
+            "                      <td class='padding-copy' style='font-size: 14px; font-family: Helvetica, Arial, sans-serif; color: #333333; padding: 15px;'>" +
+            "                        <p style='margin: 5px 0;'><strong>Fecha:</strong> " + pedido.getFechaPedido() + "</p>" +
+            "                        <p style='margin: 5px 0;'><strong>Cliente:</strong> " + pedido.getNombreCompletoUsuario() + "</p>" +
+            "                        <p style='margin: 5px 0;'><strong>Dirección de entrega:</strong> " + pedido.getDomicilio() + "</p>" +
+            
+            "                        <!-- TABLA DE PRODUCTOS -->" +
+            "                        <table width='100%' border='0' cellspacing='0' cellpadding='0' style='margin-top: 15px;'>" +
+            "                          <tr bgcolor='#f1f1f1'>" +
+            "                            <th align='left' style='padding: 10px; border-bottom: 2px solid #e0e0e0; font-family: Helvetica, Arial, sans-serif; font-size: 14px;'>Producto</th>" +
+            "                            <th align='center' style='padding: 10px; border-bottom: 2px solid #e0e0e0; font-family: Helvetica, Arial, sans-serif; font-size: 14px;'>Cant.</th>" +
+            "                            <th align='right' style='padding: 10px; border-bottom: 2px solid #e0e0e0; font-family: Helvetica, Arial, sans-serif; font-size: 14px;'>Precio</th>" +
+            "                            <th align='right' style='padding: 10px; border-bottom: 2px solid #e0e0e0; font-family: Helvetica, Arial, sans-serif; font-size: 14px;'>Subtotal</th>" +
+            "                          </tr>" +
+            
             productosHtml.toString() +
             
-            // Total
-            "<div style='margin-top: 15px; text-align: right; font-weight: bold;'>" +
-            "Total: $" + pedido.getTotal() +
-            "</div>" +
-            "</div>" +
+            "                          <tr>" +
+            "                            <td colspan='3' align='right' style='padding: 10px; border-top: 2px solid #e0e0e0; font-family: Helvetica, Arial, sans-serif; font-size: 14px; font-weight: bold;'>Total:</td>" +
+            "                            <td align='right' style='padding: 10px; border-top: 2px solid #e0e0e0; font-family: Helvetica, Arial, sans-serif; font-size: 14px; font-weight: bold;'>$" + pedido.getTotal() + "</td>" +
+            "                          </tr>" +
+            "                        </table>" +
+            "                      </td>" +
+            "                    </tr>" +
+            "                  </table>" +
+            "                </td>" +
+            "              </tr>" +
+            "            </table>" +
             
-            // Pie
-            "<div style='padding: 20px 0;'>" +
-            "<p style='margin: 8px 0;'>Si tenés alguna duda o consulta sobre tu pedido, no dudes en contactarnos.</p>" +
-            "<p style='margin: 8px 0;'>¡Gracias por confiar en nosotros!</p>" +
-            "<p style='margin: 8px 0;'>El equipo de Batistella</p>" +
-            "</div>" +
+            "            <!-- BLOQUE DE MENSAJE FINAL -->" +
+            "            <table width='100%' border='0' cellspacing='0' cellpadding='0'>" +
+            "              <tr>" +
+            "                <td class='padding'>" +
+            "                  <table width='100%' border='0' cellspacing='0' cellpadding='0'>" +
+            "                    <tr>" +
+            "                      <td style='padding: 10px 0; font-family: Helvetica, Arial, sans-serif; font-size: 14px; color: #333333;'>" +
+            "                        <p style='margin: 5px 0;'>Si tenés alguna duda o consulta sobre tu pedido, no dudes en contactarnos.</p>" +
+            "                        <p style='margin: 5px 0;'>¡Gracias por confiar en nosotros!</p>" +
+            "                        <p style='margin: 5px 0;'>El equipo de Batistella</p>" +
+            "                      </td>" +
+            "                    </tr>" +
+            "                  </table>" +
+            "                </td>" +
+            "              </tr>" +
+            "            </table>" +
             
-            // Footer
-            "<div style='text-align: center; border-top: 1px solid #ddd; padding-top: 15px;'>" +
-            "<p style='font-size: 12px; color: #777;'>© " + LocalDateTime.now().getYear() + " Batistella</p>" +
-            "</div>" +
+            "            <!-- BLOQUE DE FOOTER -->" +
+            "            <table width='100%' border='0' cellspacing='0' cellpadding='0'>" +
+            "              <tr>" +
+            "                <td align='center'>" +
+            "                  <table width='100%' border='0' cellspacing='0' cellpadding='0'>" +
+            "                    <tr>" +
+            "                      <td align='center' style='padding: 20px 0 0 0; border-top: 1px solid #e0e0e0;'>" +
+            "                        <table border='0' cellspacing='0' cellpadding='0'>" +
+            "                          <tr>" +
+            "                            <td align='center' style='font-family: Helvetica, Arial, sans-serif; font-size: 12px; color: #666666;'>" +
+            "                              © " + LocalDateTime.now().getYear() + " Batistella" +
+            "                            </td>" +
+            "                          </tr>" +
+            "                        </table>" +
+            "                      </td>" +
+            "                    </tr>" +
+            "                  </table>" +
+            "                </td>" +
+            "              </tr>" +
+            "            </table>" +
             
-            "</div>" +
+            "          </td>" +
+            "        </tr>" +
+            "      </table>" +
+            
+            "    </td>" +
+            "  </tr>" +
+            "</table>" +
+            
             "</body>" +
             "</html>";
     }

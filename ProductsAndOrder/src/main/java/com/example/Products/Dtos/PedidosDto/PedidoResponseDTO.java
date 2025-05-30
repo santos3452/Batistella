@@ -17,6 +17,7 @@ public class PedidoResponseDTO {
     private String codigoPedido;
     private Long usuarioId;
     private String nombreCompletoUsuario;
+    private String email;
     private LocalDateTime fechaPedido;
     private EstadoPedido estado;
     private BigDecimal total;

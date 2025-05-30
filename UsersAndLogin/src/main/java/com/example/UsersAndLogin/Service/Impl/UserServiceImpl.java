@@ -218,7 +218,7 @@ public class UserServiceImpl implements UserService {
          UserDto userDto = new UserDto();
          userDto.setNombre(user.getNombre());
          userDto.setApellido(user.getApellido());
-
+         userDto.setEmail(user.getEmail());
          return userDto;
     }
 } 

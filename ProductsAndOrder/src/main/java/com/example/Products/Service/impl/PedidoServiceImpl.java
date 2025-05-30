@@ -195,6 +195,9 @@ public class PedidoServiceImpl implements PedidoService {
         // Establecer el nombre completo del usuario desde la caché
         responseDTO.setNombreCompletoUsuario(jwtService.getUserFullNameFromCache(pedidoGuardado.getUsuarioId()));
         
+        // Obtener el email del usuario desde la caché
+        responseDTO.setEmail(jwtService.getUserEmailFromCache(pedidoGuardado.getUsuarioId()));
+        
         // Mapear manualmente los productos del pedido porque aún no están asociados en la entidad pedidoGuardado
         List<PedidoProductoResponseDTO> productosResponse = pedidoProductos.stream()
             .map(pedidoProducto -> {
@@ -299,7 +302,6 @@ public class PedidoServiceImpl implements PedidoService {
         try {
             EstadoPedido estado = EstadoPedido.valueOf(nuevoEstado.toUpperCase());
             pedido.setEstado(estado);
-            pedido.setUpdatedAt(LocalDateTime.now());
             pedidoRepository.save(pedido);
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Estado de pedido inválido: " + nuevoEstado);
@@ -315,6 +317,9 @@ public class PedidoServiceImpl implements PedidoService {
         
         // Obtener el nombre completo del usuario desde la caché
         responseDTO.setNombreCompletoUsuario(jwtService.getUserFullNameFromCache(pedido.getUsuarioId()));
+        
+        // Obtener el email del usuario desde la caché
+        responseDTO.setEmail(jwtService.getUserEmailFromCache(pedido.getUsuarioId()));
         
         // Mapear productos del pedido
         List<PedidoProductoResponseDTO> productosResponse = pedido.getPedidoProductos().stream()
@@ -361,12 +366,25 @@ public class PedidoServiceImpl implements PedidoService {
                     
                     // Actualizar el estado del pedido en la base de datos
                     pedido.setEstado(EstadoPedido.CANCELADO);
-                    pedido.setUpdatedAt(LocalDateTime.now());
                     pedidoRepository.save(pedido);
                     
                     // Actualizar el DTO de respuesta
                     responseDTO.setEstado(EstadoPedido.CANCELADO);
                     System.out.println("Pedido " + pedido.getCodigoPedido() + " actualizado a CANCELADO porque el pago está " + pagoInfo.getEstado());
+                }
+                
+                // Actualizar automáticamente el estado del pedido si el pago está COMPLETADO
+                if (pagoInfo.getEstado() != null && 
+                    pagoInfo.getEstado().equals("COMPLETADO") && 
+                    pedido.getEstado() == EstadoPedido.PENDIENTE) {
+                    
+                    // Actualizar el estado del pedido en la base de datos
+                    pedido.setEstado(EstadoPedido.CONFIRMADO);
+                    pedidoRepository.save(pedido);
+                    
+                    // Actualizar el DTO de respuesta
+                    responseDTO.setEstado(EstadoPedido.CONFIRMADO);
+                    System.out.println("Pedido " + pedido.getCodigoPedido() + " actualizado a CONFIRMADO porque el pago está COMPLETADO");
                 }
             } else {
                 System.out.println("La respuesta del servicio de pagos no contiene datos o no es exitosa");

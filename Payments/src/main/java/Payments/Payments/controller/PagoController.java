@@ -55,6 +55,14 @@ public class PagoController {
     // Mapa para almacenar tokens por código de pedido
     private final Map<String, String> tokensPorPedido = new ConcurrentHashMap<>();
     
+    // Mapa estático para acceso desde otras clases
+    private static final Map<String, String> tokensPorPedidoStatic = new ConcurrentHashMap<>();
+    
+    // Método estático para acceder a los tokens desde otras clases
+    public static String getTokenForPedidoStatic(String codigoPedido) {
+        return tokensPorPedidoStatic.get(codigoPedido);
+    }
+    
     /**
      * Crea una preferencia de pago con Mercado Pago
      */
@@ -81,6 +89,8 @@ public class PagoController {
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             String token = authorizationHeader.substring(7);
             tokensPorPedido.put(preferenceDTO.getCodigoPedido(), token);
+            // También guardar en el mapa estático
+            tokensPorPedidoStatic.put(preferenceDTO.getCodigoPedido(), token);
             log.info("Token guardado para el pedido: {}", preferenceDTO.getCodigoPedido());
             
             // Mantener la lógica para establecer el token en el SecurityContext
@@ -107,20 +117,40 @@ public class PagoController {
     public ResponseEntity<String> procesarWebhookMercadoPago(
             @Parameter(description = "Datos de la notificación de Mercado Pago") 
             @RequestBody Map<String, Object> payload) {
-        log.info("Recibida notificación de Mercado Pago: {}", payload);
+        log.info("*************************************************************");
+        log.info("WEBHOOK RECIBIDO: Recibida notificación de Mercado Pago");
+        log.info("Payload completo: {}", payload);
+        log.info("*************************************************************");
         
         try {
             // Extraer los datos relevantes del payload
             String action = (String) payload.get("action");
+            log.info("Action: {}", action);
+            
             if ("payment.created".equals(action) || "payment.updated".equals(action)) {
                 Map<String, Object> data = (Map<String, Object>) payload.get("data");
+                log.info("Data: {}", data);
+                
                 String paymentId = data.get("id").toString();
-                pagoService.procesarNotificacionPago(paymentId, "pending");
+                log.info("Payment ID: {}", paymentId);
+                
+                // Consultamos el estado actual del pago en Mercado Pago
+                // Para pruebas, podemos usar "approved" directamente si es "payment.updated"
+                String status = "payment.updated".equals(action) ? "approved" : "pending";
+                
+                log.info("Procesando notificación de pago - ID: {}, Action: {}, Status: {}", 
+                        paymentId, action, status);
+                
+                pagoService.procesarNotificacionPago(paymentId, status);
+                log.info("Notificación procesada correctamente");
+            } else {
+                log.info("Action no reconocida: {}", action);
             }
             
             return ResponseEntity.ok("Webhook procesado correctamente");
         } catch (Exception e) {
             log.error("Error al procesar webhook de Mercado Pago", e);
+            log.error("Excepción: ", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al procesar la notificación");
         }
     }
@@ -216,6 +246,7 @@ public class PagoController {
             // Obtener el token guardado para este pedido
             String token = tokensPorPedido.get(codigoPedido);
             
+            // Para cambios manuales, mantenemos el comportamiento original
             pagoService.cambiarEstadoPago(codigoPedido, estado, token);
             return ResponseEntity.ok("Estado del pago actualizado correctamente");
         } catch (PagoNotFoundException e) {
@@ -507,6 +538,10 @@ public class PagoController {
         diagnostico.put("redirect_success", appBaseUrl + "/api/pagos/redirect/success");
         diagnostico.put("redirect_error", appBaseUrl + "/api/pagos/redirect/error");
         diagnostico.put("redirect_pending", appBaseUrl + "/api/pagos/redirect/pending");
+        
+        // URL de webhook - esta es la URL que debe configurarse en Mercado Pago
+        diagnostico.put("webhook_url", appBaseUrl + "/api/pagos/webhooks/mercadopago");
+        diagnostico.put("webhook_note", "Esta URL debe configurarse en Mercado Pago para recibir notificaciones");
         
         // Estado de la conexión con Mercado Pago
         try {

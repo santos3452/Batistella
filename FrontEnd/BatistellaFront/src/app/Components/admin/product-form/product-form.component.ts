@@ -72,7 +72,7 @@ export class ProductFormComponent implements OnInit {
   tipoRazaOptions = [
     { value: 'RAZA_GRANDE', label: 'Raza Grande' },
     { value: 'RAZA_MEDIANA', label: 'Raza Mediana' },
-    { value: 'RAZA_PEQUENA', label: 'Raza Pequeña' },
+    { value: 'RAZA_PEQUEÑA', label: 'Raza Pequeña' },
     { value: 'RAZA_MEDIANA_GRANDE', label: 'Raza Mediana y Grande' }
   ];
 

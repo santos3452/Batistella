@@ -20,6 +20,7 @@ import com.mercadopago.client.preference.PreferenceRequest;
 import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.exceptions.MPException;
 
+import Payments.Payments.controller.PagoController;
 import Payments.Payments.dto.PagoResponseDTO;
 import Payments.Payments.dto.PreferenceDTO;
 import Payments.Payments.exception.PagoNotFoundException;
@@ -155,20 +156,43 @@ public class PagoServiceImpl implements PagoService {
                 case "approved":
                     pago.setEstado("COMPLETADO");
                     pago.setFechaPago(LocalDateTime.now());
+                    
+                    // Guardar primero para asegurar que se actualice el estado
+                    pago = pagoRepository.save(pago);
+                    
+                    // Enviar notificación aquí para pagos aprobados
+                    try {
+                        log.info("Enviando notificación desde webhook para pago aprobado: {}", pago.getCodigoPedido());
+                        // Intentar obtener token del mapa en PagoController
+                        String token = null;
+                        try {
+                            token = PagoController.getTokenForPedidoStatic(pago.getCodigoPedido());
+                            if (token != null) {
+                                log.info("Token encontrado para el pedido: {}", pago.getCodigoPedido());
+                            }
+                        } catch (Exception e) {
+                            log.warn("No se pudo obtener token para el pedido: {}", e.getMessage());
+                        }
+                        
+                        enviarNotificacionPedidoCompletado(pago, token);
+                    } catch (Exception e) {
+                        log.error("Error al enviar notificación de pedido completado desde webhook: {}", e.getMessage());
+                    }
                     break;
                 case "rejected":
                     pago.setEstado("RECHAZADO");
+                    pagoRepository.save(pago);
                     break;
                 case "in_process":
                 case "pending":
                     pago.setEstado("PENDIENTE");
+                    pagoRepository.save(pago);
                     break;
                 default:
                     pago.setEstado("PENDIENTE");
+                    pagoRepository.save(pago);
                     break;
             }
-            
-            pagoRepository.save(pago);
         }
     }
 
@@ -217,12 +241,16 @@ public class PagoServiceImpl implements PagoService {
             if (pago != null) {
                 pago = actualizarEstadoPago(pago, paymentId, status);
                 
-                // Si el pago está completado, obtener detalles del pedido y enviar notificación
-                if ("COMPLETADO".equals(pago.getEstado())) {
+                // Verificar si el pago está completado y enviar notificación
+                // Esto es necesario porque los webhooks pueden no estar llegando
+                if ("COMPLETADO".equals(pago.getEstado()) || 
+                    "approved".equalsIgnoreCase(status) || 
+                    "success".equalsIgnoreCase(status)) {
                     try {
+                        log.info("Enviando notificación desde callback para pago aprobado: {}", pago.getCodigoPedido());
                         enviarNotificacionPedidoCompletado(pago, authToken);
                     } catch (Exception e) {
-                        log.error("Error al enviar notificación de pedido completado: {}", e.getMessage());
+                        log.error("Error al enviar notificación de pedido completado desde callback: {}", e.getMessage());
                     }
                 }
                 
@@ -236,12 +264,16 @@ public class PagoServiceImpl implements PagoService {
                 pago = pagoOpt.get();
                 pago = actualizarEstadoPago(pago, paymentId, status);
                 
-                // Si el pago está completado, obtener detalles del pedido y enviar notificación
-                if ("COMPLETADO".equals(pago.getEstado())) {
+                // Verificar si el pago está completado y enviar notificación
+                // Esto es necesario porque los webhooks pueden no estar llegando
+                if ("COMPLETADO".equals(pago.getEstado()) || 
+                    "approved".equalsIgnoreCase(status) || 
+                    "success".equalsIgnoreCase(status)) {
                     try {
+                        log.info("Enviando notificación desde callback para pago aprobado: {}", pago.getCodigoPedido());
                         enviarNotificacionPedidoCompletado(pago, authToken);
                     } catch (Exception e) {
-                        log.error("Error al enviar notificación de pedido completado: {}", e.getMessage());
+                        log.error("Error al enviar notificación de pedido completado desde callback: {}", e.getMessage());
                     }
                 }
                 

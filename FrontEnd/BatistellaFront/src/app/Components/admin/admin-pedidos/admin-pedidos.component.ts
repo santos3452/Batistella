@@ -23,6 +23,7 @@ interface Pedido {
   codigoPedido: string;
   usuarioId: number;
   nombreCompletoUsuario: string;
+  email?: string;
   fechaPedido: string;
   estado: string;
   total: number;

@@ -83,7 +83,7 @@ public class HttpClientService {
      * @return true si la notificación se envió correctamente
      */
     public boolean enviarNotificacionPago(String email, Map<String, Object> pedidoData) {
-        String url = notificationsServiceUrl + "/api/notifications/payment/confirmation?email=" + email;
+        String url =  "http://host.docker.internal:8085/api/notifications/payment/confirmation?email=" + email;
         
         try {
             log.info("Enviando notificación de pago para el pedido {} al email {} - URL: {}", 
