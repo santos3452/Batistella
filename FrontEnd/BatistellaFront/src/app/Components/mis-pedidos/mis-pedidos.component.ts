@@ -8,6 +8,8 @@ import { Pedido, ProductoPedido } from '../../Models/pedido';
 import { of, forkJoin } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { CartService } from '../../Services/Cart/cart.service';
+import { PedidosVistosService } from '../../Services/Pedidos/pedidos-vistos.service';
+import { PrintService } from '../../Services/Print/print.service';
 
 interface ProductoPedidoConImagen extends ProductoPedido {
   imagenUrl?: string;
@@ -92,6 +94,8 @@ export class MisPedidosComponent implements OnInit {
     private authService: AuthService,
     private productService: ProductService,
     private cartService: CartService,
+    private pedidosVistosService: PedidosVistosService,
+    private printService: PrintService,
     private router: Router
   ) {}
 
@@ -232,7 +236,18 @@ export class MisPedidosComponent implements OnInit {
       this.pedidoExpandido = null;
     } else {
       this.pedidoExpandido = pedidoId;
+      // Marcar el pedido como visto cuando se expande
+      this.pedidosVistosService.marcarComoVisto(pedidoId);
     }
+  }
+
+  /**
+   * Verifica si un pedido ha sido visto
+   * @param pedidoId ID del pedido a verificar
+   * @returns true si el pedido ha sido visto, false en caso contrario
+   */
+  esPedidoVisto(pedidoId: number): boolean {
+    return this.pedidosVistosService.esPedidoVisto(pedidoId);
   }
 
   obtenerEstadoClase(estado: string): string {
@@ -251,12 +266,18 @@ export class MisPedidosComponent implements OnInit {
   }
 
   formatearFecha(fecha: string): string {
-    if (!fecha) return '';
-    const partes = fecha.split(' ');
-    if (partes.length >= 1) {
-      return partes[0];
+    try {
+      // Convertir la fecha al formato local
+      return new Date(fecha).toLocaleDateString('es-AR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (error) {
+      return fecha; // Si hay un error, devolver la fecha original
     }
-    return fecha;
   }
 
   calcularGastoTotal(): number {
@@ -267,113 +288,115 @@ export class MisPedidosComponent implements OnInit {
     return this.pedidos.filter(pedido => pedido.estado.toUpperCase() === 'PENDIENTE').length;
   }
 
-  // Método para obtener los pedidos paginados
   get pagedPedidos(): PedidoConImagenes[] {
     const start = (this.page - 1) * this.pageSize;
-    return this.pedidos.slice(start, start + this.pageSize);
+    const end = start + this.pageSize;
+    return this.pedidos.slice(start, end);
   }
 
-  // Métodos de paginación
   prevPage(): void {
     if (this.page > 1) {
       this.page--;
-      window.scrollTo(0, 0);
     }
   }
 
   nextPage(): void {
     if (this.page < this.totalPages) {
       this.page++;
-      window.scrollTo(0, 0);
     }
   }
 
   goToPage(n: number): void {
     if (n >= 1 && n <= this.totalPages) {
       this.page = n;
-      window.scrollTo(0, 0);
     }
   }
 
-  // Determina si un número de página debe mostrarse basado en la página actual
   showPageNumber(pageNum: number): boolean {
-    // Si hay 5 o menos páginas, mostrar todas
-    if (this.totalPages <= 5) return true;
+    // Lógica para mostrar un subconjunto de números de página
+    if (this.totalPages <= 5) {
+      // Si hay 5 o menos páginas, mostrar todas
+      return true;
+    }
     
-    // Siempre mostrar la primera página
-    if (pageNum === 1) return true;
+    // Siempre mostrar la primera página, la última, y las cercanas a la actual
+    if (pageNum === 1 || pageNum === this.totalPages || 
+        (pageNum >= this.page - 1 && pageNum <= this.page + 1)) {
+      return true;
+    }
     
-    // Para páginas cercanas a la actual
-    if (pageNum >= this.page - 1 && pageNum <= this.page + 1) return true;
+    // Para páginas intermedias, mostrar puntos suspensivos
+    if (pageNum === 2 && this.page > 3) {
+      return false; // No mostrar el número, se mostrará puntos suspensivos
+    }
     
-    // No mostrar otras páginas
+    if (pageNum === this.totalPages - 1 && this.page < this.totalPages - 2) {
+      return false; // No mostrar el número, se mostrará puntos suspensivos
+    }
+    
     return false;
   }
 
-  // Obtiene el número de página que se debe mostrar en cada posición
   getPageNumberToShow(index: number): number {
-    // Si hay 5 o menos páginas, mostrar secuencialmente
-    if (this.totalPages <= 5) return index + 1;
-    
-    // Para la primera posición siempre mostrar página 1
-    if (index === 0) return 1;
+    if (this.totalPages <= 5) {
+      return index + 1;
+    }
     
     // Si estamos en las primeras páginas
     if (this.page <= 3) {
       return index + 1;
     }
     
-    // Si estamos cerca del final
+    // Si estamos en las últimas páginas
     if (this.page >= this.totalPages - 2) {
       return this.totalPages - 4 + index;
     }
     
-    // En medio del rango
+    // Si estamos en páginas intermedias, centrar alrededor de la página actual
     return this.page - 2 + index;
   }
 
-  /**
-   * Convierte un ProductoPedido a un objeto Product para añadirlo al carrito
-   */
+  // Transformar un ProductoPedido a Product para poder agregarlo al carrito
   private transformProductoPedidoToProduct(producto: ProductoPedidoConImagen): Product {
     return {
       id: producto.productoId,
       fullName: producto.nombreProducto,
+      description: '',
       priceMinorista: producto.precioUnitario,
-      kg: producto.kg ? producto.kg.toString() : '',
-      // Valores por defecto requeridos por la interfaz Product
+      priceMayorista: 0,
+      stock: 999, // Suponemos que hay stock suficiente
+      imageUrl: producto.imagenUrl || this.imagenPorDefecto,
+      animalType: '',
       marca: '',
       tipoAlimento: '',
       tipoRaza: '',
-      description: '',
-      priceMayorista: 0,
-      stock: 0,
-      imageUrl: producto.imagenUrl || this.imagenPorDefecto,
-      animalType: '',
+      kg: producto.kg?.toString() || '',
       activo: true
     };
   }
 
-  /**
-   * Repite un pedido anterior añadiendo todos los productos al carrito
-   * con las mismas cantidades y precios originales
-   */
+  // Método para repetir un pedido (agregar todos los productos al carrito)
   repetirPedido(pedido: PedidoConImagenes): void {
-    // Primero limpiamos el carrito actual
+    // Limpiar el carrito actual
     this.cartService.clearCart();
     
-    // Añadimos cada producto del pedido original al carrito
+    // Agregar cada producto del pedido al carrito
     pedido.productos.forEach(producto => {
-      const productToAdd = this.transformProductoPedidoToProduct(producto);
-      
-      // Añadimos el producto tantas veces como la cantidad original
+      const product = this.transformProductoPedidoToProduct(producto);
       for (let i = 0; i < producto.cantidad; i++) {
-        this.cartService.addToCart(productToAdd);
+        this.cartService.addToCart(product);
       }
     });
     
-    // Mostramos el carrito y navegamos a la página de checkout
-    this.cartService.openCart();
-    this.router.navigate(['/checkout']);
+    // Redirigir al carrito
+    this.router.navigate(['/cart']);
+  }
+
+  /**
+   * Imprime el detalle de un pedido específico en un PDF
+   * @param pedido Pedido a imprimir
+   */
+  imprimirDetallePedido(pedido: PedidoConImagenes): void {
+    this.printService.generarPDFDetallePedido(pedido);
   }
 } 

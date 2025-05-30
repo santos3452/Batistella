@@ -81,13 +81,21 @@
         <div class="p-4 md:p-6">
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div class="flex items-center gap-4">
-              <div class="p-3 rounded-full bg-emerald-100 flex-shrink-0">
+              <div class="p-3 rounded-full bg-emerald-100 flex-shrink-0 relative">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                 </svg>
+                <!-- Indicador de pedido no visto -->
+                <div *ngIf="!esPedidoVisto(pedido.id)" class="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full animate-pulse"></div>
               </div>
               <div>
-                <h3 class="font-semibold text-lg">{{ pedido.codigoPedido || pedido.id }}</h3>
+                <h3 class="font-semibold text-lg flex items-center gap-2">
+                  {{ pedido.codigoPedido || pedido.id }}
+                  <!-- Indicador "Nuevo" para pedidos no vistos -->
+                  <span *ngIf="!esPedidoVisto(pedido.id)" class="text-xs px-2 py-0.5 bg-green-100 text-green-800 rounded-full font-medium">
+                    Nuevo
+                  </span>
+                </h3>
                 <div class="flex items-center gap-2 text-sm text-gray-500">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -110,7 +118,11 @@
               </div>
               <button 
                 (click)="toggleDetallePedido(pedido.id)" 
-                class="px-3 py-2 bg-white border border-emerald-200 rounded-lg text-emerald-600 hover:bg-emerald-50 text-sm font-medium flex items-center gap-2">
+                class="px-3 py-2 bg-white border border-emerald-200 rounded-lg text-emerald-600 hover:bg-emerald-50 text-sm font-medium flex items-center gap-2"
+                [class.border-green-500]="!esPedidoVisto(pedido.id)"
+                [class.shadow-sm]="!esPedidoVisto(pedido.id)"
+                [class.shadow-green-200]="!esPedidoVisto(pedido.id)"
+              >
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                 </svg>
@@ -190,6 +202,14 @@
             </div>
 
             <div class="flex flex-col sm:flex-row gap-3 justify-end mt-4">
+              <button 
+                (click)="imprimirDetallePedido(pedido)" 
+                class="px-4 py-2 bg-gray-600 rounded-lg text-white hover:bg-gray-700 text-sm font-medium flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                </svg>
+                Imprimir pedido
+              </button>
               <button 
                 (click)="repetirPedido(pedido)" 
                 class="px-4 py-2 bg-emerald-600 rounded-lg text-white hover:bg-emerald-700 text-sm font-medium flex items-center gap-2">

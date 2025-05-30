@@ -49,7 +49,7 @@ export class PedidosService {
   constructor(private http: HttpClient) { }
 
   // Obtener todos los pedidos con paginación
-  getPedidosPaginados(page: number = 1, size: number = 12, codigoPedido?: string, estado?: string, fecha?: string): Observable<PedidoResponse> {
+  getPedidosPaginados(page?: number, size?: number, codigoPedido?: string, estado?: string, fecha?: string): Observable<PedidoResponse> {
     // Obtener token desde localStorage directamente
     const token = localStorage.getItem('token');
     if (!token) {
@@ -69,15 +69,26 @@ export class PedidosService {
       'Accept': 'application/json'
     });
 
-    // Asegurar que tenemos valores por defecto para la paginación
-    const pagina = page || 1;
-    const cantDatos = size || 12;
-
-    console.log(`Preparando petición con parámetros de paginación: pagina=${pagina}, cantDatos=${cantDatos}`);
-
-    let params = new HttpParams()
-      .set('cantDatos', cantDatos.toString())
-      .set('pagina', pagina.toString());
+    // Iniciar con parámetros vacíos
+    let params = new HttpParams();
+    
+    // Valores por defecto para la paginación cuando se usa
+    const pagina = page !== undefined ? page : 1;
+    const cantDatos = size !== undefined ? size : 12;
+    
+    // Determinar si vamos a usar paginación o no
+    const usarPaginacion = page !== undefined && size !== undefined;
+    
+    // Solo añadir parámetros de paginación si vamos a usarlos
+    if (usarPaginacion) {
+      console.log(`Preparando petición con parámetros de paginación: pagina=${pagina}, cantDatos=${cantDatos}`);
+      
+      params = params
+        .set('cantDatos', cantDatos.toString())
+        .set('pagina', pagina.toString());
+    } else {
+      console.log('Preparando petición SIN parámetros de paginación para obtener todos los registros');
+    }
 
     // Añadir parámetros opcionales solo si tienen valor
     if (codigoPedido && codigoPedido.trim() !== '') {
