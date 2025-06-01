@@ -21,24 +21,26 @@
     <app-navbar (toggleSidebar)="toggleSidebar()"></app-navbar>
   </div>
   
-  <!-- Sidebar para móvil (invisible pero presente) - Colocado FUERA del flex para que esté por encima de todo -->
-  <div class="block md:hidden z-[10000]">
+  <!-- Sidebar para móvil (overlay) -->
+  <div class="block lg:hidden z-[10000]">
     <app-sidebar [isOpen]="sidebarOpen" (onClose)="closeSidebar()"></app-sidebar>
   </div>
   
-  <!-- Contenido principal con sidebar -->
-  <div class="flex flex-1 relative z-10">
-    <!-- Sidebar para desktop (siempre visible) -->
-    <div class="hidden md:block">
-      <app-sidebar [isOpen]="true" (onClose)="closeSidebar()"></app-sidebar>
-    </div>
-    
-    <!-- Contenido principal -->
-    <main class="flex-1 px-4 sm:px-6 lg:px-8 py-6">
-      <div class="max-w-7xl mx-auto">
+  <!-- Contenido principal centrado con sidebar -->
+  <div class="max-w-screen-2xl mx-auto w-full px-4 lg:px-6 flex-1 relative z-10">
+    <div class="flex flex-col lg:flex-row gap-6 py-6">
+      <!-- Sidebar para desktop (dentro del contenedor centrado) -->
+      <aside class="lg:w-64 shrink-0 hidden lg:block">
+        <div class="bg-white rounded-lg border border-gray-200 shadow-lg overflow-hidden sticky top-4">
+          <app-sidebar [isOpen]="true" (onClose)="closeSidebar()" [isCentered]="true"></app-sidebar>
+        </div>
+      </aside>
+      
+      <!-- Contenido principal -->
+      <main class="flex-1 min-w-0">
         <router-outlet></router-outlet>
-      </div>
-    </main>
+      </main>
+    </div>
   </div>
   
   <!-- Footer -->
@@ -105,7 +107,7 @@
             </li>
             <li>
               <a href="/blog" class="text-gray-400 hover:text-white transition-colors">
-                Blog
+                Sobre nosotros
               </a>
             </li>
           </ul>

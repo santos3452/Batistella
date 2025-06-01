@@ -42,6 +42,7 @@ interface VariedadGranja {
 })
 export class SidebarComponent implements OnInit, OnDestroy {
   @Input() isOpen: boolean = false;
+  @Input() isCentered: boolean = false;
   @Output() onClose = new EventEmitter<void>();
   
   isLoggedIn: boolean = false;

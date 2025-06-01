@@ -38,4 +38,13 @@ public interface EmailTemplateService {
      * @return Contenido HTML del correo
      */
     String generatePaymentConfirmationEmailContent(PedidoDTO pedido);
+    
+    /**
+     * Genera el contenido HTML para un correo de notificación de cambio de estado de pedido
+     * 
+     * @param estadoPedido Estado actual del pedido
+     * @param codigoPedido Código identificador del pedido
+     * @return Contenido HTML del correo
+     */
+    String generateOrderStatusChangeEmailContent(String estadoPedido, String codigoPedido);
 } 

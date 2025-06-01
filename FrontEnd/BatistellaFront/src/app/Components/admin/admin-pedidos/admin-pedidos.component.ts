@@ -457,6 +457,15 @@ export class AdminPedidosComponent implements OnInit {
             this.applyFilters(); // Aplicar filtros para actualizar la vista
           }
           
+          // Enviar notificación si el cambio fue exitoso y hay email
+          if (this.selectedPedido?.email && this.selectedPedido?.codigoPedido) {
+            this.sendOrderStatusNotification(
+              this.selectedPedido.email,
+              this.nuevoEstado,
+              this.selectedPedido.codigoPedido
+            );
+          }
+          
           this.closeUpdateStatusModal();
           this.isLoading = false;
         },
@@ -466,6 +475,32 @@ export class AdminPedidosComponent implements OnInit {
           this.isLoading = false;
         }
       });
+  }
+
+  /**
+   * Envía una notificación de cambio de estado de pedido
+   */
+  private sendOrderStatusNotification(email: string, estadoPedido: string, codigoPedido: string): void {
+    // Codificar el email para la URL
+    const encodedEmail = encodeURIComponent(email);
+    
+    const params = new HttpParams()
+      .set('email', encodedEmail)
+      .set('estadoPedido', estadoPedido)
+      .set('codigoPedido', codigoPedido);
+
+    const notificationUrl = `${environment.notificationsUrl}/order/status`;
+    
+    this.http.get(notificationUrl, { params }).subscribe({
+      next: (response) => {
+        console.log('Notificación enviada exitosamente:', response);
+        this.utils.showToast('success', 'Notificación enviada al cliente');
+      },
+      error: (error) => {
+        console.error('Error al enviar notificación:', error);
+        this.utils.showToast('error', 'El pedido se actualizó pero no se pudo enviar la notificación');
+      }
+    });
   }
 
   updatePedidoPaymentStatus(): void {

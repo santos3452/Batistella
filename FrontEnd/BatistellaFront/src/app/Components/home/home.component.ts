@@ -30,7 +30,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   products: Product[] = [];
   productGroups: ProductGroup[] = [];
   page = 1;
-  pageSize = 15;
+  pageSize = 12;
   totalPages = 0;
   categoryFilter: string | null = null;
   marcaFilter: string | null = null;

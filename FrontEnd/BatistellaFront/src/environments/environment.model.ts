@@ -7,4 +7,5 @@ export interface Environment {
     mercadoPagoUrl: string;
     pagoManualUrl: string;
     pagosUrl: string;
+    notificationsUrl: string;
 } 

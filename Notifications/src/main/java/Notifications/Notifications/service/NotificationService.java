@@ -34,5 +34,15 @@ public interface NotificationService {
      * @return La notificación creada
      */
     Notification sendPaymentConfirmationEmail(String email, PedidoDTO pedido);
+    
+    /**
+     * Envía un correo de notificación de cambio de estado del pedido
+     * 
+     * @param email Email del usuario
+     * @param estadoPedido Estado actual del pedido
+     * @param codigoPedido Código identificador del pedido
+     * @return La notificación creada
+     */
+    Notification sendOrderStatusChangeEmail(String email, String estadoPedido, String codigoPedido);
 
 } 

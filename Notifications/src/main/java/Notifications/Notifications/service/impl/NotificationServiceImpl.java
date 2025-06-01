@@ -37,7 +37,7 @@ public class NotificationServiceImpl implements NotificationService {
         notification.setType(type);
         
         // Para tipos de mensaje HTML, guardamos un mensaje genérico
-        if (type.equals("HTML") || type.equals("WELCOME") || type.equals("PAYMENT_CONFIRMATION")) {
+        if (type.equals("HTML") || type.equals("WELCOME") || type.equals("PAYMENT_CONFIRMATION") || type.equals("ORDER_STATUS_CHANGE")) {
             notification.setMessage("Mensaje enviado correctamente");
         } else {
             // Para mensajes de texto plano, limitamos la longitud
@@ -85,6 +85,8 @@ public class NotificationServiceImpl implements NotificationService {
                 return "Notificación HTML de Batistella";
             case "PAYMENT_CONFIRMATION":
                 return "¡Tu pago ha sido confirmado! - Batistella";
+            case "ORDER_STATUS_CHANGE":
+                return "Actualización de estado de tu pedido - Batistella";
             default:
                 return "Notificación de Batistella";
         }
@@ -100,5 +102,11 @@ public class NotificationServiceImpl implements NotificationService {
     public Notification sendPaymentConfirmationEmail(String email, PedidoDTO pedido) {
         String htmlContent = emailTemplateService.generatePaymentConfirmationEmailContent(pedido);
         return sendNotification(email, "PAYMENT_CONFIRMATION", htmlContent);
+    }
+    
+    @Override
+    public Notification sendOrderStatusChangeEmail(String email, String estadoPedido, String codigoPedido) {
+        String htmlContent = emailTemplateService.generateOrderStatusChangeEmailContent(estadoPedido, codigoPedido);
+        return sendNotification(email, "ORDER_STATUS_CHANGE", htmlContent);
     }
 } 
