@@ -18,10 +18,16 @@
   border-radius: 9999px;
 }
 
-/* Estilos para imágenes sticky en scroll */
-.sticky {
-  position: sticky;
-  top: 1rem;
+/* Estilos para imágenes sticky en scroll - Mejorado */
+.producto-container.sticky {
+  position: sticky !important;
+  top: 5rem !important;
+  z-index: 10;
+}
+
+/* Asegurar que el contenedor padre permita el sticky */
+.lg\:w-1\/2 {
+  height: fit-content;
 }
 
 /* Bordes redondeados para las tarjetas */
@@ -70,5 +76,10 @@ button:disabled {
 @media (max-width: 768px) {
   .container {
     padding: 1rem;
+  }
+  
+  /* Deshabilitar sticky en móvil */
+  .producto-container.sticky {
+    position: static !important;
   }
 } 

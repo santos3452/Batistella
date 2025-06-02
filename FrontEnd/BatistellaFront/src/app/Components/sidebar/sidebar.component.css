@@ -1,1 +1,67 @@
+/* Estilos minimalistas para el sidebar */
 
+/* Tipografía mejorada para títulos */
+.sidebar-title {
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #374151;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #d1d5db;
+}
+
+/* Enlaces con mejor espaciado y tipografía */
+.sidebar-link {
+  font-family: system-ui, -apple-system, sans-serif;
+  font-weight: 400;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  border-radius: 0.5rem;
+  padding: 0.625rem 0.75rem;
+  margin: 0.125rem 0;
+  color: #6b7280;
+}
+
+.sidebar-link:hover {
+  background-color: #f9fafb;
+  color: #374151;
+}
+
+.sidebar-link.active {
+  background-color: #f0fdfa;
+  color: #0f766e;
+  font-weight: 500;
+}
+
+/* Iconos con espaciado mejorado */
+.sidebar-icon {
+  width: 18px;
+  height: 18px;
+  margin-right: 0.75rem;
+}
+
+/* Mejores márgenes entre secciones */
+.sidebar-section {
+  margin-bottom: 2rem;
+}
+
+/* Scrollbar sutil */
+.sidebar-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 2px;
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
