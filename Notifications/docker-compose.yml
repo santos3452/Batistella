@@ -1,0 +1,26 @@
+
+services:
+  notifications:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: notifications
+    ports:
+      - "8085:8085"
+    environment:
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
+      - APP_BASE_URL=${APP_BASE_URL}
+      # Pasar las variables de base de datos a spring
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
+      - SPRING_DATASOURCE_USERNAME=${DB_USERNAME}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
+    networks:
+      - batistella-network
+    restart: always
+    env_file:
+      - .env
+
+networks:
+  batistella-network:
+    name: batistella-network
+    driver: bridge

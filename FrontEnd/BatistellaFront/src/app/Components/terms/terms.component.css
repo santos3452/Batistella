@@ -1,0 +1,67 @@
+/* Estilos adicionales para términos y condiciones */
+.terms-container {
+  max-width: 1024px;
+  margin: 0 auto;
+}
+
+/* Mejora la legibilidad del texto largo */
+section p {
+  text-align: justify;
+  hyphens: auto;
+}
+
+/* Espaciado específico para listas */
+section ul li,
+section ol li {
+  margin-bottom: 0.5rem;
+}
+
+/* Destacar información importante */
+section strong {
+  color: #1f2937;
+  font-weight: 600;
+}
+
+/* Estilos para enlaces */
+section a {
+  transition: all 0.2s ease;
+}
+
+section a:hover {
+  text-decoration: underline;
+  color: #1d4ed8;
+}
+
+/* Responsividad para móviles */
+@media (max-width: 640px) {
+  section h2 {
+    font-size: 1.5rem;
+  }
+  
+  section h3 {
+    font-size: 1.25rem;
+  }
+  
+  .p-8 {
+    padding: 1.5rem;
+  }
+}
+
+/* Efectos de hover para botones */
+.transition-colors {
+  transition-property: background-color, border-color, color;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* Mejora la accesibilidad en focus */
+a:focus,
+button:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Estilo para el container de información de contacto */
+.bg-gray-50 {
+  border-left: 4px solid #3b82f6;
+} 

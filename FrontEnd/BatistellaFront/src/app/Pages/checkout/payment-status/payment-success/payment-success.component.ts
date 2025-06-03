@@ -14,7 +14,6 @@ import { UtilsService } from '../../../../Services/Utils/utils.service';
 })
 export class PaymentSuccessComponent implements OnInit {
   paymentId: string | null = null;
-  merchantOrderId: string | null = null;
   pedidoInfo: any = null;
   isLoading = true;
   errorMessage = '';
@@ -30,13 +29,11 @@ export class PaymentSuccessComponent implements OnInit {
     // Obtener parámetros de la URL
     this.route.queryParams.subscribe(params => {
       this.paymentId = params['payment_id'] || null;
-      this.merchantOrderId = params['merchant_order_id'] || null;
       const preferenceId = params['preference_id'] || null;
       const externalReference = params['external_reference'] || null;
       
       console.log('Parámetros recibidos:', { 
         paymentId: this.paymentId, 
-        merchantOrderId: this.merchantOrderId,
         preferenceId,
         externalReference 
       });

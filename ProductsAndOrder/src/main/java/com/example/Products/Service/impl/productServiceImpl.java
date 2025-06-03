@@ -174,10 +174,10 @@ public class productServiceImpl implements productService {
             throw new IllegalArgumentException("No se puede hacer un descuento de mas del 50%");
         }
         List<Products> productos;
-        String marca1 = marca.toUpperCase();
+
 
         if( marca != null && !marca.isEmpty()) {
-
+            String marca1 = marca.toUpperCase();
 
             if( perteneceAEnum(marca1)){
 

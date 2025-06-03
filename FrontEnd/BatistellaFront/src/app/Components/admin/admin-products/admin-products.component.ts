@@ -74,8 +74,14 @@ export class AdminProductsComponent implements OnInit {
     this.productService.getProducts()
       .subscribe({
         next: (products) => {
-          this.products = products;
-          this.filteredProducts = [...products];
+          // Ordenar productos por fecha de actualización (más recientes primero)
+          this.products = products.sort((a, b) => {
+            const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+            const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+            return dateB - dateA; // Orden descendente (más recientes primero)
+          });
+          
+          this.filteredProducts = [...this.products];
           this.extractFilterOptions();
           this.updatePagination();
           this.isLoading = false;
@@ -186,6 +192,13 @@ export class AdminProductsComponent implements OnInit {
         
         return nameMatch && categoriaGranjaMatch && weightMatch && statusMatch;
       }
+    });
+    
+    // Ordenar productos filtrados por fecha de actualización (más recientes primero)
+    this.filteredProducts.sort((a, b) => {
+      const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+      const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+      return dateB - dateA; // Orden descendente (más recientes primero)
     });
     
     // Actualizar la paginación después de aplicar los filtros

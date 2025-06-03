@@ -1,6 +1,6 @@
 // app.component.ts
 import { Component, OnInit, HostListener } from '@angular/core';
-import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
+import { NavigationEnd, Router, RouterOutlet, RouterLink } from '@angular/router';
 import { NavbarComponent } from './Components/navbar/navbar.component';
 import { SidebarComponent } from './Components/sidebar/sidebar.component';
 import { CommonModule } from '@angular/common';
@@ -8,7 +8,7 @@ import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, NavbarComponent, SidebarComponent, CommonModule],
+  imports: [RouterOutlet, RouterLink, NavbarComponent, SidebarComponent, CommonModule],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
   standalone: true

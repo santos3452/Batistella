@@ -46,7 +46,7 @@
   <!-- Footer -->
   <footer class="bg-gray-800 text-white py-12">
     <div class="container mx-auto px-4">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
         <div>
           <img src="assets/Images/BattistellaLogo2.jpg" alt="Batistella & Cia S.a." class="h-8 w-auto mb-4">
           <p class="text-gray-400 mb-4">
@@ -119,6 +119,23 @@
             <li>Av. Ejemplo 1234, Ciudad</li>
             <li>+54 11 1234-5678</li>
             <li>info&#64;batistella.com</li>
+          </ul>
+        </div>
+
+        <!-- Nueva columna para FAQ -->
+        <div class="lg:col-span-1">
+          <h3 class="text-lg font-medium mb-4">Información Legal</h3>
+          <ul class="space-y-2">
+            <li>
+              <a routerLink="/faq" class="text-gray-400 hover:text-white transition-colors">
+                Preguntas Frecuentes
+              </a>
+            </li>
+            <li>
+              <a routerLink="/terms" class="text-gray-400 hover:text-white transition-colors">
+                Términos y Condiciones
+              </a>
+            </li>
           </ul>
         </div>
       </div>

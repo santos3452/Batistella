@@ -315,5 +315,104 @@
         </div>
       </div>
     </div>
+
+    <!-- FAQ Acordeón -->
+    <div class="mt-8">
+      <div class="bg-white rounded-lg shadow-lg border border-gray-300">
+        <div class="p-6">
+          <h2 class="text-xl font-bold text-gray-900 mb-6">Preguntas Frecuentes</h2>
+          
+          <!-- Acordeón de Devoluciones -->
+          <div class="border-b border-gray-200 pb-4 mb-4">
+            <button 
+              class="w-full flex justify-between items-center py-3 text-left hover:text-emerald-600 transition cursor-pointer"
+              (click)="toggleAccordion('devoluciones')">
+              <h3 class="font-medium text-gray-900">¿Cómo funciona la política de devoluciones?</h3>
+              <svg 
+                class="h-5 w-5 transform transition-transform duration-200"
+                [class.rotate-180]="accordionState.devoluciones"
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                stroke-width="2">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+            <div 
+              class="overflow-hidden transition-all duration-300"
+              [class.max-h-0]="!accordionState.devoluciones"
+              [class.max-h-96]="accordionState.devoluciones">
+              <div class="pt-4 text-gray-700 text-sm">
+                <p class="mb-2">Tenés 30 días corridos desde que recibís el producto para solicitar la devolución.</p>
+                <p class="mb-2">El producto debe estar en su estado original, sin uso y con el packaging intacto.</p>
+                <p class="mb-2">Nosotros nos hacemos cargo del costo del envío de vuelta.</p>
+                <p>Una vez recibido el producto, procesamos el reembolso en un plazo de 3 a 5 días hábiles.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Acordeón de Envíos -->
+          <div class="border-b border-gray-200 pb-4 mb-4">
+            <button 
+              class="w-full flex justify-between items-center py-3 text-left hover:text-emerald-600 transition cursor-pointer"
+              (click)="toggleAccordion('envios')">
+              <h3 class="font-medium text-gray-900">¿Cuáles son los tiempos de envío?</h3>
+              <svg 
+                class="h-5 w-5 transform transition-transform duration-200"
+                [class.rotate-180]="accordionState.envios"
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                stroke-width="2">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+            <div 
+              class="overflow-hidden transition-all duration-300"
+              [class.max-h-0]="!accordionState.envios"
+              [class.max-h-96]="accordionState.envios">
+              <div class="pt-4 text-gray-700 text-sm">
+                <p class="mb-2"><strong>Capital Federal y GBA:</strong> 24 a 48 horas hábiles</p>
+                <p class="mb-2"><strong>Interior del país:</strong> 3 a 5 días hábiles</p>
+                <p class="mb-2"><strong>Envío gratis</strong> en compras superiores a $20.000</p>
+                <p class="mb-2">El tiempo estimado de entrega para tu pedido es: <strong>{{ getDeliveryDate() }}</strong></p>
+                <p>Realizamos entregas de lunes a viernes de 9 a 18hs.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Acordeón de Retiro -->
+          <div class="pb-4">
+            <button 
+              class="w-full flex justify-between items-center py-3 text-left hover:text-emerald-600 transition cursor-pointer"
+              (click)="toggleAccordion('retiro')">
+              <h3 class="font-medium text-gray-900">¿Puedo retirar mi pedido en persona?</h3>
+              <svg 
+                class="h-5 w-5 transform transition-transform duration-200"
+                [class.rotate-180]="accordionState.retiro"
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                stroke-width="2">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+            <div 
+              class="overflow-hidden transition-all duration-300"
+              [class.max-h-0]="!accordionState.retiro"
+              [class.max-h-96]="accordionState.retiro">
+              <div class="pt-4 text-gray-700 text-sm">
+                <p class="mb-2"><strong>¡Sí! Podés retirar tu pedido sin costo adicional.</strong></p>
+                <p class="mb-2"><strong>Dirección:</strong> Av. Colón 5050, Córdoba Capital</p>
+                <p class="mb-2"><strong>Horarios:</strong> Lunes a viernes de 9:00 a 18:00 hs</p>
+                <p class="mb-2"><strong>Sábados:</strong> de 9:00 a 13:00 hs</p>
+                <p class="mb-2">Te enviamos un email cuando tu pedido esté listo para retirar.</p>
+                <p>Recordá traer tu DNI y el número de pedido.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div> 

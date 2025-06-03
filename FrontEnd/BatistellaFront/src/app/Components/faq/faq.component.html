@@ -1,0 +1,300 @@
+<div class="min-h-screen bg-gray-50 py-12">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Encabezado -->
+    <div class="text-center mb-12">
+      <h1 class="text-4xl font-bold text-gray-900 mb-4">Preguntas Frecuentes</h1>
+      <p class="text-xl text-gray-600">
+        Encuentra respuestas a las preguntas más comunes sobre nuestros productos y servicios
+      </p>
+    </div>
+
+    <!-- Lista de preguntas frecuentes -->
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+      <div class="divide-y divide-gray-200">
+        
+        <!-- Pregunta 1 -->
+        <div class="p-6">
+          <button 
+            (click)="toggleFaq(0)" 
+            class="w-full flex justify-between items-center text-left focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset rounded-lg p-2"
+          >
+            <span class="text-lg font-semibold text-gray-900">¿Donde veo los productos que agregue a mi carrito?</span>
+            <svg 
+              class="w-6 h-6 transform transition-transform text-gray-500" 
+              [class.rotate-180]="openItems[0]"
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </button>
+          <div 
+            class="mt-4 overflow-hidden transition-all duration-300 ease-in-out"
+            [class.max-h-0]="!openItems[0]"
+            [class.max-h-96]="openItems[0]"
+          >
+            <div class="pb-4">
+              <p class="text-gray-700 leading-relaxed">
+                Para ver los productos que agregaste al carrito, dirígete a la sección de "Carrito de compras" en la parte superior de la página. 
+                Allí podrás revisar el contenido de tu carrito y realizar cualquier modificación necesaria.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pregunta 2 -->
+        <div class="p-6">
+          <button 
+            (click)="toggleFaq(1)" 
+            class="w-full flex justify-between items-center text-left focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset rounded-lg p-2"
+          >
+            <span class="text-lg font-semibold text-gray-900">¿Cómo cambio mi contraseña?</span>
+            <svg 
+              class="w-6 h-6 transform transition-transform text-gray-500" 
+              [class.rotate-180]="openItems[1]"
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </button>
+          <div 
+            class="mt-4 overflow-hidden transition-all duration-300 ease-in-out"
+            [class.max-h-0]="!openItems[1]"
+            [class.max-h-96]="openItems[1]"
+          >
+            <div class="pb-4">
+              <p class="text-gray-700 leading-relaxed">
+                Para cambiar tu contraseña, dirígete a la sección de "Mi cuenta" en la parte superior de la página. 
+                Allí podrás cambiar tu contraseña y realizar cualquier modificación necesaria.
+              </p>
+           
+            </div>
+          </div>
+        </div>
+           <!-- Pregunta 4 -->
+           <div class="p-6">
+            <button 
+              (click)="toggleFaq(2)" 
+              class="w-full flex justify-between items-center text-left focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset rounded-lg p-2"
+            >
+              <span class="text-lg font-semibold text-gray-900">¿Cómo doy de baja mi cuenta?</span>
+              <svg 
+                class="w-6 h-6 transform transition-transform text-gray-500" 
+                [class.rotate-180]="openItems[2]"
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </button>
+            <div 
+              class="mt-4 overflow-hidden transition-all duration-300 ease-in-out"
+              [class.max-h-0]="!openItems[2]"
+              [class.max-h-96]="openItems[2]"
+            >
+              <div class="pb-4">
+                <p class="text-gray-700 leading-relaxed">
+                  Para dar de baja tu cuenta, dirígete a la sección de "Mi cuenta" en la parte superior de la página. 
+                  Allí podrás dar de baja tu cuenta y realizar cualquier modificación necesaria. Si en el futuro deseas reactivarla, ingresa tu mail desde el login y solicita el reactivar tu cuenta.
+                </p>
+             
+              </div>
+            </div>
+          </div>
+
+        <!-- Pregunta 3 -->
+        <div class="p-6">
+          <button 
+            (click)="toggleFaq(3)" 
+            class="w-full flex justify-between items-center text-left focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset rounded-lg p-2"
+          >
+            <span class="text-lg font-semibold text-gray-900">¿A qué dirección de mail me puedo contactar para hacer una sugerencia o reclamo?</span>
+            <svg 
+              class="w-6 h-6 transform transition-transform text-gray-500" 
+              [class.rotate-180]="openItems[3]"
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </button>
+          <div 
+            class="mt-4 overflow-hidden transition-all duration-300 ease-in-out"
+            [class.max-h-0]="!openItems[3]"
+            [class.max-h-96]="openItems[3]"
+          >
+            <div class="pb-4">
+              <p class="text-gray-700 leading-relaxed">
+                Para sugerencias, reclamos o cualquier consulta, puedes contactarnos a través de:
+              </p>
+              <ul class="mt-2 ml-4 list-disc text-gray-700">
+                <li><strong>Email:</strong> <a href="mailto:info@batistella.com" class="text-blue-600 hover:underline">info&#64;batistella.com</a></li>
+                <li><strong>Teléfono:</strong> +54 351 6750801</li>
+                <li><strong>Horario de atención:</strong> Lunes a Viernes de 8:00 a 16:00 hs</li>
+              </ul>
+              <p class="mt-2 text-gray-700">Nos comprometemos a responder todas las consultas en un plazo máximo de 24 horas.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pregunta 4 -->
+        <div class="p-6">
+          <button 
+            (click)="toggleFaq(4)" 
+            class="w-full flex justify-between items-center text-left focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset rounded-lg p-2"
+          >
+            <span class="text-lg font-semibold text-gray-900">¿Cuando llega mi pedido?</span>
+            <svg 
+              class="w-6 h-6 transform transition-transform text-gray-500" 
+              [class.rotate-180]="openItems[4]"
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </button>
+          <div 
+            class="mt-4 overflow-hidden transition-all duration-300 ease-in-out"
+            [class.max-h-0]="!openItems[4]"
+            [class.max-h-96]="openItems[4]"
+          >
+            <div class="pb-4">
+              <p class="text-gray-700 leading-relaxed">
+                El tiempo de entrega depende de la ubicación y el método de envío seleccionado. 
+                Generalmente, los pedidos se entregan en un plazo de 3 a 5 días hábiles.
+              </p>
+             
+            </div>
+          </div>
+        </div>
+              <!-- Pregunta 5 -->
+              <div class="p-6">
+                <button 
+                  (click)="toggleFaq(5)" 
+                  class="w-full flex justify-between items-center text-left focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset rounded-lg p-2"
+                >
+                  <span class="text-lg font-semibold text-gray-900">Me equivoqué de producto, ¿puedo cambiarlo?</span>
+                  <svg 
+                    class="w-6 h-6 transform transition-transform text-gray-500" 
+                    [class.rotate-180]="openItems[5]"
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                  </svg>
+                </button>
+                <div 
+                  class="mt-4 overflow-hidden transition-all duration-300 ease-in-out"
+                  [class.max-h-0]="!openItems[5]"
+                  [class.max-h-96]="openItems[5]"
+                >
+                  <div class="pb-4">
+                    <p class="text-gray-700 leading-relaxed"> Si el producto no ha sido enviado, puedes cambiarlo por otro sin ningún problema. Solo debes contactarnos a través de nuestro correo electrónico o teléfono de contacto para realizar el cambio.</p>
+                    <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
+                 
+                    </div>
+                  
+                  </div>
+                </div>
+              </div>
+
+        <!-- Pregunta 5 -->
+        <div class="p-6">
+          <button 
+            (click)="toggleFaq(6)" 
+            class="w-full flex justify-between items-center text-left focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset rounded-lg p-2"
+          >
+            <span class="text-lg font-semibold text-gray-900">¿Qué medios de pago aceptan?</span>
+            <svg 
+              class="w-6 h-6 transform transition-transform text-gray-500" 
+              [class.rotate-180]="openItems[6]"
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </button>
+          <div 
+            class="mt-4 overflow-hidden transition-all duration-300 ease-in-out"
+            [class.max-h-0]="!openItems[6]"
+            [class.max-h-96]="openItems[6]"
+          >
+            <div class="pb-4">
+              <p class="text-gray-700 leading-relaxed">Aceptamos los siguientes medios de pago:</p>
+              <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                 
+                  <ul class="mt-1 text-gray-700">
+                    <li>• MercadoPago</li>
+                    <li>• Transferencia bancaria</li>
+                    <li>• Efectivo (en sucursal)</li>
+                  </ul>
+                </div>
+              </div>
+            
+            </div>
+          </div>
+        </div>
+
+        <!-- Pregunta 6 -->
+        <div class="p-6">
+          <button 
+            (click)="toggleFaq(7)" 
+            class="w-full flex justify-between items-center text-left focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset rounded-lg p-2"
+          >
+            <span class="text-lg font-semibold text-gray-900">¿Tienes alguna duda o quieres comunicarte con nosotros?</span>
+            <svg 
+              class="w-6 h-6 transform transition-transform text-gray-500" 
+              [class.rotate-180]="openItems[7]"
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </button>
+          <div 
+            class="mt-4 overflow-hidden transition-all duration-300 ease-in-out"
+            [class.max-h-0]="!openItems[7]"
+            [class.max-h-96]="openItems[7]"
+          >
+            <div class="pb-4">
+              <p class="text-gray-700 leading-relaxed">
+                ¡Por supuesto! Estamos aquí para ayudarte. Puedes contactarnos a través de múltiples canales:
+              </p>
+              <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-gray-50 p-4 rounded-lg">
+                  <h4 class="font-semibold text-gray-900 mb-2">Contacto directo</h4>
+                  <ul class="space-y-1 text-gray-700">
+                    <li><strong>Email:</strong> info&#64;batistella.com</li>
+                    <li><strong>Teléfono:</strong> +54 9 351 6750801</li>
+                    <li><strong>WhatsApp:</strong> +54 9 351 6750801</li>
+                  </ul>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-lg">
+                  <h4 class="font-semibold text-gray-900 mb-2">Visítanos</h4>
+                  <ul class="space-y-1 text-gray-700">
+                    <li><strong>Dirección:</strong> Oncativo 265, Ciudad de Córdoba</li>
+                    <li><strong>Horarios:</strong> Lun-Vie 8:00-16:00</li>
+                    
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+ 
+  </div>
+</div>
