@@ -1,6 +1,6 @@
 {
   "/api": {
-    "target": "http://localhost:8080",
+    "target": "http://batistellaycia.shop",
     "secure": false,
     "logLevel": "debug",
     "changeOrigin": true,
@@ -9,5 +9,41 @@
       "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
       "Access-Control-Allow-Headers": "X-Requested-With, content-type, Authorization"
     }
+  },
+  "/auth": {
+    "target": "http://batistellaycia.shop",
+    "secure": false,
+    "logLevel": "debug",
+    "changeOrigin": true
+  },
+  "/users": {
+    "target": "http://batistellaycia.shop",
+    "secure": false,
+    "logLevel": "debug",
+    "changeOrigin": true
+  },
+  "/dashboards": {
+    "target": "http://batistellaycia.shop",
+    "secure": false,
+    "logLevel": "debug",
+    "changeOrigin": true
+  },
+  "/payments": {
+    "target": "http://batistellaycia.shop",
+    "secure": false,
+    "logLevel": "debug",
+    "changeOrigin": true
+  },
+  "/notifications": {
+    "target": "http://batistellaycia.shop",
+    "secure": false,
+    "logLevel": "debug",
+    "changeOrigin": true
+  },
+  "/products": {
+    "target": "http://batistellaycia.shop",
+    "secure": false,
+    "logLevel": "debug",
+    "changeOrigin": true
   }
 } 

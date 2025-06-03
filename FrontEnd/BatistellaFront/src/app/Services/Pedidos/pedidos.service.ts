@@ -41,7 +41,7 @@ export interface PedidoResponse {
   providedIn: 'root'
 })
 export class PedidosService {
-  private apiUrl = 'http://localhost:8083/api/pedidos';
+  private apiUrl = environment.pedidosUrl;
   private pedidosCache: Pedido[] = [];
   private lastFetchTime: number = 0;
   private cacheDuration: number = 60000; // 1 minuto en milisegundos
@@ -313,7 +313,7 @@ export class PedidosService {
     };
     
     return this.http.post(
-      `http://localhost:8083/api/pedidos`, 
+      `${environment.pedidosUrl}`, 
       payload,
       { headers }
     ).pipe(

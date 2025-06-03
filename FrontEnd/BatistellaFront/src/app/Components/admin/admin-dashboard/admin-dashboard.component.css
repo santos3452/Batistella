@@ -1,0 +1,94 @@
+/* Estilos específicos para el dashboard de administración */
+
+/* Estilos para el contenedor de gráficos */
+.chart-container {
+  position: relative;
+  height: 400px;
+  width: 100%;
+}
+
+/* Estilos para animaciones en las tarjetas */
+.transition-shadow {
+  transition: box-shadow 0.3s ease;
+}
+
+/* Transiciones para botones */
+button {
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+/* Estilos para los filtros rápidos */
+.filter-button {
+  transition: all 0.2s ease;
+}
+
+.filter-button:hover {
+  transform: scale(1.05);
+}
+
+/* Estilos para las tarjetas de estadísticas */
+.stats-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stats-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Mejoras en estilos para dispositivos pequeños */
+@media (max-width: 767px) {
+  .chart-container {
+    height: 300px;
+  }
+  
+  .gap-6 {
+    gap: 1rem;
+  }
+  
+  h1 {
+    font-size: 1.5rem;
+  }
+  
+  .grid-cols-1 {
+    grid-template-columns: 1fr;
+  }
+  
+  .text-3xl {
+    font-size: 1.875rem;
+  }
+}
+
+/* Estilos para el indicador de carga */
+.loading-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Estilos para los mensajes de error */
+.error-message {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+} 

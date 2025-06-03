@@ -26,7 +26,11 @@ public class WebConfig implements WebMvcConfigurer {
         
         // Configurar el acceso a las imágenes que ya están en el directorio estático
         registry.addResourceHandler("/images/**")
-                .addResourceLocations("classpath:/static/images/", location)
+                .addResourceLocations(
+                    "classpath:/static/images/", 
+                    location,
+                    "file:/app/images/"  // Agregar la ruta específica para Docker
+                )
                 .setCachePeriod(0); // Desactivar caché para evitar problemas
         
         // Configurar el acceso a otros recursos estáticos

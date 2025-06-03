@@ -17,6 +17,7 @@ import { OrderSummaryComponent } from './Pages/checkout/order-summary/order-summ
 import { PaymentMethodComponent } from './Pages/checkout/payment-method/payment-method.component';
 import { AdminPanelComponent } from './Components/admin/admin-panel/admin-panel.component';
 import { AdminPedidosComponent } from './Components/admin/admin-pedidos/admin-pedidos.component';
+import { AdminDashboardComponent } from './Components/admin/admin-dashboard/admin-dashboard.component';
 import { PaymentSuccessComponent } from './Pages/checkout/payment-status/payment-success/payment-success.component';
 import { PaymentErrorComponent } from './Pages/checkout/payment-status/payment-error/payment-error.component';
 import { PaymentPendingComponent } from './Pages/checkout/payment-status/payment-pending/payment-pending.component';
@@ -35,6 +36,11 @@ export const routes: Routes = [
   { 
     path: 'admin', 
     component: AdminPanelComponent, 
+    canActivate: [AuthGuard, AdminGuard] 
+  },
+  { 
+    path: 'admin/dashboard', 
+    component: AdminDashboardComponent, 
     canActivate: [AuthGuard, AdminGuard] 
   },
   { 

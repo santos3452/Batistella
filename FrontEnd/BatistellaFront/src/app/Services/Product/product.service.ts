@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, throwError, of } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
+import { map, tap, catchError } from 'rxjs/operators';
+import { environment } from '../../../environments/environment';
 
 export interface Product {
   id?: number | string;
@@ -38,7 +39,7 @@ export interface Product {
   providedIn: 'root'
 })
 export class ProductService {
-  private apiUrl = 'http://localhost:8083/api/products';
+  private apiUrl = `${environment.apiUrl}/products`;
   private productsCache: Product[] = [];
   private lastFetchTime: number = 0;
   private cacheDuration: number = 60000; // 1 minuto en milisegundos

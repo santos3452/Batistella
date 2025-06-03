@@ -22,7 +22,7 @@ COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8083
 
 # Variables de entorno
-ENV SPRING_PROFILES_ACTIVE=prod
+ENV SPRING_PROFILES_ACTIVE=docker
 
 # Comando para ejecutar la aplicación
 ENTRYPOINT ["java", "-jar", "app.jar"] 

@@ -56,16 +56,14 @@ public class SecurityConfig {
                                 new AntPathRequestMatcher("/api/auth/**"),
                                 new AntPathRequestMatcher("/v3/api-docs/**"),
                                 new AntPathRequestMatcher("/swagger-ui/**"),
-                                new AntPathRequestMatcher("/swagger-ui.html")
+                                new AntPathRequestMatcher("/swagger-ui.html"),
+                                new AntPathRequestMatcher("/error")
                         ).permitAll()
                         .requestMatchers(new AntPathRequestMatcher("/api/users", HttpMethod.POST.name())).permitAll()
-                        .requestMatchers(new AntPathRequestMatcher("/api/auth/register", HttpMethod.POST.name())).permitAll()
-                        .requestMatchers(new AntPathRequestMatcher("/api/auth/reactivate", HttpMethod.POST.name())).permitAll()
-                        .requestMatchers(new AntPathRequestMatcher("/error")).permitAll()
+                        .requestMatchers(new AntPathRequestMatcher("/api/users/deleteAdress")).permitAll()
                         .requestMatchers(new AntPathRequestMatcher("/api/users/change-password")).authenticated()
                         .requestMatchers(new AntPathRequestMatcher("/api/users/updateUser", HttpMethod.POST.name())).authenticated()
                         .requestMatchers(new AntPathRequestMatcher("/api/users/deleteUser", HttpMethod.DELETE.name())).authenticated()
-                        .requestMatchers(new AntPathRequestMatcher("/api/users/deleteAdress")).permitAll()
                         .anyRequest().authenticated()
                 )
                 .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable()))
