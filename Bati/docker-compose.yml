@@ -67,13 +67,15 @@ services:
     ports:
       - "8081:8080"
     environment:
-      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_PROFILES_ACTIVE=prod
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/UsersBatistella_db
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=ensalada123
       - JWT_SECRET=NmQ4YzJhMjEtZjc2NC00MTM3LWI2ZTgtNDJiMmZiNjM5YzBk
       - JWT_EXPIRATION=86400000
       - NOTIFICATION_SERVICE_URL=http://notifications:8080
+      - APP_BASE_URL=https://www.batistellaycia.shop
+      - APP_FRONTEND_URL=https://www.batistellaycia.shop
       - REDIS_HOST=redis
       - REDIS_PORT=6379
     depends_on:
@@ -94,13 +96,14 @@ services:
     ports:
       - "8083:8080"
     environment:
-      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_PROFILES_ACTIVE=prod
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/ProductsAndOrders
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=ensalada123
-      - USERS_SERVICE_URL=http://usersandlogin:8080
-      - NOTIFICATION_SERVICE_URL=http://notifications:8080
-      - PAYMENT_SERVICE_URL=http://payments:8080
+      - MICROSERVICE_USUARIOS_URL=http://usersandlogin:8080/api/users
+      - MICROSERVICE_PAYMENT_URL=http://payments:8084/api/pagos/estado/{codigoPedido}
+      - JWT_SECRET=NmQ4YzJhMjEtZjc2NC00MTM3LWI2ZTgtNDJiMmZiNjM5YzBk
+      - APP_BASE_URL=https://www.batistellaycia.shop
       - GATEWAY_URL=https://www.batistellaycia.shop
     depends_on:
       postgres:
@@ -118,13 +121,18 @@ services:
     ports:
       - "8084:8080"
     environment:
-      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_PROFILES_ACTIVE=prod
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/Payments
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=ensalada123
-      - USERS_SERVICE_URL=http://usersandlogin:8080
-      - NOTIFICATION_SERVICE_URL=http://notifications:8080
-      - ORDERS_SERVICE_URL=http://productsandorder:8080
+      - JWT_SECRET=NmQ4YzJhMjEtZjc2NC00MTM3LWI2ZTgtNDJiMmZiNjM5YzBk
+      - APP_BASE_URL=https://www.batistellaycia.shop
+      - APP_FRONTEND_URL=https://www.batistellaycia.shop
+      - MERCADOPAGO_ACCESS_TOKEN=APP_USR-4153672979949236-052121-b15239becd36997a08cb0fba8c64183e-2454389820
+      - MERCADOPAGO_PUBLIC_KEY=APP_USR-d9e97257-5ded-498d-a4e8-cfa715ab9814
+      - PAYMENT_SERVICE_URL=https://www.batistellaycia.shop/api/payments/estado
+      - MICROSERVICE_NOTIFICATIONS_URL=http://notifications:8085
+      - MICROSERVICE_PEDIDOS_URL=http://productsandorder:8083
     depends_on:
       postgres:
         condition: service_healthy
@@ -141,11 +149,12 @@ services:
     ports:
       - "8085:8080"
     environment:
-      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_PROFILES_ACTIVE=prod
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/notification_db
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=ensalada123
-      - USERS_SERVICE_URL=http://usersandlogin:8080
+      - JWT_SECRET=NmQ4YzJhMjEtZjc2NC00MTM3LWI2ZTgtNDJiMmZiNjM5YzBk
+      - APP_BASE_URL=https://www.batistellaycia.shop
       - REDIS_HOST=redis
       - REDIS_PORT=6379
     depends_on:
@@ -164,17 +173,23 @@ services:
     ports:
       - "8086:8080"
     environment:
-      - SPRING_PROFILES_ACTIVE=docker
-      # Dashboards puede conectarse a otras bases para consultas
-      - USERS_DB_URL=jdbc:postgresql://postgres:5432/UsersBatistella_db
-      - PRODUCTS_DB_URL=jdbc:postgresql://postgres:5432/ProductsAndOrders
-      - PAYMENTS_DB_URL=jdbc:postgresql://postgres:5432/Payments
-      - NOTIFICATIONS_DB_URL=jdbc:postgresql://postgres:5432/notification_db
-      - DB_USERNAME=postgres
-      - DB_PASSWORD=ensalada123
+      - SPRING_PROFILES_ACTIVE=prod
+      - SERVER_PORT=8086
+      - JWT_SECRET=NmQ4YzJhMjEtZjc2NC00MTM3LWI2ZTgtNDJiMmZiNjM5YzBk
+      - JWT_EXPIRATION=86400000
+      - APP_BASE_URL=https://www.batistellaycia.shop
+      - APP_FRONTEND_URL=https://www.batistellaycia.shop
+      - ALLOWED_ORIGINS=http://localhost:4200,https://www.batistellaycia.shop
+      # URLs de microservicios que consume
+      - USERS_SERVICE_URL=http://usersandlogin:8080
+      - PRODUCTS_SERVICE_URL=http://productsandorder:8083
+      - PAYMENTS_SERVICE_URL=http://payments:8084
+      - NOTIFICATIONS_SERVICE_URL=http://notifications:8085
     depends_on:
-      postgres:
-        condition: service_healthy
+      - usersandlogin
+      - productsandorder
+      - payments
+      - notifications
     networks:
       - batistella-network
     restart: unless-stopped

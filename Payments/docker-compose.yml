@@ -10,12 +10,12 @@ services:
       - "8084:8084"
     environment:
       - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5434/Payments
-      - SPRING_DATASOURCE_USERNAME=${DB_USERNAME}
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
+      - SPRING_DATASOURCE_USERNAME=${DB_USER}
       - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
-      - PAYMENT_SERVICE_URL=http://localhost:8084/api/payments/estado
+      - PAYMENT_SERVICE_URL=${PAYMENT_SERVICE_URL}
       - APP_BASE_URL=${APP_BASE_URL}
-      - APP_FRONTEND_URL=https://batistellaycia.shop
+      - APP_FRONTEND_URL=${APP_FRONTEND_URL}
       - JWT_SECRET=${JWT_SECRET}
       - MERCADOPAGO_ACCESS_TOKEN=${MERCADOPAGO_ACCESS_TOKEN}
       - MERCADOPAGO_PUBLIC_KEY=${MERCADOPAGO_PUBLIC_KEY}
@@ -30,4 +30,4 @@ services:
 networks:
   batistella-network:
     name: batistella-network
-    external: true 
+    external: true

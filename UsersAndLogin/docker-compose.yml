@@ -4,7 +4,7 @@ services:
   app:
     build: .
     ports:
-      - "${APP_PORT}:${SPRING_PORT}"
+      - "8081:8081"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_DATASOURCE_URL=jdbc:postgresql://db:${DB_PORT}/${DB_NAME}
@@ -12,6 +12,8 @@ services:
       - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}
       - NOTIFICATION_SERVICE_URL=${NOTIFICATION_SERVICE_URL}
+      - MAIL_USERNAME=${MAIL_USERNAME}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
     depends_on:
       - db
     networks:

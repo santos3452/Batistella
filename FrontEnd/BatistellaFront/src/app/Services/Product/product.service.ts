@@ -39,7 +39,7 @@ export interface Product {
   providedIn: 'root'
 })
 export class ProductService {
-  private apiUrl = `${environment.apiUrl}/products`;
+  private apiUrl = `${environment.productsUrl}/products`;
   private productsCache: Product[] = [];
   private lastFetchTime: number = 0;
   private cacheDuration: number = 60000; // 1 minuto en milisegundos
