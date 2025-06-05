@@ -22,10 +22,10 @@ public class HttpClientService {
 
     private final RestTemplate restTemplate;
     
-    @Value("${microservice.pedidos.url:http://localhost:8083}")
+    @Value("${microservice.pedidos.url:http://productsandorder:8083}")
     private String pedidosServiceUrl;
     
-    @Value("${microservice.notifications.url:http://localhost:8085}")
+    @Value("${microservice.notifications.url:http://notifications:8085}")
     private String notificationsServiceUrl;
     
     /**
@@ -83,7 +83,7 @@ public class HttpClientService {
      * @return true si la notificación se envió correctamente
      */
     public boolean enviarNotificacionPago(String email, Map<String, Object> pedidoData) {
-        String url =  "http://host.docker.internal:8085/api/notifications/payment/confirmation?email=" + email;
+        String url = notificationsServiceUrl + "/api/notifications/payment/confirmation?email=" + email;
         
         try {
             log.info("Enviando notificación de pago para el pedido {} al email {} - URL: {}", 

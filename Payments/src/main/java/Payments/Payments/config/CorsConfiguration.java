@@ -22,6 +22,8 @@ public class CorsConfiguration {
                             "http://localhost:4200",  // Angular dev server
                             "http://localhost:3000",  // React dev server
                             "http://localhost:8080",  // Local Spring Boot
+                            "https://www.batistellaycia.shop",  // Producción principal
+                            "https://batistellaycia.shop",      // Producción sin www
                             appBaseUrl,               // Ngrok URL
                             "https://e20a-181-4-8-15.ngrok-free.app",  // URL actual de Ngrok
                             "https://api.mercadopago.com",             // Mercado Pago API

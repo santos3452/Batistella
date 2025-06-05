@@ -481,11 +481,8 @@ export class AdminPedidosComponent implements OnInit {
    * Envía una notificación de cambio de estado de pedido
    */
   private sendOrderStatusNotification(email: string, estadoPedido: string, codigoPedido: string): void {
-    // Codificar el email para la URL
-    const encodedEmail = encodeURIComponent(email);
-    
     const params = new HttpParams()
-      .set('email', encodedEmail)
+      .set('email', email)
       .set('estadoPedido', estadoPedido)
       .set('codigoPedido', codigoPedido);
 

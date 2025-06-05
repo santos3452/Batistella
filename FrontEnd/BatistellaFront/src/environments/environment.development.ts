@@ -9,6 +9,6 @@ export const environment: Environment = {
     mercadoPagoUrl: 'https://www.batistellaycia.shop/api/payments/pagos/mercadopago/preferencia',
     pagoManualUrl: 'https://www.batistellaycia.shop/api/payments/pagos/manual',
     pagosUrl: 'https://www.batistellaycia.shop/api/payments/pagos',
-    notificationsUrl: 'https://www.batistellaycia.shop/api/notifications/notifications',
+    notificationsUrl: 'https://www.batistellaycia.shop/api/notifications',
     dashboardUrl: 'https://www.batistellaycia.shop/api/dashboards/dashboard'
 };

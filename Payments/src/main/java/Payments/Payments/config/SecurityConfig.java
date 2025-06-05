@@ -44,6 +44,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/pagos/mercadopago/**").permitAll() // Comentar para requerir token
                         .requestMatchers("/api/pagos/retorno/**").permitAll()
                         .requestMatchers("/api/pagos/redirect/**").permitAll()
+                        .requestMatchers("/api/pagos/success").permitAll()    // Nuevo endpoint HTML
+                        .requestMatchers("/api/pagos/error").permitAll()      // Nuevo endpoint HTML
+                        .requestMatchers("/api/pagos/pending").permitAll()    // Nuevo endpoint HTML
                         .requestMatchers("/api/pagos/diagnostico").permitAll()
                         .requestMatchers("/api/pagos/manual").permitAll()
                         .requestMatchers("/api/pagos/transferencia").permitAll()

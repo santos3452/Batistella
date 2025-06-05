@@ -31,7 +31,7 @@
 }
 
 /* Asegurar que los contenidos de la aplicación estén por encima del fondo */
-.flex-1, .container, .bg-white, app-navbar, app-sidebar {
+.flex-1, .container, .bg-white, app-navbar {
   position: relative;
   z-index: 1;
 }

@@ -8,7 +8,9 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -357,11 +359,12 @@ public class PagoController {
      * Redirige al frontend después de un pago exitoso
      */
     @GetMapping("/redirect/success")
-    public ResponseEntity<Void> redirectSuccess(
+    public String redirectSuccess(
             @RequestParam(required = false) String payment_id,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String external_reference,
-            @RequestHeader(value = "Authorization", required = false) String authorizationHeader) {
+            @RequestHeader(value = "Authorization", required = false) String authorizationHeader,
+            org.springframework.ui.Model model) {
         
         log.info("Redirigiendo después de pago exitoso - payment_id: {}, status: {}, pedido: {}", 
                 payment_id, status, external_reference);
@@ -378,32 +381,28 @@ public class PagoController {
         // Procesar el pago primero
         pagoService.procesarRetornoPago(payment_id, status, external_reference, token);
         
-        // Construir URL de redirección a la página intermedia
-        StringBuilder redirectUrl = new StringBuilder("/redirect.html?type=success");
-        if (payment_id != null) {
-            redirectUrl.append("&payment_id=").append(payment_id);
-        }
-        if (status != null) {
-            redirectUrl.append("&status=").append(status);
-        }
-        if (external_reference != null) {
-            redirectUrl.append("&order_id=").append(external_reference);
-        }
+        // Pasar parámetros al modelo para el HTML (igual que los nuevos endpoints)
+        model.addAttribute("payment_id", payment_id != null ? payment_id : "");
+        model.addAttribute("status", status != null ? status : "approved");
+        model.addAttribute("order_id", external_reference != null ? external_reference : "");
+        model.addAttribute("type", "success");
         
-        return ResponseEntity.status(HttpStatus.FOUND)
-                .header("Location", redirectUrl.toString())
-                .build();
+        log.info("ENDPOINT ANTIGUO: Devolviendo template redirect-bridge.html con parámetros: payment_id={}, status={}, order_id={}", 
+                payment_id, status, external_reference);
+        
+        return "redirect-bridge"; // Usar el mismo template que los nuevos endpoints
     }
     
     /**
      * Redirige al frontend después de un pago con error
      */
     @GetMapping("/redirect/error")
-    public ResponseEntity<Void> redirectError(
+    public String redirectError(
             @RequestParam(required = false) String payment_id,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String external_reference,
-            @RequestHeader(value = "Authorization", required = false) String authorizationHeader) {
+            @RequestHeader(value = "Authorization", required = false) String authorizationHeader,
+            org.springframework.ui.Model model) {
         
         log.info("Redirigiendo después de pago con error - payment_id: {}, status: {}, pedido: {}", 
                 payment_id, status, external_reference);
@@ -432,34 +431,28 @@ public class PagoController {
             }
         }
         
-        // Construir URL de redirección a la página intermedia
-        StringBuilder redirectUrl = new StringBuilder("/redirect.html?type=error");
-        if (payment_id != null) {
-            redirectUrl.append("&payment_id=").append(payment_id);
-        }
-        if (status != null) {
-            redirectUrl.append("&status=").append(status);
-        } else {
-            redirectUrl.append("&status=cancelled");
-        }
-        if (external_reference != null) {
-            redirectUrl.append("&order_id=").append(external_reference);
-        }
+        // Pasar parámetros al modelo para el HTML
+        model.addAttribute("payment_id", payment_id != null ? payment_id : "");
+        model.addAttribute("status", status != null ? status : "cancelled");
+        model.addAttribute("order_id", external_reference != null ? external_reference : "");
+        model.addAttribute("type", "error");
         
-        return ResponseEntity.status(HttpStatus.FOUND)
-                .header("Location", redirectUrl.toString())
-                .build();
+        log.info("ENDPOINT ANTIGUO: Devolviendo template redirect-bridge.html con parámetros: payment_id={}, status={}, order_id={}", 
+                payment_id, status, external_reference);
+        
+        return "redirect-bridge";
     }
     
     /**
      * Redirige al frontend después de un pago pendiente
      */
     @GetMapping("/redirect/pending")
-    public ResponseEntity<Void> redirectPending(
+    public String redirectPending(
             @RequestParam(required = false) String payment_id,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String external_reference,
-            @RequestHeader(value = "Authorization", required = false) String authorizationHeader) {
+            @RequestHeader(value = "Authorization", required = false) String authorizationHeader,
+            org.springframework.ui.Model model) {
         
         log.info("Redirigiendo después de pago pendiente - payment_id: {}, status: {}, pedido: {}", 
                 payment_id, status, external_reference);
@@ -476,21 +469,16 @@ public class PagoController {
         // Procesar el pago primero
         pagoService.procesarRetornoPago(payment_id, status, external_reference, token);
         
-        // Construir URL de redirección a la página intermedia
-        StringBuilder redirectUrl = new StringBuilder("/redirect.html?type=pending");
-        if (payment_id != null) {
-            redirectUrl.append("&payment_id=").append(payment_id);
-        }
-        if (status != null) {
-            redirectUrl.append("&status=").append(status);
-        }
-        if (external_reference != null) {
-            redirectUrl.append("&order_id=").append(external_reference);
-        }
+        // Pasar parámetros al modelo para el HTML
+        model.addAttribute("payment_id", payment_id != null ? payment_id : "");
+        model.addAttribute("status", status != null ? status : "pending");
+        model.addAttribute("order_id", external_reference != null ? external_reference : "");
+        model.addAttribute("type", "pending");
         
-        return ResponseEntity.status(HttpStatus.FOUND)
-                .header("Location", redirectUrl.toString())
-                .build();
+        log.info("ENDPOINT ANTIGUO: Devolviendo template redirect-bridge.html con parámetros: payment_id={}, status={}, order_id={}", 
+                payment_id, status, external_reference);
+        
+        return "redirect-bridge";
     }
     
     /**
@@ -557,5 +545,259 @@ public class PagoController {
         diagnostico.put("tokens_pedidos_keys", tokensPorPedido.keySet());
         
         return ResponseEntity.ok(diagnostico);
+    }
+
+    /**
+     * Página de éxito que Mercado Pago puede cargar directamente
+     */
+    @GetMapping("/success")
+    public ResponseEntity<String> pagoExitosoHtml(
+            @RequestParam(required = false) String payment_id,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String external_reference,
+            @RequestHeader(value = "Authorization", required = false) String authorizationHeader) {
+        
+        log.info("Página de éxito - payment_id: {}, status: {}, pedido: {}", 
+                payment_id, status, external_reference);
+        
+        // Procesar el pago primero (igual que antes)
+        establecerTokenEnSecurityContext(authorizationHeader);
+        String token = (external_reference != null) ? tokensPorPedido.get(external_reference) : null;
+        if (token != null) {
+            log.info("Token recuperado del mapa para el pedido: {}", external_reference);
+        }
+        
+        pagoService.procesarRetornoPago(payment_id, status, external_reference, token);
+        
+        // Crear HTML directamente
+        String html = generarHtmlRedireccion(
+            payment_id != null ? payment_id : "",
+            status != null ? status : "approved",
+            external_reference != null ? external_reference : "",
+            "success"
+        );
+        
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.TEXT_HTML);
+        
+        return ResponseEntity.ok().headers(headers).body(html);
+    }
+    
+    /**
+     * Página de error que Mercado Pago puede cargar directamente
+     */
+    @GetMapping("/error")
+    public ResponseEntity<String> pagoErrorHtml(
+            @RequestParam(required = false) String payment_id,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String external_reference,
+            @RequestHeader(value = "Authorization", required = false) String authorizationHeader) {
+        
+        log.info("Página de error - payment_id: {}, status: {}, pedido: {}", 
+                payment_id, status, external_reference);
+        
+        // Procesar el pago primero
+        establecerTokenEnSecurityContext(authorizationHeader);
+        String token = (external_reference != null) ? tokensPorPedido.get(external_reference) : null;
+        
+        String estadoActual = (status == null || status.isEmpty() || "null".equals(status)) ? "cancelled" : status;
+        pagoService.procesarRetornoPago(payment_id, estadoActual, external_reference, token);
+        
+        // Crear HTML directamente
+        String html = generarHtmlRedireccion(
+            payment_id != null ? payment_id : "",
+            status != null ? status : "cancelled",
+            external_reference != null ? external_reference : "",
+            "error"
+        );
+        
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.TEXT_HTML);
+        
+        return ResponseEntity.ok().headers(headers).body(html);
+    }
+    
+    /**
+     * Página de pendiente que Mercado Pago puede cargar directamente
+     */
+    @GetMapping("/pending")
+    public ResponseEntity<String> pagoPendienteHtml(
+            @RequestParam(required = false) String payment_id,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String external_reference,
+            @RequestHeader(value = "Authorization", required = false) String authorizationHeader) {
+        
+        log.info("Página de pendiente - payment_id: {}, status: {}, pedido: {}", 
+                payment_id, status, external_reference);
+        
+        // Procesar el pago primero
+        establecerTokenEnSecurityContext(authorizationHeader);
+        String token = (external_reference != null) ? tokensPorPedido.get(external_reference) : null;
+        
+        pagoService.procesarRetornoPago(payment_id, status, external_reference, token);
+        
+        // Crear HTML directamente
+        String html = generarHtmlRedireccion(
+            payment_id != null ? payment_id : "",
+            status != null ? status : "pending",
+            external_reference != null ? external_reference : "",
+            "pending"
+        );
+        
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.TEXT_HTML);
+        
+        return ResponseEntity.ok().headers(headers).body(html);
+    }
+    
+    /**
+     * Genera el HTML de redirección dinámicamente
+     */
+    private String generarHtmlRedireccion(String paymentId, String status, String orderId, String type) {
+        String titulo, mensaje, clase, icono;
+        
+        switch (type) {
+            case "success":
+                titulo = "¡Pago Exitoso! ✓";
+                mensaje = "Tu pago ha sido procesado correctamente. Serás redirigido automáticamente a la página de confirmación.";
+                clase = "success";
+                icono = "✓";
+                break;
+            case "error":
+                titulo = "Pago No Completado ✗";
+                mensaje = "Hubo un problema con tu pago. Te redirigiremos para que puedas intentar nuevamente.";
+                clase = "error";
+                icono = "✗";
+                break;
+            case "pending":
+                titulo = "Pago en Procesamiento ⏳";
+                mensaje = "Tu pago está siendo verificado. Te notificaremos cuando esté confirmado.";
+                clase = "pending";
+                icono = "⏳";
+                break;
+            default:
+                titulo = "Procesando...";
+                mensaje = "Procesando tu solicitud...";
+                clase = "success";
+                icono = "⏳";
+        }
+        
+        return String.format("""
+            <!DOCTYPE html>
+            <html lang="es">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Procesando pago...</title>
+                <style>
+                    body {
+                        font-family: Arial, sans-serif;
+                        text-align: center;
+                        margin: 50px;
+                        background-color: #f5f5f5;
+                    }
+                    .container {
+                        max-width: 600px;
+                        margin: 0 auto;
+                        background-color: white;
+                        padding: 30px;
+                        border-radius: 8px;
+                        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                    }
+                    h1 {
+                        color: #003087;
+                        margin-bottom: 15px;
+                    }
+                    .message {
+                        color: #666;
+                        margin-bottom: 25px;
+                        font-size: 16px;
+                    }
+                    .loader {
+                        border: 5px solid #f3f3f3;
+                        border-top: 5px solid #009ee3;
+                        border-radius: 50%%;
+                        width: 50px;
+                        height: 50px;
+                        animation: spin 1s linear infinite;
+                        margin: 20px auto;
+                    }
+                    .countdown {
+                        color: #888;
+                        font-size: 14px;
+                        margin-top: 15px;
+                    }
+                    .success { color: #27ae60; }
+                    .error { color: #e74c3c; }
+                    .pending { color: #f39c12; }
+                    
+                    @keyframes spin {
+                        0%% { transform: rotate(0deg); }
+                        100%% { transform: rotate(360deg); }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <h1>Batistella & Cía</h1>
+                    
+                    <div class="%s">
+                        <h2>%s</h2>
+                        <p class="message">%s</p>
+                    </div>
+                    
+                    <div class="loader"></div>
+                    <p class="countdown" id="countdown">Redirigiendo en 3 segundos...</p>
+                    
+                    <p style="color: #999; font-size: 12px; margin-top: 20px;">
+                        Si no eres redirigido automáticamente, 
+                        <a href="https://www.batistellaycia.shop/checkout/%s?payment_id=%s&status=%s&order_id=%s">
+                            haz clic aquí
+                        </a>
+                    </p>
+                </div>
+
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const paymentId = '%s';
+                        const status = '%s';
+                        const orderId = '%s';
+                        const type = '%s';
+                        
+                        console.log('Parámetros recibidos:', { paymentId, status, orderId, type });
+                        
+                        let redirectUrl = 'https://www.batistellaycia.shop/checkout/' + type;
+                        let params = [];
+                        
+                        if (paymentId) params.push('payment_id=' + paymentId);
+                        if (status) params.push('status=' + status);
+                        if (orderId) params.push('order_id=' + orderId);
+                        
+                        if (params.length > 0) {
+                            redirectUrl += '?' + params.join('&');
+                        }
+                        
+                        console.log('URL de redirección:', redirectUrl);
+                        
+                        let seconds = 3;
+                        const countdownElement = document.getElementById('countdown');
+                        const interval = setInterval(function() {
+                            seconds--;
+                            countdownElement.textContent = 'Redirigiendo en ' + seconds + ' segundos...';
+                            
+                            if (seconds <= 0) {
+                                clearInterval(interval);
+                                console.log('Redirigiendo a:', redirectUrl);
+                                window.location.href = redirectUrl;
+                            }
+                        }, 1000);
+                    });
+                </script>
+            </body>
+            </html>
+            """, 
+            clase, titulo, mensaje, type, paymentId, status, orderId,
+            paymentId, status, orderId, type
+        );
     }
 } 

@@ -53,7 +53,7 @@ services:
       - "4200:80"
     environment:
       - NODE_ENV=production
-      - API_URL=http://batistellaycia.shop
+      - API_URL=https://batistellaycia.shop
     networks:
       - batistella-network
     restart: unless-stopped

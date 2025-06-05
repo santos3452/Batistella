@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Procesando pago...</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 50px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .logo {
+            max-width: 200px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #003087;
+            margin-bottom: 15px;
+        }
+        .message {
+            color: #666;
+            margin-bottom: 25px;
+            font-size: 16px;
+        }
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #009ee3;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        .countdown {
+            color: #888;
+            font-size: 14px;
+            margin-top: 15px;
+        }
+        .success { color: #27ae60; }
+        .error { color: #e74c3c; }
+        .pending { color: #f39c12; }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Batistella & Cía</h1>
+        
+        <div th:if="${type == 'success'}" class="success">
+            <h2>¡Pago Exitoso! ✓</h2>
+            <p class="message">Tu pago ha sido procesado correctamente. Serás redirigido automáticamente a la página de confirmación.</p>
+        </div>
+        
+        <div th:if="${type == 'error'}" class="error">
+            <h2>Pago No Completado ✗</h2>
+            <p class="message">Hubo un problema con tu pago. Te redirigiremos para que puedas intentar nuevamente.</p>
+        </div>
+        
+        <div th:if="${type == 'pending'}" class="pending">
+            <h2>Pago en Procesamiento ⏳</h2>
+            <p class="message">Tu pago está siendo verificado. Te notificaremos cuando esté confirmado.</p>
+        </div>
+        
+        <div class="loader"></div>
+        <p class="countdown" id="countdown">Redirigiendo en 3 segundos...</p>
+        
+        <p style="color: #999; font-size: 12px; margin-top: 20px;">
+            Si no eres redirigido automáticamente, 
+            <a th:href="@{https://www.batistellaycia.shop/checkout/{type}(type=${type}, payment_id=${payment_id}, status=${status}, order_id=${order_id})}">
+                haz clic aquí
+            </a>
+        </p>
+    </div>
+
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            // Obtener los parámetros pasados desde el controller
+            const paymentId = /*[[${payment_id}]]*/ '';
+            const status = /*[[${status}]]*/ '';
+            const orderId = /*[[${order_id}]]*/ '';
+            const type = /*[[${type}]]*/ 'success';
+            
+            console.log('Parámetros recibidos:', { paymentId, status, orderId, type });
+            
+            // Construir la URL de redirección al frontend
+            let redirectUrl = `https://www.batistellaycia.shop/checkout/${type}`;
+            let params = [];
+            
+            if (paymentId) params.push(`payment_id=${paymentId}`);
+            if (status) params.push(`status=${status}`);
+            if (orderId) params.push(`order_id=${orderId}`);
+            
+            if (params.length > 0) {
+                redirectUrl += '?' + params.join('&');
+            }
+            
+            console.log('URL de redirección:', redirectUrl);
+            
+            // Contador regresivo
+            let seconds = 3;
+            const countdownElement = document.getElementById('countdown');
+            const interval = setInterval(function() {
+                seconds--;
+                countdownElement.textContent = `Redirigiendo en ${seconds} segundos...`;
+                
+                if (seconds <= 0) {
+                    clearInterval(interval);
+                    console.log('Redirigiendo a:', redirectUrl);
+                    window.location.href = redirectUrl;
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html> 

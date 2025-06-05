@@ -21,6 +21,8 @@ public class CorsConfig {
         
         // También permitir explícitamente los orígenes que sabemos que se utilizan
         config.addAllowedOrigin("http://localhost:4200");
+        config.addAllowedOrigin("https://www.batistellaycia.shop");
+        config.addAllowedOrigin("https://batistellaycia.shop");
         config.addAllowedOrigin("http://localhost:51369");
         config.addAllowedOrigin("http://localhost:8090");
         

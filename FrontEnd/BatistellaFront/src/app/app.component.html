@@ -22,7 +22,7 @@
   </div>
   
   <!-- Sidebar para móvil (overlay) -->
-  <div class="block lg:hidden z-[10000]">
+  <div class="block lg:hidden" style="z-index: 99999 !important;">
     <app-sidebar [isOpen]="sidebarOpen" (onClose)="closeSidebar()"></app-sidebar>
   </div>
   

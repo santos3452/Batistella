@@ -81,12 +81,12 @@ public class PagoServiceImpl implements PagoService {
             }
             
             String urlExito = preferenceDTO.getUrlExito() != null ? 
-                   preferenceDTO.getUrlExito() : appBaseUrl + "/api/pagos/redirect/success";
+                   preferenceDTO.getUrlExito() : appBaseUrl + "/api/pagos/success";
 
             String urlFracaso = preferenceDTO.getUrlFracaso() != null ? 
-                    preferenceDTO.getUrlFracaso() : appBaseUrl + "/api/pagos/redirect/error";
+                    preferenceDTO.getUrlFracaso() : appBaseUrl + "/api/pagos/error";
             String urlPendiente = preferenceDTO.getUrlPendiente() != null ? 
-                    preferenceDTO.getUrlPendiente() : appBaseUrl + "/api/pagos/redirect/pending";
+                    preferenceDTO.getUrlPendiente() : appBaseUrl + "/api/pagos/pending";
             
             log.info("URLs de redirección configuradas:");
             log.info("URL Éxito: {}", urlExito);

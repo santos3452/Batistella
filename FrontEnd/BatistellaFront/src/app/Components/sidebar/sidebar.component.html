@@ -1,8 +1,8 @@
 <!-- Overlay para móvil (solo cuando no está en modo centrado) -->
 <div 
   *ngIf="!isCentered"
-  class="fixed inset-0 bg-black/30 z-[9999] transition-opacity duration-300 md:hidden"
-  style="z-index: 9999 !important;"
+  class="fixed inset-0 transition-opacity duration-300 md:hidden"
+  style="background-color: rgba(0, 0, 0, 0.6) !important; z-index: 99998 !important;"
   [class.opacity-100]="isOpen" 
   [class.opacity-0]="!isOpen"
   [class.visible]="isOpen"
@@ -13,21 +13,22 @@
 <!-- Sidebar principal -->
 <aside 
   [ngClass]="{
-    'fixed top-0 bottom-0 left-0 w-64 bg-white shadow-sm z-[10000] transition-transform duration-300 transform md:translate-x-0 md:static md:h-auto border-r border-gray-100 flex flex-col': !isCentered,
+    'fixed top-0 bottom-0 left-0 w-64 shadow-lg transition-transform duration-300 transform md:translate-x-0 md:static md:h-auto border-r border-gray-200 flex flex-col': !isCentered,
     'translate-x-0': !isCentered && isOpen,
     '-translate-x-full': !isCentered && !isOpen,
-    'w-full h-full bg-white': isCentered
+    'w-full h-full': isCentered
   }"
-  style="z-index: 10000 !important;"
+  style="background-color: #ffffff !important; z-index: 99999 !important;"
 >
   <!-- Header del sidebar (solo para móvil en modo no centrado) -->
   <div 
     *ngIf="!isCentered" 
-    class="flex items-center justify-between p-4 border-b border-gray-100 md:hidden flex-shrink-0"
+    class="flex items-center justify-between p-4 border-b border-gray-200 md:hidden flex-shrink-0"
+    style="background-color: #ffffff !important;"
   >
     <img src="assets/Images/BatistellaLogo.jpg" alt="Batistella Logo" class="h-6">
     <button 
-      class="p-2 rounded-lg hover:bg-gray-50 transition-colors"
+      class="p-2 rounded-lg hover:bg-gray-100 transition-colors"
       (click)="closeSidebar()"
       aria-label="Close menu"
     >
@@ -39,7 +40,10 @@
   </div>
 
   <!-- Contenido del sidebar con scroll -->
-  <div [ngClass]="!isCentered ? 'flex-1 overflow-y-auto p-5 sidebar-scroll' : 'p-5'">
+  <div 
+    [ngClass]="!isCentered ? 'flex-1 overflow-y-auto p-5 sidebar-scroll' : 'p-5'"
+    style="background-color: #ffffff !important;"
+  >
     <!-- Navegación -->
     <div class="sidebar-section">
       <h3 class="sidebar-title">Navegación</h3>
