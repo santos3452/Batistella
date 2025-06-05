@@ -126,6 +126,70 @@ export class CartService {
   }
 
   /**
+   * Obtiene el precio total del carrito considerando el tipo de usuario
+   * @param userType Tipo de usuario ('EMPRESA' o null/undefined para cliente final)
+   */
+  getTotalPriceByUserType$(userType: string | null | undefined): Observable<number> {
+    return this.items$.pipe(
+      map(items => items.reduce((total, item) => {
+        const price = this.getProductPrice(item.product, userType);
+        return total + (price * item.quantity);
+      }, 0))
+    );
+  }
+
+  /**
+   * Obtiene el precio correcto de un producto según el tipo de usuario
+   * @param product Producto del cual obtener el precio
+   * @param userType Tipo de usuario ('EMPRESA' o null/undefined para cliente final)
+   * @returns Precio correcto según el tipo de usuario
+   */
+  getProductPrice(product: Product, userType: string | null | undefined): number {
+    if (userType === 'EMPRESA') {
+      return product.priceMayorista || product.priceMinorista;
+    }
+    return product.priceMinorista;
+  }
+
+  /**
+   * Valida si una empresa puede proceder al checkout (mínimo 10 unidades)
+   * @param userRole Rol del usuario actual
+   * @returns Observable<boolean> true si puede proceder, false si no
+   */
+  canCompanyProceedToCheckout$(userRole: string | null): Observable<boolean> {
+    return this.totalItems$.pipe(
+      map(totalItems => {
+        // Si es empresa, debe tener al menos 10 unidades
+        if (userRole === 'ROLE_EMPRESA') {
+          return totalItems >= 10;
+        }
+        // Para otros usuarios, no hay restricción
+        return true;
+      })
+    );
+  }
+
+  /**
+   * Obtiene el número total de unidades actual en el carrito
+   */
+  getCurrentTotalItems(): number {
+    const currentItems = this.itemsSubject.getValue();
+    return currentItems.reduce((total, item) => total + item.quantity, 0);
+  }
+
+  /**
+   * Verifica si una empresa puede proceder al checkout (versión síncrona)
+   * @param userRole Rol del usuario actual
+   * @returns boolean true si puede proceder, false si no
+   */
+  canCompanyProceedToCheckout(userRole: string | null): boolean {
+    if (userRole === 'ROLE_EMPRESA') {
+      return this.getCurrentTotalItems() >= 10;
+    }
+    return true;
+  }
+
+  /**
    * Vacía el carrito completamente
    */
   clearCart(): void {

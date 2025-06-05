@@ -23,20 +23,23 @@ export class OrderSummaryComponent implements OnInit, OnDestroy {
   totalAmount = 0;
   
   currentUser: User | null = null;
-  selectedAddress: Address | null = null;
-  deliveryNotes: string = '';
-  isPickupSelected: boolean = false;
+  selectedAddress: any = null;
+  deliveryNotes = '';
+  isPickupSelected = false;
   
   isLoading = false;
   errorMessage = '';
   
+  // Exponemos Math para poder utilizarlo en la plantilla
+  Math = Math;
+
   private subscriptions = new Subscription();
 
   constructor(
+    private router: Router,
     private cartService: CartService,
     public utils: UtilsService,
-    private authService: AuthService,
-    private router: Router
+    public authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -58,21 +61,27 @@ export class OrderSummaryComponent implements OnInit, OnDestroy {
       })
     );
     
+    // Suscripción combinada para usuario actual y precio del carrito
     this.subscriptions.add(
-      this.cartService.totalPrice$.subscribe(price => {
-        this.subtotal = price;
-        // Puedes calcular impuestos si es necesario
-        this.taxAmount = 0; // Por ahora sin impuestos adicionales
-        this.totalAmount = this.subtotal + this.taxAmount;
+      this.authService.currentUser$.subscribe(user => {
+        this.currentUser = user;
+        
+        // Seleccionar primera dirección si hay direcciones disponibles
+        if (user && user.domicilio && user.domicilio.length > 0) {
+          this.selectedAddress = user.domicilio[0];
+        }
+        
+        // Suscribirse al precio total considerando el tipo de usuario
+        this.subscriptions.add(
+          this.cartService.getTotalPriceByUserType$(user?.tipoUsuario || null).subscribe(price => {
+            this.subtotal = price;
+            // Puedes calcular impuestos si es necesario
+            this.taxAmount = 0; // Por ahora sin impuestos adicionales
+            this.totalAmount = this.subtotal + this.taxAmount;
+          })
+        );
       })
     );
-    
-    // Cargar usuario y direcciones
-    this.currentUser = this.authService.currentUser;
-    
-    if (this.currentUser && this.currentUser.domicilio && this.currentUser.domicilio.length > 0) {
-      this.selectedAddress = this.currentUser.domicilio[0]; // Seleccionar la primera dirección por defecto
-    }
   }
   
   ngOnDestroy(): void {
@@ -97,15 +106,29 @@ export class OrderSummaryComponent implements OnInit, OnDestroy {
     this.cartService.removeFromCart(productId);
   }
   
-  // Obtiene un identificador único para el producto
-  private getProductId(product: CartItem['product']): string {
-    // Mismo método que en CartService
+  // Obtener el identificador único de un producto
+  getProductId(product: any): string {
     const id = product.id || product.localId || '';
     const kg = product.kg || '';
     return `${id}-${kg}`;
   }
   
+  /**
+   * Obtiene el precio correcto del producto según el tipo de usuario
+   */
+  getProductPrice(product: any): number {
+    return this.cartService.getProductPrice(product, this.authService.currentUser?.tipoUsuario);
+  }
+  
   proceedToPayment(): void {
+    // Validar que las empresas tengan al menos 10 unidades
+    const userRole = this.authService.userRole;
+    if (userRole === 'ROLE_EMPRESA' && this.totalItems < 10) {
+      const remaining = 10 - this.totalItems;
+      this.errorMessage = `Las empresas deben comprar un mínimo de 10 unidades. Te faltan ${remaining} unidades más para continuar.`;
+      return;
+    }
+
     if (!this.isPickupSelected && !this.selectedAddress) {
       this.errorMessage = 'Por favor seleccione una dirección de entrega o la opción de retiro en local';
       return;

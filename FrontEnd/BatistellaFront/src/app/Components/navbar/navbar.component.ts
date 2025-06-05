@@ -58,13 +58,6 @@ export class NavbarComponent implements OnInit, OnDestroy {
       })
     );
     
-    // Suscripción al total del carrito
-    this.subscription.add(
-      this.cartService.totalPrice$.subscribe(total => {
-        this.cartTotal = total;
-      })
-    );
-    
     // Suscripción al estado de visibilidad del carrito
     this.subscription.add(
       this.cartService.cartVisible$.subscribe(visible => {
@@ -80,7 +73,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
       })
     );
     
-    // Suscripción al usuario actual
+    // Suscripción combinada para usuario actual y precio del carrito
     this.subscription.add(
       this.authService.currentUser$.subscribe(user => {
         if (user) {
@@ -88,6 +81,13 @@ export class NavbarComponent implements OnInit, OnDestroy {
           this.updateUserNameFromUser(user);
           this.isAdmin = user.rol === 'ROLE_ADMIN';
         }
+        
+        // Actualizar precio total del carrito según el tipo de usuario (o null si no hay usuario)
+        this.subscription.add(
+          this.cartService.getTotalPriceByUserType$(user?.tipoUsuario || null).subscribe(total => {
+            this.cartTotal = total;
+          })
+        );
       })
     );
     
