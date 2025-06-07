@@ -1,14 +1,15 @@
+version: '3.8'
+
 services:
-  # PostgreSQL Database
   postgres:
     image: postgres:15-alpine
-    container_name: batistella-postgres
+    container_name: ${POSTGRES_CONTAINER_NAME}
     ports:
-      - "5434:5432"
+      - "${POSTGRES_PORT_EXTERNAL}:5432"
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=ensalada123
-      - POSTGRES_DB=postgres
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./docker/postgres/init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql:ro
@@ -16,15 +17,14 @@ services:
       - batistella-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  # NGINX API Gateway
   nginx-gateway:
     image: nginx:1.25-alpine
-    container_name: batistella-gateway
+    container_name: ${NGINX_CONTAINER_NAME}
     ports:
       - "80:80"
     volumes:
@@ -43,39 +43,37 @@ services:
       - batistella-network
     restart: unless-stopped
 
-  # Frontend Angular
   frontend:
     build:
       context: ./FrontEnd/BatistellaFront
       dockerfile: Dockerfile.prod
-    container_name: batistella-frontend
+    container_name: ${FRONTEND_CONTAINER_NAME}
     ports:
-      - "4200:80"
+      - "${FRONTEND_PORT_EXTERNAL}:80"
     environment:
       - NODE_ENV=production
-      - API_URL=https://batistellaycia.shop
+      - API_URL=${APP_BASE_URL}
     networks:
       - batistella-network
     restart: unless-stopped
 
-  # Servicio de Usuarios y Login
   usersandlogin:
     build:
       context: ./UsersAndLogin
       dockerfile: Dockerfile
-    container_name: batistella-usersandlogin
+    container_name: ${USERS_CONTAINER_NAME}
     ports:
-      - "8081:8080"
+      - "${USERS_PORT_EXTERNAL}:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/UsersBatistella_db
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=ensalada123
-      - JWT_SECRET=NmQ4YzJhMjEtZjc2NC00MTM3LWI2ZTgtNDJiMmZiNjM5YzBk
-      - JWT_EXPIRATION=86400000
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/${USERS_DB_NAME}
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRATION=${JWT_EXPIRATION}
       - NOTIFICATION_SERVICE_URL=http://notifications:8080
-      - APP_BASE_URL=https://www.batistellaycia.shop
-      - APP_FRONTEND_URL=https://www.batistellaycia.shop
+      - APP_BASE_URL=${APP_BASE_URL}
+      - APP_FRONTEND_URL=${APP_FRONTEND_URL}
       - REDIS_HOST=redis
       - REDIS_PORT=6379
     depends_on:
@@ -87,24 +85,29 @@ services:
       - batistella-network
     restart: unless-stopped
 
-  # Servicio de Productos y Órdenes
   productsandorder:
     build:
       context: ./ProductsAndOrder
       dockerfile: Dockerfile
-    container_name: batistella-productsandorder
+    container_name: ${PRODUCTS_CONTAINER_NAME}
     ports:
-      - "8083:8080"
+      - "${PRODUCTS_PORT_EXTERNAL}:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/ProductsAndOrders
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=ensalada123
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/${PRODUCTS_DB_NAME}
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
       - MICROSERVICE_USUARIOS_URL=http://usersandlogin:8080/api/users
       - MICROSERVICE_PAYMENT_URL=http://payments:8084/api/pagos/estado/{codigoPedido}
-      - JWT_SECRET=NmQ4YzJhMjEtZjc2NC00MTM3LWI2ZTgtNDJiMmZiNjM5YzBk
-      - APP_BASE_URL=https://www.batistellaycia.shop
-      - GATEWAY_URL=https://www.batistellaycia.shop
+      - JWT_SECRET=${JWT_SECRET}
+      - APP_BASE_URL=${APP_BASE_URL}
+      - GATEWAY_URL=${APP_BASE_URL}
+      - GCP_BUCKET_NAME=${GCP_BUCKET_NAME:-batistella-product-images}
+      - GCP_CREDENTIALS_LOCATION=${GCP_CREDENTIALS_LOCATION:-credentials/batistella-service-account.json}
+      - GCP_IMAGE_URL_EXPIRATION=${GCP_IMAGE_URL_EXPIRATION:-86400}
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/resources/credentials/batistella-service-account.json
+    volumes:
+      - ./ProductsAndOrder/src/main/resources/credentials:/app/resources/credentials
     depends_on:
       postgres:
         condition: service_healthy
@@ -112,25 +115,24 @@ services:
       - batistella-network
     restart: unless-stopped
 
-  # Servicio de Pagos
   payments:
     build:
       context: ./Payments
       dockerfile: Dockerfile
-    container_name: batistella-payments
+    container_name: ${PAYMENTS_CONTAINER_NAME}
     ports:
-      - "8084:8080"
+      - "${PAYMENTS_PORT_EXTERNAL}:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/Payments
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=ensalada123
-      - JWT_SECRET=NmQ4YzJhMjEtZjc2NC00MTM3LWI2ZTgtNDJiMmZiNjM5YzBk
-      - APP_BASE_URL=https://www.batistellaycia.shop
-      - APP_FRONTEND_URL=https://www.batistellaycia.shop
-      - MERCADOPAGO_ACCESS_TOKEN=APP_USR-4153672979949236-052121-b15239becd36997a08cb0fba8c64183e-2454389820
-      - MERCADOPAGO_PUBLIC_KEY=APP_USR-d9e97257-5ded-498d-a4e8-cfa715ab9814
-      - PAYMENT_SERVICE_URL=https://www.batistellaycia.shop/api/payments/estado
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/${PAYMENTS_DB_NAME}
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - APP_BASE_URL=${APP_BASE_URL}
+      - APP_FRONTEND_URL=${APP_FRONTEND_URL}
+      - MERCADOPAGO_ACCESS_TOKEN=${MERCADOPAGO_ACCESS_TOKEN}
+      - MERCADOPAGO_PUBLIC_KEY=${MERCADOPAGO_PUBLIC_KEY}
+      - PAYMENT_SERVICE_URL=${PAYMENT_SERVICE_URL}
       - MICROSERVICE_NOTIFICATIONS_URL=http://notifications:8085
       - MICROSERVICE_PEDIDOS_URL=http://productsandorder:8083
     depends_on:
@@ -140,21 +142,20 @@ services:
       - batistella-network
     restart: unless-stopped
 
-  # Servicio de Notificaciones
   notifications:
     build:
       context: ./Notifications
       dockerfile: Dockerfile
-    container_name: batistella-notifications
+    container_name: ${NOTIFICATIONS_CONTAINER_NAME}
     ports:
-      - "8085:8080"
+      - "${NOTIFICATIONS_PORT_EXTERNAL}:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/notification_db
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=ensalada123
-      - JWT_SECRET=NmQ4YzJhMjEtZjc2NC00MTM3LWI2ZTgtNDJiMmZiNjM5YzBk
-      - APP_BASE_URL=https://www.batistellaycia.shop
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/${NOTIFICATIONS_DB_NAME}
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - APP_BASE_URL=${APP_BASE_URL}
       - REDIS_HOST=redis
       - REDIS_PORT=6379
     depends_on:
@@ -164,23 +165,21 @@ services:
       - batistella-network
     restart: unless-stopped
 
-  # Servicio de Dashboards
   dashboards:
     build:
       context: ./Dashboards
       dockerfile: Dockerfile
-    container_name: batistella-dashboards
+    container_name: ${DASHBOARDS_CONTAINER_NAME}
     ports:
-      - "8086:8080"
+      - "${DASHBOARDS_PORT_EXTERNAL}:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=prod
       - SERVER_PORT=8086
-      - JWT_SECRET=NmQ4YzJhMjEtZjc2NC00MTM3LWI2ZTgtNDJiMmZiNjM5YzBk
-      - JWT_EXPIRATION=86400000
-      - APP_BASE_URL=https://www.batistellaycia.shop
-      - APP_FRONTEND_URL=https://www.batistellaycia.shop
-      - ALLOWED_ORIGINS=http://localhost:4200,https://www.batistellaycia.shop
-      # URLs de microservicios que consume
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRATION=${JWT_EXPIRATION}
+      - APP_BASE_URL=${APP_BASE_URL}
+      - APP_FRONTEND_URL=${APP_FRONTEND_URL}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
       - USERS_SERVICE_URL=http://usersandlogin:8080
       - MICROSERVICE_PEDIDOS_ORDERS_URL=http://productsandorder:8083
       - PAYMENTS_SERVICE_URL=http://payments:8084
@@ -194,10 +193,9 @@ services:
       - batistella-network
     restart: unless-stopped
 
-  # Redis para caché y sesiones
   redis:
     image: redis:7-alpine
-    container_name: batistella-redis
+    container_name: ${REDIS_CONTAINER_NAME}
     ports:
       - "6379:6379"
     volumes:
@@ -212,4 +210,4 @@ volumes:
 
 networks:
   batistella-network:
-    driver: bridge 
+    driver: bridge

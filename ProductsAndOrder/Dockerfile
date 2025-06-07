@@ -13,7 +13,8 @@ FROM eclipse-temurin:17-jre
 WORKDIR /app
 
 # Directorio para imágenes
-RUN mkdir -p /app/images
+# RUN mkdir -p /app/images
+# El directorio se montará como un volumen, así que no es necesario crearlo aquí
 
 # Copiar el JAR desde la etapa de compilación
 COPY --from=build /app/target/*.jar app.jar

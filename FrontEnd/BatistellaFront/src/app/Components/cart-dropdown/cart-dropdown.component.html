@@ -34,9 +34,14 @@
               <ng-container *ngIf="item.product.animalType === 'GRANJA'">
                 {{item.product.nombre}}{{item.product.categoriaGranja ? ' - ' + item.product.categoriaGranja : ''}}
               </ng-container>
-              <!-- Para otros productos usar fullName -->
+              <!-- Para otros productos usar fullName directamente -->
               <ng-container *ngIf="item.product.animalType !== 'GRANJA'">
-                {{item.product.fullName}}
+                <ng-container *ngIf="item.product.marca === 'TopNutrition' || item.product.marca === 'TOPNUTRITION'">
+                  Top Nutrition {{item.product.tipoAlimento}} {{item.product.tipoRaza}}
+                </ng-container>
+                <ng-container *ngIf="item.product.marca !== 'TopNutrition' && item.product.marca !== 'TOPNUTRITION'">
+                  {{item.product.fullName}}
+                </ng-container>
               </ng-container>
               {{item.product.kg ? ' - ' + item.product.kg + ' KG' : ''}}
             </h4>

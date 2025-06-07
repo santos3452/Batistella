@@ -3,6 +3,7 @@ package com.example.Products.Service.impl;
 import com.example.Products.Dtos.ProductosDto.ProductDTO;
 import com.example.Products.Dtos.ProductosDto.UpdateProductDto;
 import com.example.Products.Entity.enums.type;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -14,11 +15,18 @@ import java.util.UUID;
 @Service
 public class ImageService {
 
-    @Value("${app.upload.dir:src/main/resources/static/images}")
+    @Value("${app.upload.dir:disabled}")
     private String uploadDir;
     
     @Value("${app.base.url:http://localhost:8083}")
     private String baseUrl;
+    
+    private final GoogleCloudStorageService cloudStorageService;
+    
+    @Autowired
+    public ImageService(GoogleCloudStorageService cloudStorageService) {
+        this.cloudStorageService = cloudStorageService;
+    }
 
     public String saveImage(MultipartFile image, ProductDTO productDTO) throws IOException {
         // Verificar que la imagen no sea nula y tenga contenido
@@ -47,40 +55,21 @@ public class ImageService {
         
         System.out.println("Carpeta determinada: " + carpeta);
         
-        // Asegurarnos de que existe el directorio
-        String carpetaDir = uploadDir + File.separator + carpeta;
-        File carpetaDirFile = new File(carpetaDir);
-        if (!carpetaDirFile.exists()) {
-            boolean dirCreated = carpetaDirFile.mkdirs();
-            System.out.println("Directorio creado: " + dirCreated + " - Ruta: " + carpetaDirFile.getAbsolutePath());
-        }
-        
         // Generar nombre de archivo
         String nombreProducto = generarNombreArchivo(productDTO);
         String fileExtension = getFileExtension(image.getOriginalFilename());
         String newFilename = nombreProducto + "." + fileExtension;
         
-        // Ruta completa del archivo
-        String filePath = carpetaDir + File.separator + newFilename;
-        File fileToSave = new File(filePath);
-        
-        System.out.println("Guardando imagen en: " + fileToSave.getAbsolutePath());
-
-        try (FileOutputStream fos = new FileOutputStream(fileToSave)) {
-            fos.write(image.getBytes());
-            System.out.println("Imagen guardada exitosamente. Tamaño: " + fileToSave.length() + " bytes");
+        // Usar Google Cloud Storage para almacenar la imagen
+        try {
+            String imageUrl = cloudStorageService.uploadImage(image, carpeta, newFilename);
+            System.out.println("Imagen subida a Google Cloud Storage: " + imageUrl);
+            return imageUrl;
         } catch (Exception e) {
-            System.err.println("Error al guardar la imagen: " + e.getMessage());
+            System.err.println("Error al guardar la imagen en Google Cloud Storage: " + e.getMessage());
             e.printStackTrace();
-            throw new IOException("Error al guardar la imagen: " + e.getMessage());
+            throw new IOException("Error al guardar la imagen en Google Cloud Storage: " + e.getMessage());
         }
-        
-        // Devolver la URL relativa para acceder a la imagen, incluyendo la URL base y un timestamp
-        long timestamp = System.currentTimeMillis();
-        String relativePath = "/images/" + carpeta + "/" + newFilename;
-        String imageUrl = baseUrl + relativePath + "?t=" + timestamp;
-        System.out.println("URL de la imagen generada: " + imageUrl);
-        return imageUrl;
     }
     
     // Versión sin ProductDTO para compatibilidad con código existente
@@ -90,25 +79,16 @@ public class ImageService {
         String fileExtension = getFileExtension(originalFilename);
         String newFilename = UUID.randomUUID().toString() + "." + fileExtension;
         
-        // Ruta completa del archivo
-        String filePath = uploadDir + File.separator + newFilename;
-        File fileToSave = new File(filePath);
-        
-        // Crear directorio si no existe
-        File directory = fileToSave.getParentFile();
-        if (!directory.exists()) {
-            directory.mkdirs();
+        // Usar Google Cloud Storage para almacenar la imagen
+        try {
+            String imageUrl = cloudStorageService.uploadImage(image, "OTROS", newFilename);
+            System.out.println("Imagen subida a Google Cloud Storage: " + imageUrl);
+            return imageUrl;
+        } catch (Exception e) {
+            System.err.println("Error al guardar la imagen en Google Cloud Storage: " + e.getMessage());
+            e.printStackTrace();
+            throw new IOException("Error al guardar la imagen en Google Cloud Storage: " + e.getMessage());
         }
-        
-        System.out.println("Guardando imagen genérica en: " + fileToSave.getAbsolutePath());
-        
-        try (FileOutputStream fos = new FileOutputStream(fileToSave)) {
-            fos.write(image.getBytes());
-        }
-        
-        // Devolver la URL completa con timestamp
-        long timestamp = System.currentTimeMillis();
-        return baseUrl + "/images/" + newFilename + "?t=" + timestamp;
     }
     
     // Método para actualizar imágenes con ProductListDTO
@@ -139,40 +119,32 @@ public class ImageService {
         
         System.out.println("Carpeta determinada: " + carpeta);
         
-        // Asegurarnos de que existe el directorio
-        String carpetaDir = uploadDir + File.separator + carpeta;
-        File carpetaDirFile = new File(carpetaDir);
-        if (!carpetaDirFile.exists()) {
-            boolean dirCreated = carpetaDirFile.mkdirs();
-            System.out.println("Directorio creado: " + dirCreated + " - Ruta: " + carpetaDirFile.getAbsolutePath());
-        }
-        
         // Generar nombre de archivo
         String nombreProducto = generarNombreArchivo(productListDTO);
         String fileExtension = getFileExtension(image.getOriginalFilename());
         String newFilename = nombreProducto + "." + fileExtension;
         
-        // Ruta completa del archivo
-        String filePath = carpetaDir + File.separator + newFilename;
-        File fileToSave = new File(filePath);
-        
-        System.out.println("Actualizando imagen en: " + fileToSave.getAbsolutePath());
-
-        try (FileOutputStream fos = new FileOutputStream(fileToSave)) {
-            fos.write(image.getBytes());
-            System.out.println("Imagen actualizada exitosamente. Tamaño: " + fileToSave.length() + " bytes");
-        } catch (Exception e) {
-            System.err.println("Error al actualizar la imagen: " + e.getMessage());
-            e.printStackTrace();
-            throw new IOException("Error al actualizar la imagen: " + e.getMessage());
+        // Si el producto ya tiene una URL de imagen, intentar eliminarla
+        if (productListDTO.getImageUrl() != null && !productListDTO.getImageUrl().isEmpty()) {
+            try {
+                cloudStorageService.deleteImage(productListDTO.getImageUrl());
+                System.out.println("Imagen anterior eliminada: " + productListDTO.getImageUrl());
+            } catch (Exception e) {
+                System.err.println("Error al eliminar la imagen anterior: " + e.getMessage());
+                // Continuar con la actualización aunque no se haya podido eliminar la imagen anterior
+            }
         }
         
-        // Devolver la URL relativa para acceder a la imagen, incluyendo la URL base y un timestamp
-        long timestamp = System.currentTimeMillis();
-        String relativePath = "/images/" + carpeta + "/" + newFilename;
-        String imageUrl = baseUrl + relativePath + "?t=" + timestamp;
-        System.out.println("URL de la imagen generada: " + imageUrl);
-        return imageUrl;
+        // Usar Google Cloud Storage para almacenar la imagen
+        try {
+            String imageUrl = cloudStorageService.uploadImage(image, carpeta, newFilename);
+            System.out.println("Imagen subida a Google Cloud Storage: " + imageUrl);
+            return imageUrl;
+        } catch (Exception e) {
+            System.err.println("Error al actualizar la imagen en Google Cloud Storage: " + e.getMessage());
+            e.printStackTrace();
+            throw new IOException("Error al actualizar la imagen en Google Cloud Storage: " + e.getMessage());
+        }
     }
     
     private String generarNombreArchivo(ProductDTO productDTO) {

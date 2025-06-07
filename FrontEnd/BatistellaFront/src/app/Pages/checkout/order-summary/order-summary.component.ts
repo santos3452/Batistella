@@ -156,4 +156,13 @@ export class OrderSummaryComponent implements OnInit, OnDestroy {
     // Navegar a la página de selección de método de pago
     this.router.navigate(['/checkout/payment']);
   }
+  
+  // Formatea el nombre de la marca para mostrar correctamente
+  private formatMarcaName(marca: string): string {
+    // Formatear TopNutrition con espacio
+    if (marca === 'TopNutrition' || marca === 'TOPNUTRITION') {
+      return 'Top Nutrition';
+    }
+    return marca;
+  }
 } 

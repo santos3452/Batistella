@@ -569,4 +569,13 @@ export class ProductService {
       )
     );
   }
+
+  // Formatea el nombre de la marca para mostrar correctamente
+  private formatMarcaName(marca: string): string {
+    // Formatear TopNutrition con espacio
+    if (marca === 'TopNutrition' || marca === 'TOPNUTRITION') {
+      return 'Top Nutrition';
+    }
+    return marca;
+  }
 }

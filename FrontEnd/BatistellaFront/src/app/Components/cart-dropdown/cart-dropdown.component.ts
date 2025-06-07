@@ -137,4 +137,13 @@ export class CartDropdownComponent implements OnInit, OnDestroy {
   getProductPrice(product: CartItem['product']): number {
     return this.cartService.getProductPrice(product, this.authService.currentUser?.tipoUsuario);
   }
+
+  // Formatea el nombre de la marca para mostrar correctamente
+  private formatMarcaName(marca: string): string {
+    // Formatear TopNutrition con espacio
+    if (marca === 'TopNutrition' || marca === 'TOPNUTRITION') {
+      return 'Top Nutrition';
+    }
+    return marca;
+  }
 }

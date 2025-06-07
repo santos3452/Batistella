@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum Marca {
-    TOPNUTRITION("TopNutrition"),
+    TOPNUTRITION("Top Nutrition"),
     KENL("Ken-L"),
     ODWALLA("Odwalla"),
     NINELIVES("9Lives"),
