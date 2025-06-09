@@ -5,6 +5,12 @@
   position: relative;
   height: 400px;
   width: 100%;
+  cursor: pointer;
+}
+
+/* Estilo para el canvas del gráfico cuando es interactivo */
+.chart-container canvas {
+  cursor: pointer;
 }
 
 /* Estilos para animaciones en las tarjetas */
@@ -58,8 +64,35 @@ button:hover:not(:disabled) {
     grid-template-columns: 1fr;
   }
   
-  .text-3xl {
-    font-size: 1.875rem;
+  .text-lg {
+    font-size: 1.125rem;
+  }
+}
+
+/* Estilos mejorados para las tarjetas de estadísticas */
+.stats-card {
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+}
+
+/* Asegurar que el contenido de las tarjetas no se desborde */
+.truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Mejoras específicas para el grid responsive */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .md\:grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .lg\:grid-cols-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 

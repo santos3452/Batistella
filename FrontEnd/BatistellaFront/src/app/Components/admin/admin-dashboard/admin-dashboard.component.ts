@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { BaseChartDirective } from 'ng2-charts';
 import { ChartConfiguration, ChartOptions, ChartType } from 'chart.js';
@@ -37,6 +37,21 @@ export class AdminDashboardComponent implements OnInit {
       },
       legend: {
         display: false
+      },
+      tooltip: {
+        callbacks: {
+          label: (context: any) => {
+            const dataIndex = context.dataIndex;
+            const chartData = this.salesSummary?.chartData[dataIndex];
+            const value = context.parsed.y;
+            const count = chartData?.count || 0;
+            
+            return [
+              `Ingresos: $${value.toLocaleString()}`,
+              `Cantidad vendida: ${count} productos`
+            ];
+          }
+        }
       }
     },
     scales: {
@@ -46,6 +61,15 @@ export class AdminDashboardComponent implements OnInit {
           callback: function(value) {
             return '$' + Number(value).toLocaleString();
           }
+        }
+      }
+    },
+    onClick: (event: any, elements: any[]) => {
+      if (elements && elements.length > 0) {
+        const dataIndex = elements[0].index;
+        const clickedDate = this.salesSummary?.chartData[dataIndex]?.label;
+        if (clickedDate) {
+          this.navigateToOrdersWithDate(clickedDate);
         }
       }
     }
@@ -67,7 +91,8 @@ export class AdminDashboardComponent implements OnInit {
   };
   
   constructor(
-    private dashboardService: DashboardService
+    private dashboardService: DashboardService,
+    private router: Router
   ) {}
   
   ngOnInit(): void {
@@ -172,6 +197,70 @@ export class AdminDashboardComponent implements OnInit {
    */
   formatNumber(value: number): string {
     return new Intl.NumberFormat('es-AR').format(value);
+  }
+
+  /**
+   * Obtiene el día con más ventas cuando el backend no lo proporciona
+   */
+  getBestSellingDay(): string {
+    if (!this.salesSummary?.chartData?.length) {
+      return 'N/A';
+    }
+    
+    const bestDay = this.salesSummary.chartData.reduce((prev, current) => {
+      return (prev.value > current.value) ? prev : current;
+    });
+    
+    return bestDay.label;
+  }
+
+  /**
+   * Navega a la página de administración de pedidos con la fecha seleccionada
+   */
+  navigateToOrdersWithDate(dateLabel: string): void {
+    // Convertir el formato de fecha del dashboard (ej: "09-May") a formato DD/MM/YYYY
+    const convertedDate = this.convertDateLabelToDateFormat(dateLabel);
+    
+    // Navegar a admin/pedidos con el parámetro de fecha
+    this.router.navigate(['/admin/pedidos'], { 
+      queryParams: { 
+        fecha: convertedDate,
+        fromDashboard: 'true'
+      } 
+    });
+  }
+
+  /**
+   * Convierte el formato de fecha del dashboard a formato DD/MM/YYYY
+   */
+  private convertDateLabelToDateFormat(dateLabel: string): string {
+    try {
+      // Si el formato es "DD-MMM" (ej: "09-May")
+      const parts = dateLabel.split('-');
+      if (parts.length === 2) {
+        const day = parts[0].padStart(2, '0');
+        const monthAbbr = parts[1];
+        
+        // Mapeo de abreviaciones de meses en inglés a números
+        const monthMap: { [key: string]: string } = {
+          'Jan': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04',
+          'May': '05', 'Jun': '06', 'Jul': '07', 'Aug': '08',
+          'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12'
+        };
+        
+        const month = monthMap[monthAbbr] || '01';
+        const currentYear = new Date().getFullYear();
+        
+        // Retornar en formato YYYY-MM-DD para el input date
+        return `${currentYear}-${month}-${day}`;
+      }
+      
+      // Si ya viene en formato correcto, devolverlo tal como está
+      return dateLabel;
+    } catch (error) {
+      console.error('Error convirtiendo fecha:', error);
+      return new Date().toISOString().split('T')[0]; // Fecha actual como fallback
+    }
   }
   
   /**

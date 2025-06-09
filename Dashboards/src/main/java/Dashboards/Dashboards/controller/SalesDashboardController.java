@@ -2,7 +2,6 @@ package Dashboards.Dashboards.controller;
 
 import java.time.LocalDate;
 
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -55,9 +54,9 @@ public class SalesDashboardController {
                       "totalRevenue": 25400.50,
                       "averagePerOrder": 188.15,
                       "chartData": [
-                        { "label": "01-Jun", "value": 750.00 },
-                        { "label": "02-Jun", "value": 320.00 },
-                        { "label": "03-Jun", "value": 1200.00 }
+                        { "label": "01-Jun", "value": 750.00, "count": 5 },
+                        { "label": "02-Jun", "value": 320.00, "count": 3 },
+                        { "label": "03-Jun", "value": 1200.00, "count": 8 }
                       ]
                     }
                     """

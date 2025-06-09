@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
@@ -95,15 +95,32 @@ export class AdminPedidosComponent implements OnInit {
     private authService: AuthService,
     private pedidosService: PedidosService,
     private pedidosVistosService: PedidosVistosService,
-    private printService: PrintService
+    private printService: PrintService,
+    private route: ActivatedRoute,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
     // Asegurarse de que los valores iniciales están configurados correctamente
     this.currentPage = 1;
     this.itemsPerPage = 12;
-    this.loadPedidos();
-    this.checkAvailablePages(1, 5); // Verificar las primeras 5 páginas al inicio
+    
+    // Verificar si viene desde el dashboard con parámetros
+    this.route.queryParams.subscribe(params => {
+      if (params['fromDashboard'] === 'true' && params['fecha']) {
+        // Establecer la fecha del filtro
+        this.filterFecha = params['fecha'];
+        
+        // Aplicar filtros automáticamente
+        setTimeout(() => {
+          this.applyFilters();
+        }, 100);
+      } else {
+        // Carga normal
+        this.loadPedidos();
+        this.checkAvailablePages(1, 5); // Verificar las primeras 5 páginas al inicio
+      }
+    });
   }
 
   loadPedidos(): void {
@@ -360,7 +377,12 @@ export class AdminPedidosComponent implements OnInit {
     this.availablePages = [];
     
     this.currentPage = 1;
-    this.loadPedidos();
+    
+    // Limpiar query parameters de la URL para evitar problemas cuando se viene desde dashboard
+    this.router.navigate(['/admin/pedidos']).then(() => {
+      // Cargar pedidos después de limpiar la URL
+      this.loadPedidos();
+    });
   }
 
   changePage(page: number): void {

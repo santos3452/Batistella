@@ -9,9 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.net.URL;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 @Service
 public class GoogleCloudStorageService {
@@ -34,7 +32,7 @@ public class GoogleCloudStorageService {
      * @param file Archivo a subir
      * @param folderName Nombre de la carpeta (opcional)
      * @param fileName Nombre del archivo (opcional)
-     * @return URL firmada para acceder a la imagen
+     * @return URL pública para acceder a la imagen (sin parámetros de caducidad)
      * @throws IOException Si hay un error al procesar el archivo
      */
     public String uploadImage(MultipartFile file, String folderName, String fileName) throws IOException {
@@ -66,15 +64,10 @@ public class GoogleCloudStorageService {
         // Subir el archivo
         storage.create(blobInfo, file.getBytes());
 
-        // Generar URL firmada para acceso
-        URL signedUrl = storage.signUrl(
-                blobInfo,
-                urlExpirationSeconds, 
-                TimeUnit.SECONDS,
-                Storage.SignUrlOption.withV4Signature()
-        );
+        // Generar URL pública para acceso (sin parámetros de caducidad)
+        String publicUrl = String.format("https://storage.googleapis.com/%s/%s", bucketName, objectName);
 
-        return signedUrl.toString();
+        return publicUrl;
     }
 
     /**

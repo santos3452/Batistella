@@ -1,12 +1,14 @@
 export interface ChartDataPoint {
   label: string;
   value: number;
+  count: number;
 }
 
 export interface SalesSummary {
   totalOrders: number;
   totalRevenue: number;
   averagePerOrder: number;
+  bestSellingDay: string;
   chartData: ChartDataPoint[];
 }
 

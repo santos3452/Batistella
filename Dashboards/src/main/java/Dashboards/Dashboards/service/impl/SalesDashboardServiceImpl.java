@@ -1,22 +1,23 @@
 package Dashboards.Dashboards.service.impl;
 
-import Dashboards.Dashboards.model.dto.ChartDataDto;
-import Dashboards.Dashboards.model.dto.PedidoDto;
-import Dashboards.Dashboards.model.dto.SalesSummaryDto;
-import Dashboards.Dashboards.service.SalesDashboardService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
-
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
+
+import Dashboards.Dashboards.model.dto.ChartDataDto;
+import Dashboards.Dashboards.model.dto.PedidoDto;
+import Dashboards.Dashboards.model.dto.SalesSummaryDto;
+import Dashboards.Dashboards.service.SalesDashboardService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
@@ -140,7 +141,8 @@ public class SalesDashboardServiceImpl implements SalesDashboardService {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm:ss");
         DateTimeFormatter labelFormatter = DateTimeFormatter.ofPattern("dd-MMM");
 
-        Map<LocalDate, Double> ventasPorDia = pedidos.stream()
+        // Agrupar pedidos por fecha para calcular tanto el valor total como la cantidad
+        Map<LocalDate, List<PedidoDto>> pedidosPorDia = pedidos.stream()
             .collect(Collectors.groupingBy(
                 pedido -> {
                     try {
@@ -149,16 +151,29 @@ public class SalesDashboardServiceImpl implements SalesDashboardService {
                         log.warn("Error parseando fecha para gráfico del pedido {}: {}", pedido.getId(), e.getMessage());
                         return LocalDate.now();
                     }
-                },
-                Collectors.summingDouble(PedidoDto::getTotal)
+                }
             ));
 
-        return ventasPorDia.entrySet().stream()
+        return pedidosPorDia.entrySet().stream()
             .sorted(Map.Entry.comparingByKey())
-            .map(entry -> new ChartDataDto(
-                entry.getKey().format(labelFormatter),
-                entry.getValue()
-            ))
+            .map(entry -> {
+                LocalDate fecha = entry.getKey();
+                List<PedidoDto> pedidosDelDia = entry.getValue();
+                
+                // Calcular valor total de ventas del día
+                Double valorTotal = pedidosDelDia.stream()
+                    .mapToDouble(PedidoDto::getTotal)
+                    .sum();
+                
+                // Calcular cantidad de pedidos del día
+                Integer cantidadPedidos = pedidosDelDia.size();
+                
+                return new ChartDataDto(
+                    fecha.format(labelFormatter),
+                    valorTotal,
+                    cantidadPedidos
+                );
+            })
             .collect(Collectors.toList());
     }
 } 
