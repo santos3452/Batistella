@@ -182,7 +182,7 @@ services:
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
       - USERS_SERVICE_URL=http://usersandlogin:8080
       - MICROSERVICE_PEDIDOS_ORDERS_URL=http://productsandorder:8083
-      - PAYMENTS_SERVICE_URL=http://payments:8084
+      - MICROSERVICE_PAYMENT_URL=http://payments:8084
       - NOTIFICATIONS_SERVICE_URL=http://notifications:8085
     depends_on:
       - usersandlogin

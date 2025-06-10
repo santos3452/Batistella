@@ -1,6 +1,7 @@
 package Payments.Payments.service;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import Payments.Payments.dto.PagoResponseDTO;
 import Payments.Payments.dto.PreferenceDTO;
@@ -21,6 +22,7 @@ public interface PagoService {
     Pago procesarRetornoPago(String paymentId, String status, String externalReference, String authToken);
 
     void cambiarEstadoPago(String codigoPedido, String status, String authToken);
-    
+
+    List<PagoResponseDTO> todosLosPagos();
 
 } 

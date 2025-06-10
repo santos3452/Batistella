@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -220,6 +221,25 @@ public class PagoController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body("No se encontró el estado del pago para el pedido: " + codigoPedido);
         }
+    }
+
+    @Operation(
+        summary = "Obtener todos los pagos",
+        description = "Obtiene una lista de todos los pagos registrados",
+        security = @SecurityRequirement(name = "JWT")
+    )
+    @GetMapping("/todosLosPagos")
+    public ResponseEntity<List<PagoResponseDTO>> obtenerTodosLosPagos() {
+       try{
+            log.info("Obteniendo todos los pagos registrados");
+            List<PagoResponseDTO> pagos = pagoService.todosLosPagos();
+            return ResponseEntity.ok(pagos);
+        } catch (Exception e) {
+            log.error("Error al obtener todos los pagos", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(null);
+       }
+
     }
     
     /**

@@ -1,20 +1,20 @@
 <div class="container mx-auto px-4 py-8">
   <div class="bg-white shadow-md rounded-lg p-6">
     <div class="mb-6 flex items-center justify-between">
-      <h1 class="text-2xl font-bold text-gray-800">Dashboard de Ventas</h1>
+      <h1 class="text-2xl font-bold text-gray-800">Dashboard Completo</h1>
       <button 
-        (click)="loadSalesSummary()" 
-        [disabled]="isLoading"
+        (click)="loadDashboardData()" 
+        [disabled]="isLoading || isLoadingPayments || isLoadingProducts || isLoadingCustomers"
         class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 px-4 rounded-md flex items-center disabled:opacity-50"
       >
-        <svg *ngIf="!isLoading" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg *ngIf="!isLoading && !isLoadingPayments && !isLoadingProducts && !isLoadingCustomers" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
         </svg>
-        <svg *ngIf="isLoading" class="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <svg *ngIf="isLoading || isLoadingPayments || isLoadingProducts || isLoadingCustomers" class="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
-        {{ isLoading ? 'Actualizando...' : 'Actualizar' }}
+        {{ (isLoading || isLoadingPayments || isLoadingProducts || isLoadingCustomers) ? 'Actualizando...' : 'Actualizar' }}
       </button>
     </div>
 
@@ -22,37 +22,24 @@
     <div class="bg-gray-50 p-4 rounded-md mb-6">
       <h2 class="text-lg font-semibold text-gray-700 mb-3">Filtros de Fecha</h2>
       
-      <!-- Filtros rápidos -->
-      <div class="flex flex-wrap gap-2 mb-4">
+      <!-- Filtros rápidos y botón de impresión -->
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+        <div class="flex flex-wrap gap-2">
+          <button (click)="setQuickFilter('today')" class="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors">Hoy</button>
+          <button (click)="setQuickFilter('week')" class="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors">Última semana</button>
+          <button (click)="setQuickFilter('month')" class="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors">Este mes</button>
+          <button (click)="setQuickFilter('quarter')" class="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors">Este trimestre</button>
+          <button (click)="setQuickFilter('year')" class="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors">Este año</button>
+        </div>
+
+        <!-- Botón de impresión -->
         <button 
-          (click)="setQuickFilter('today')"
-          class="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors"
-        >
-          Hoy
-        </button>
-        <button 
-          (click)="setQuickFilter('week')"
-          class="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors"
-        >
-          Última semana
-        </button>
-        <button 
-          (click)="setQuickFilter('month')"
-          class="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors"
-        >
-          Este mes
-        </button>
-        <button 
-          (click)="setQuickFilter('quarter')"
-          class="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors"
-        >
-          Este trimestre
-        </button>
-        <button 
-          (click)="setQuickFilter('year')"
-          class="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors"
-        >
-          Este año
+          (click)="openPrintModal()"
+          class="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white hover:bg-gray-700 rounded-md transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-7a2 2 0 00-2-2H9a2 2 0 00-2 2v7a2 2 0 002 2z" />
+          </svg>
+                     Exportar a PDF
         </button>
       </div>
 
@@ -60,161 +47,695 @@
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
           <label for="fromDate" class="block text-sm font-medium text-gray-700 mb-1">Fecha desde</label>
-          <input 
-            type="date" 
-            id="fromDate" 
-            [(ngModel)]="filters.from"
-            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
-          >
+          <input type="date" id="fromDate" [(ngModel)]="filters.from" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500">
         </div>
-        
         <div>
           <label for="toDate" class="block text-sm font-medium text-gray-700 mb-1">Fecha hasta</label>
-          <input 
-            type="date" 
-            id="toDate" 
-            [(ngModel)]="filters.to"
-            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
-          >
+          <input type="date" id="toDate" [(ngModel)]="filters.to" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500">
         </div>
-        
         <div class="flex items-end">
-          <button 
-            (click)="applyFilters()" 
-            [disabled]="isLoading"
-            class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 px-4 rounded-md disabled:opacity-50"
-          >
+          <button (click)="applyFilters()" [disabled]="isLoading || isLoadingPayments || isLoadingProducts || isLoadingCustomers" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 px-4 rounded-md disabled:opacity-50">
             Aplicar Filtros
           </button>
         </div>
       </div>
     </div>
 
-    <!-- Mensaje de error -->
-    <div *ngIf="errorMessage" class="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
-      <div class="flex">
-        <div class="flex-shrink-0">
-          <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-          </svg>
+    <!-- Mensajes de error -->
+    <div *ngIf="errorMessage || errorMessagePayments || errorMessageProducts || errorMessageCustomers" class="space-y-3 mb-6">
+      <div *ngIf="errorMessage" class="bg-red-50 border-l-4 border-red-400 p-4">
+        <div class="flex">
+          <div class="flex-shrink-0">
+            <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <div class="ml-3"><p class="text-sm text-red-700">{{ errorMessage }}</p></div>
         </div>
-        <div class="ml-3">
-          <p class="text-sm text-red-700">{{ errorMessage }}</p>
+      </div>
+      <div *ngIf="errorMessagePayments" class="bg-red-50 border-l-4 border-red-400 p-4">
+        <div class="flex">
+          <div class="flex-shrink-0">
+            <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <div class="ml-3"><p class="text-sm text-red-700">{{ errorMessagePayments }}</p></div>
+        </div>
+      </div>
+      <div *ngIf="errorMessageProducts" class="bg-red-50 border-l-4 border-red-400 p-4">
+        <div class="flex">
+          <div class="flex-shrink-0">
+            <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <div class="ml-3"><p class="text-sm text-red-700">{{ errorMessageProducts }}</p></div>
+        </div>
+      </div>
+      <div *ngIf="errorMessageCustomers" class="bg-red-50 border-l-4 border-red-400 p-4">
+        <div class="flex">
+          <div class="flex-shrink-0">
+            <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <div class="ml-3"><p class="text-sm text-red-700">{{ errorMessageCustomers }}</p></div>
         </div>
       </div>
     </div>
 
     <!-- Indicador de carga -->
-    <div *ngIf="isLoading" class="flex justify-center items-center py-12">
+    <div *ngIf="isLoading || isLoadingPayments || isLoadingProducts || isLoadingCustomers" class="flex justify-center items-center py-12">
       <div class="text-center">
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto"></div>
         <p class="mt-4 text-gray-600">Cargando datos...</p>
       </div>
     </div>
 
-    <!-- Contenido del dashboard -->
-    <div *ngIf="!isLoading && salesSummary" class="space-y-6">
-      
-      <!-- Tarjetas de resumen -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <!-- Total de pedidos -->
-        <div class="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-lg shadow-sm p-4">
-          <div class="flex items-center justify-between">
-            <div class="flex-1 min-w-0">
-              <p class="text-xs font-medium text-blue-600 truncate">Total de Pedidos</p>
-              <p class="text-lg font-bold text-blue-800 truncate">{{ formatNumber(salesSummary.totalOrders) }}</p>
-            </div>
-            <div class="p-2 bg-blue-500 rounded-full flex-shrink-0 ml-2">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-              </svg>
-            </div>
-          </div>
+    <!-- PESTAÑAS (DIRECTAMENTE DESPUÉS DE FILTROS) -->
+    <div *ngIf="!isLoading && !isLoadingPayments && !isLoadingProducts && !isLoadingCustomers">
+      <div class="bg-white border border-gray-200 rounded-lg shadow-sm">
+        <!-- Navegación de pestañas -->
+        <div class="border-b border-gray-200">
+          <nav class="-mb-px flex space-x-8 px-6" aria-label="Tabs">
+            <button 
+              (click)="setActiveTab('ventas')"
+              [class]="activeTab === 'ventas' ? 'border-emerald-500 text-emerald-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+              class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm focus:outline-none transition-colors duration-200"
+            >
+              📊 Detalle de Ventas
+            </button>
+            
+            <button 
+              (click)="setActiveTab('pagos')"
+              [class]="activeTab === 'pagos' ? 'border-amber-500 text-amber-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+              class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm focus:outline-none transition-colors duration-200"
+            >
+              💳 Medios de Pago
+            </button>
+            
+            <button 
+              (click)="setActiveTab('productos')"
+              [class]="activeTab === 'productos' ? 'border-rose-500 text-rose-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+              class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm focus:outline-none transition-colors duration-200"
+            >
+              🏆 Top Productos
+            </button>
+            
+            <button 
+              (click)="setActiveTab('clientes')"
+              [class]="activeTab === 'clientes' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+              class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm focus:outline-none transition-colors duration-200"
+            >
+              👤 Top Clientes
+            </button>
+          </nav>
         </div>
 
-        <!-- Ingresos totales -->
-        <div class="bg-gradient-to-br from-emerald-50 to-emerald-100 border border-emerald-200 rounded-lg shadow-sm p-4">
-          <div class="flex items-center justify-between">
-            <div class="flex-1 min-w-0">
-              <p class="text-xs font-medium text-emerald-600 truncate">Ingresos Totales</p>
-              <p class="text-lg font-bold text-emerald-800 truncate">{{ formatCurrency(salesSummary.totalRevenue) }}</p>
+        <!-- Contenido de las pestañas -->
+        <div class="p-6">
+          
+          <!-- PESTAÑA DE VENTAS -->
+          <div [style.display]="activeTab === 'ventas' ? 'block' : 'none'" 
+               *ngIf="salesSummary" 
+               data-section="ventas">
+            <h3 class="text-xl font-bold text-gray-800 mb-4 border-b-2 border-emerald-500 pb-2">📊 Resumen de Ventas</h3>
+            
+            <!-- Tarjetas de resumen de ventas -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+              <!-- Total de pedidos -->
+              <div class="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-lg shadow-sm p-4">
+                <div class="flex items-center justify-between">
+                  <div class="flex-1 min-w-0">
+                    <p class="text-xs font-medium text-blue-600 truncate">Total de Pedidos</p>
+                    <p class="text-lg font-bold text-blue-800 truncate">{{ formatNumber(salesSummary.totalOrders) }}</p>
+                  </div>
+                  <div class="p-2 bg-blue-500 rounded-full flex-shrink-0 ml-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Ingresos totales -->
+              <div class="bg-gradient-to-br from-emerald-50 to-emerald-100 border border-emerald-200 rounded-lg shadow-sm p-4">
+                <div class="flex items-center justify-between">
+                  <div class="flex-1 min-w-0">
+                    <p class="text-xs font-medium text-emerald-600 truncate">Ingresos Totales</p>
+                    <p class="text-lg font-bold text-emerald-800 truncate">{{ formatCurrency(salesSummary.totalRevenue) }}</p>
+                  </div>
+                  <div class="p-2 bg-emerald-500 rounded-full flex-shrink-0 ml-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Promedio por pedido -->
+              <div class="bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-lg shadow-sm p-4">
+                <div class="flex items-center justify-between">
+                  <div class="flex-1 min-w-0">
+                    <p class="text-xs font-medium text-purple-600 truncate">Promedio por Pedido</p>
+                    <p class="text-lg font-bold text-purple-800 truncate">{{ formatCurrency(salesSummary.averagePerOrder) }}</p>
+                  </div>
+                  <div class="p-2 bg-purple-500 rounded-full flex-shrink-0 ml-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Día con más ventas -->
+              <div class="bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200 rounded-lg shadow-sm p-4">
+                <div class="flex items-center justify-between">
+                  <div class="flex-1 min-w-0">
+                    <p class="text-xs font-medium text-orange-600 truncate">Día con Más Ventas</p>
+                    <p class="text-lg font-bold text-orange-800 truncate">
+                      {{ salesSummary.bestSellingDay || getBestSellingDay() || 'N/A' }}
+                    </p>
+                  </div>
+                  <div class="p-2 bg-orange-500 rounded-full flex-shrink-0 ml-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div class="p-2 bg-emerald-500 rounded-full flex-shrink-0 ml-2">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-              </svg>
+
+            <!-- Gráfico de ventas -->
+            <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
+              <div class="flex justify-between items-center mb-4">
+                <h4 class="text-lg font-semibold text-gray-800">Distribución de Ventas por Período</h4>
+                <p class="text-sm text-gray-500">💡 Haz clic en una barra para ver los pedidos de ese día</p>
+              </div>
+              
+              <div *ngIf="salesSummary.chartData && salesSummary.chartData.length > 0; else noChartData" class="chart-container">
+                <canvas 
+                  baseChart
+                  [data]="barChartData"
+                  [options]="barChartOptions"
+                  [type]="barChartType"
+                  class="w-full max-h-96">
+                </canvas>
+              </div>
+              
+              <ng-template #noChartData>
+                <div class="text-center py-12">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-400 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2-2V7a2 2 0 012-2h2a2 2 0 012 2v2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4M9 9a2 2 0 002 2h2a2 2 0 002-2M9 9V7a2 2 0 012-2h2a2 2 0 012 2v2" />
+                  </svg>
+                  <p class="text-gray-500">No hay datos de ventas para el período seleccionado</p>
+                </div>
+              </ng-template>
             </div>
           </div>
-        </div>
 
-        <!-- Promedio por pedido -->
-        <div class="bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-lg shadow-sm p-4">
-          <div class="flex items-center justify-between">
-            <div class="flex-1 min-w-0">
-              <p class="text-xs font-medium text-purple-600 truncate">Promedio por Pedido</p>
-              <p class="text-lg font-bold text-purple-800 truncate">{{ formatCurrency(salesSummary.averagePerOrder) }}</p>
+          <!-- PESTAÑA DE PAGOS -->
+          <div [style.display]="activeTab === 'pagos' ? 'block' : 'none'" 
+               *ngIf="paymentSummary" 
+               data-section="pagos">
+            <h3 class="text-xl font-bold text-gray-800 mb-4 border-b-2 border-amber-500 pb-2">💳 Medios de Pago</h3>
+            
+            <!-- KPIs de pagos -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+              <!-- Total de pagos -->
+              <div class="bg-gradient-to-br from-amber-50 to-amber-100 border border-amber-200 rounded-lg shadow-sm p-4">
+                <div class="flex items-center justify-between">
+                  <div class="flex-1 min-w-0">
+                    <p class="text-xs font-medium text-amber-600 truncate">Total de Pagos</p>
+                    <p class="text-lg font-bold text-amber-800 truncate">{{ formatNumber(paymentSummary.totalPagos) }}</p>
+                  </div>
+                  <div class="p-2 bg-amber-500 rounded-full flex-shrink-0 ml-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Monto total pagado -->
+              <div class="bg-gradient-to-br from-emerald-50 to-emerald-100 border border-emerald-200 rounded-lg shadow-sm p-4">
+                <div class="flex items-center justify-between">
+                  <div class="flex-1 min-w-0">
+                    <p class="text-xs font-medium text-emerald-600 truncate">Monto Total Pagado</p>
+                    <p class="text-lg font-bold text-emerald-800 truncate">{{ formatCurrency(paymentSummary.totalMontoPagado) }}</p>
+                  </div>
+                  <div class="p-2 bg-emerald-500 rounded-full flex-shrink-0 ml-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Medio más usado -->
+              <div class="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-lg shadow-sm p-4">
+                <div class="flex items-center justify-between">
+                  <div class="flex-1 min-w-0">
+                    <p class="text-xs font-medium text-blue-600 truncate">Medio Más Usado</p>
+                    <p class="text-lg font-bold text-blue-800 truncate">{{ formatPaymentMethodName(paymentSummary.medioPagoMasUsado.metodo) }}</p>
+                    <p class="text-xs text-blue-600 mt-1">{{ formatNumber(paymentSummary.medioPagoMasUsado.cantidad) }} pagos</p>
+                  </div>
+                  <div class="p-2 bg-blue-500 rounded-full flex-shrink-0 ml-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div class="p-2 bg-purple-500 rounded-full flex-shrink-0 ml-2">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
+
+            <!-- Gráficos de pagos -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+              <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
+                <div *ngIf="paymentSummary.resumenPorMetodo && paymentSummary.resumenPorMetodo.length > 0; else noPaymentMethodData">
+                  <canvas baseChart [data]="pieChartDataPaymentMethods" [options]="pieChartOptionsPaymentMethods" [type]="pieChartTypePaymentMethods" class="w-full max-h-80"></canvas>
+                </div>
+                <ng-template #noPaymentMethodData>
+                  <div class="text-center py-12">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-400 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                    </svg>
+                    <p class="text-gray-500">No hay datos de medios de pago</p>
+                  </div>
+                </ng-template>
+              </div>
+
+              <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
+                <div *ngIf="paymentSummary.resumenPorEstado && paymentSummary.resumenPorEstado.length > 0; else noPaymentStateData">
+                  <canvas baseChart [data]="pieChartDataPaymentStates" [options]="pieChartOptionsPaymentStates" [type]="pieChartTypePaymentStates" class="w-full max-h-80"></canvas>
+                </div>
+                <ng-template #noPaymentStateData>
+                  <div class="text-center py-12">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-400 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <p class="text-gray-500">No hay datos de estados de pago</p>
+                  </div>
+                </ng-template>
+              </div>
+            </div>
+
+            <!-- Tabla detallada de medios de pago -->
+            <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
+              <h4 class="text-md font-semibold text-gray-800 mb-4">Detalle por Medio de Pago</h4>
+              <div *ngIf="paymentSummary.resumenPorMetodo && paymentSummary.resumenPorMetodo.length > 0; else noTableData" class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                  <thead class="bg-gray-50">
+                    <tr>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Medio de Pago</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cantidad</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Porcentaje</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Monto Total</th>
+                    </tr>
+                  </thead>
+                  <tbody class="bg-white divide-y divide-gray-200">
+                    <tr *ngFor="let metodo of paymentSummary.resumenPorMetodo" class="hover:bg-gray-50">
+                      <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ formatPaymentMethodName(metodo.metodo) }}</td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatNumber(metodo.cantidad) }}</td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">{{ formatPercentage(metodo.porcentaje) }}</span>
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ formatCurrency(metodo.montoTotal) }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <ng-template #noTableData>
+                <div class="text-center py-12">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-400 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                  </svg>
+                  <p class="text-gray-500">No hay datos detallados de medios de pago</p>
+                </div>
+              </ng-template>
+                         </div>
+           </div>
+
+          <!-- PESTAÑA DE PRODUCTOS -->
+          <div [style.display]="activeTab === 'productos' ? 'block' : 'none'" 
+               *ngIf="productsSummary" 
+               data-section="productos">
+            <h3 class="text-xl font-bold text-gray-800 mb-4 border-b-2 border-rose-500 pb-2">🏆 Productos Más Vendidos</h3>
+            
+            <!-- KPIs de productos -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+              <!-- Total productos únicos -->
+              <div class="bg-gradient-to-br from-rose-50 to-rose-100 border border-rose-200 rounded-lg shadow-sm p-4">
+                <div class="flex items-center justify-between">
+                  <div class="flex-1 min-w-0">
+                    <p class="text-xs font-medium text-rose-600 truncate">Productos Únicos</p>
+                    <p class="text-lg font-bold text-rose-800 truncate">{{ formatNumber(productsSummary.totalProductosUnicos) }}</p>
+                  </div>
+                  <div class="p-2 bg-rose-500 rounded-full flex-shrink-0 ml-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Total unidades vendidas -->
+              <div class="bg-gradient-to-br from-violet-50 to-violet-100 border border-violet-200 rounded-lg shadow-sm p-4">
+                <div class="flex items-center justify-between">
+                  <div class="flex-1 min-w-0">
+                    <p class="text-xs font-medium text-violet-600 truncate">Unidades Vendidas</p>
+                    <p class="text-lg font-bold text-violet-800 truncate">{{ formatNumber(productsSummary.totalUnidadesVendidas) }}</p>
+                  </div>
+                  <div class="p-2 bg-violet-500 rounded-full flex-shrink-0 ml-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Valor total ventas -->
+              <div class="bg-gradient-to-br from-cyan-50 to-cyan-100 border border-cyan-200 rounded-lg shadow-sm p-4">
+                <div class="flex items-center justify-between">
+                  <div class="flex-1 min-w-0">
+                    <p class="text-xs font-medium text-cyan-600 truncate">Valor Total Ventas</p>
+                    <p class="text-lg font-bold text-cyan-800 truncate">{{ formatCurrency(productsSummary.valorTotalVentas) }}</p>
+                  </div>
+                  <div class="p-2 bg-cyan-500 rounded-full flex-shrink-0 ml-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tabla de productos más vendidos -->
+            <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
+              <h4 class="text-md font-semibold text-gray-800 mb-4">Top Productos Más Vendidos</h4>
+              <div *ngIf="productsSummary.topProductos && productsSummary.topProductos.length > 0; else noProductsData" class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                  <thead class="bg-gray-50">
+                    <tr>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Producto</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cantidad Vendida</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">N° Pedidos</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ingresos Totales</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Precio Promedio</th>
+                    </tr>
+                  </thead>
+                  <tbody class="bg-white divide-y divide-gray-200">
+                    <tr *ngFor="let producto of productsSummary.topProductos; let i = index" class="hover:bg-gray-50">
+                      <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold text-white"
+                              [ngClass]="{
+                                'bg-yellow-500': i === 0,
+                                'bg-gray-400': i === 1,
+                                'bg-orange-500': i === 2,
+                                'bg-blue-500': i > 2
+                              }">
+                          {{ i + 1 }}
+                        </span>
+                      </td>
+                      <td class="px-6 py-4 text-sm font-medium text-gray-900">
+                        <div class="max-w-xs truncate" [title]="producto.nombreProducto">{{ producto.nombreProducto }}</div>
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">{{ formatNumber(producto.cantidadTotalVendida) }}</span>
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatNumber(producto.numeroPedidos) }}</td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ formatCurrency(producto.ingresosTotales) }}</td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatCurrency(producto.precioUnitarioPromedio) }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <ng-template #noProductsData>
+                <div class="text-center py-12">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-400 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                  </svg>
+                  <p class="text-gray-500">No hay datos de productos más vendidos</p>
+                </div>
+              </ng-template>
             </div>
           </div>
-        </div>
 
-        <!-- Día con más ventas -->
-        <div class="bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200 rounded-lg shadow-sm p-4">
-          <div class="flex items-center justify-between">
-            <div class="flex-1 min-w-0">
-              <p class="text-xs font-medium text-orange-600 truncate">Día con Más Ventas</p>
-              <p class="text-lg font-bold text-orange-800 truncate">
-                {{ salesSummary.bestSellingDay || getBestSellingDay() || 'N/A' }}
-              </p>
+          <!-- PESTAÑA DE CLIENTES -->
+          <div [style.display]="activeTab === 'clientes' ? 'block' : 'none'" 
+               *ngIf="customersSummary" 
+               data-section="clientes">
+            <h3 class="text-xl font-bold text-gray-800 mb-4 border-b-2 border-blue-500 pb-2">👤 Clientes Más Frecuentes</h3>
+            
+            <!-- KPIs de clientes -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-6">
+              <!-- Total clientes únicos -->
+              <div class="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-lg shadow-sm p-4">
+                <div class="flex items-center justify-between">
+                  <div class="flex-1 min-w-0">
+                    <p class="text-xs font-medium text-blue-600 truncate">Clientes Únicos</p>
+                    <p class="text-lg font-bold text-blue-800 truncate">{{ formatNumber(customersSummary.totalClientesUnicos) }}</p>
+                  </div>
+                  <div class="p-2 bg-blue-500 rounded-full flex-shrink-0 ml-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Total órdenes procesadas -->
+              <div class="bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-lg shadow-sm p-4">
+                <div class="flex items-center justify-between">
+                  <div class="flex-1 min-w-0">
+                    <p class="text-xs font-medium text-green-600 truncate">Órdenes Procesadas</p>
+                    <p class="text-lg font-bold text-green-800 truncate">{{ formatNumber(customersSummary.totalOrdenesProcesadas) }}</p>
+                  </div>
+                  <div class="p-2 bg-green-500 rounded-full flex-shrink-0 ml-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Ingresos totales -->
+              <div class="bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-lg shadow-sm p-4">
+                <div class="flex items-center justify-between">
+                  <div class="flex-1 min-w-0">
+                    <p class="text-xs font-medium text-purple-600 truncate">Ingresos Totales</p>
+                    <p class="text-lg font-bold text-purple-800 truncate">{{ formatCurrency(customersSummary.ingresosTotales) }}</p>
+                  </div>
+                  <div class="p-2 bg-purple-500 rounded-full flex-shrink-0 ml-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Promedio órdenes por cliente -->
+              <div class="bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200 rounded-lg shadow-sm p-4">
+                <div class="flex items-center justify-between">
+                  <div class="flex-1 min-w-0">
+                    <p class="text-xs font-medium text-orange-600 truncate">Órdenes/Cliente</p>
+                    <p class="text-lg font-bold text-orange-800 truncate">{{ customersSummary.promedioOrdenesPorCliente.toFixed(1) }}</p>
+                  </div>
+                  <div class="p-2 bg-orange-500 rounded-full flex-shrink-0 ml-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Promedio gastado por cliente -->
+              <div class="bg-gradient-to-br from-teal-50 to-teal-100 border border-teal-200 rounded-lg shadow-sm p-4">
+                <div class="flex items-center justify-between">
+                  <div class="flex-1 min-w-0">
+                    <p class="text-xs font-medium text-teal-600 truncate">Gasto/Cliente</p>
+                    <p class="text-lg font-bold text-teal-800 truncate">{{ formatCurrency(customersSummary.promedioGastadoPorCliente) }}</p>
+                  </div>
+                  <div class="p-2 bg-teal-500 rounded-full flex-shrink-0 ml-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div class="p-2 bg-orange-500 rounded-full flex-shrink-0 ml-2">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-              </svg>
+
+            <!-- Tabla de clientes más frecuentes -->
+            <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
+              <h4 class="text-md font-semibold text-gray-800 mb-4">Top Clientes Más Frecuentes</h4>
+              <div *ngIf="customersSummary.topClientes && customersSummary.topClientes.length > 0; else noCustomersData" class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                  <thead class="bg-gray-50">
+                    <tr>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Órdenes</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Productos Comprados</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Gastado</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Promedio/Orden</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Primera Compra</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Última Compra</th>
+                    </tr>
+                  </thead>
+                  <tbody class="bg-white divide-y divide-gray-200">
+                    <tr *ngFor="let cliente of customersSummary.topClientes; let i = index" class="hover:bg-gray-50">
+                      <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold text-white"
+                              [ngClass]="{
+                                'bg-yellow-500': i === 0,
+                                'bg-gray-400': i === 1,
+                                'bg-orange-500': i === 2,
+                                'bg-blue-500': i > 2
+                              }">
+                          {{ i + 1 }}
+                        </span>
+                      </td>
+                      <td class="px-6 py-4 text-sm">
+                        <div class="flex items-center">
+                          <div class="flex-shrink-0 h-10 w-10">
+                            <div class="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
+                              <span class="text-sm font-medium text-gray-700">{{ getInitials(cliente.nombreCompleto) }}</span>
+                            </div>
+                          </div>
+                          <div class="ml-4">
+                            <div class="text-sm font-medium text-gray-900">{{ cliente.nombreCompleto }}</div>
+                            <div class="text-sm text-gray-500">{{ cliente.email }}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">{{ formatNumber(cliente.cantidadOrdenes) }}</span>
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">{{ formatNumber(cliente.cantidadProductosComprados) }}</span>
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ formatCurrency(cliente.dineroTotalGastado) }}</td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatCurrency(cliente.promedioGastadoPorOrden) }}</td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatDate(cliente.primeraCompra) }}</td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatDate(cliente.ultimaCompra) }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <ng-template #noCustomersData>
+                <div class="text-center py-12">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-400 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                  <p class="text-gray-500">No hay datos de clientes más frecuentes</p>
+                </div>
+              </ng-template>
             </div>
           </div>
-        </div>
-      </div>
 
-      <!-- Gráfico de ventas -->
-      <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
-        <div class="flex justify-between items-center mb-4">
-          <h3 class="text-lg font-semibold text-gray-800">Distribución de Ventas por Período</h3>
-          <p class="text-sm text-gray-500">💡 Haz clic en una barra para ver los pedidos de ese día</p>
-        </div>
-        
-        <div *ngIf="salesSummary.chartData && salesSummary.chartData.length > 0; else noChartData" class="chart-container">
-          <canvas 
-            baseChart
-            [data]="barChartData"
-            [options]="barChartOptions"
-            [type]="barChartType"
-            class="w-full max-h-96">
-          </canvas>
-        </div>
-        
-        <ng-template #noChartData>
-          <div class="text-center py-12">
+          <!-- Estado vacío cuando no hay datos en la pestaña activa -->
+          <div *ngIf="activeTab === 'ventas' && !salesSummary" class="text-center py-12">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-400 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2-2V7a2 2 0 012-2h2a2 2 0 012 2v2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4M9 9a2 2 0 002 2h2a2 2 0 002-2M9 9V7a2 2 0 012-2h2a2 2 0 012 2v2" />
             </svg>
-            <p class="text-gray-500">No hay datos de ventas para el período seleccionado</p>
+            <p class="text-gray-500">No hay datos de ventas disponibles</p>
+            <p class="text-sm text-gray-400 mt-2">Selecciona un rango de fechas y presiona "Aplicar Filtros"</p>
           </div>
-        </ng-template>
+
+          <div *ngIf="activeTab === 'pagos' && !paymentSummary" class="text-center py-12">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-400 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
+            <p class="text-gray-500">No hay datos de medios de pago disponibles</p>
+            <p class="text-sm text-gray-400 mt-2">Selecciona un rango de fechas y presiona "Aplicar Filtros"</p>
+          </div>
+
+          <div *ngIf="activeTab === 'productos' && !productsSummary" class="text-center py-12">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-400 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            </svg>
+            <p class="text-gray-500">No hay datos de productos disponibles</p>
+            <p class="text-sm text-gray-400 mt-2">Selecciona un rango de fechas y presiona "Aplicar Filtros"</p>
+          </div>
+
+          <div *ngIf="activeTab === 'clientes' && !customersSummary" class="text-center py-12">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-400 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+            <p class="text-gray-500">No hay datos de clientes disponibles</p>
+            <p class="text-sm text-gray-400 mt-2">Selecciona un rango de fechas y presiona "Aplicar Filtros"</p>
+          </div>
+
+        </div>
       </div>
     </div>
+  </div>
 
-    <!-- Estado vacío cuando no hay datos -->
-    <div *ngIf="!isLoading && !salesSummary" class="text-center py-12">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-400 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2-2V7a2 2 0 012-2h2a2 2 0 012 2v2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4M9 9a2 2 0 002 2h2a2 2 0 002-2M9 9V7a2 2 0 012-2h2a2 2 0 012 2v2" />
-      </svg>
-      <p class="text-gray-500">No hay datos disponibles</p>
-      <p class="text-sm text-gray-400 mt-2">Selecciona un rango de fechas y presiona "Aplicar Filtros" para ver los datos</p>
+  <!-- MODAL DE IMPRESIÓN -->
+  <div *ngIf="showPrintModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" (click)="closePrintModal()">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white" (click)="$event.stopPropagation()">
+      <div class="mt-3">
+        <!-- Título del modal -->
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-semibold text-gray-900">📄 Opciones de Exportación</h3>
+          <button (click)="closePrintModal()" class="text-gray-400 hover:text-gray-600">
+            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+                 <!-- Instrucciones -->
+         <p class="text-sm text-gray-600 mb-4">
+           Selecciona las secciones que deseas incluir en el PDF:
+         </p>
+
+        <!-- Opciones de secciones -->
+        <div class="space-y-3 mb-6">
+          <label class="flex items-center">
+            <input type="checkbox" [(ngModel)]="printOptions.ventas" class="rounded border-gray-300 text-emerald-600 shadow-sm focus:border-emerald-300 focus:ring focus:ring-emerald-200 focus:ring-opacity-50">
+            <span class="ml-2 text-sm text-gray-700">📊 Resumen de Ventas</span>
+          </label>
+          <label class="flex items-center">
+            <input type="checkbox" [(ngModel)]="printOptions.pagos" class="rounded border-gray-300 text-amber-600 shadow-sm focus:border-amber-300 focus:ring focus:ring-amber-200 focus:ring-opacity-50">
+            <span class="ml-2 text-sm text-gray-700">💳 Medios de Pago</span>
+          </label>
+          <label class="flex items-center">
+            <input type="checkbox" [(ngModel)]="printOptions.productos" class="rounded border-gray-300 text-rose-600 shadow-sm focus:border-rose-300 focus:ring focus:ring-rose-200 focus:ring-opacity-50">
+            <span class="ml-2 text-sm text-gray-700">🏆 Productos Más Vendidos</span>
+          </label>
+          <label class="flex items-center">
+            <input type="checkbox" [(ngModel)]="printOptions.clientes" class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+            <span class="ml-2 text-sm text-gray-700">👤 Clientes Más Frecuentes</span>
+          </label>
+        </div>
+
+        <!-- Botones de selección rápida -->
+        <div class="flex gap-2 mb-6">
+          <button (click)="selectAllSections()" class="text-xs px-3 py-1 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-md transition-colors">
+            Seleccionar Todo
+          </button>
+          <button (click)="deselectAllSections()" class="text-xs px-3 py-1 bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-md transition-colors">
+            Deseleccionar Todo
+          </button>
+        </div>
+
+                 <!-- Botones de acción -->
+         <div class="flex gap-3">
+           <button 
+             (click)="exportToPDF()"
+             class="flex-1 bg-emerald-600 text-white px-4 py-2 rounded-md hover:bg-emerald-700 transition-colors font-medium">
+             📄 Exportar a PDF
+           </button>
+          <button 
+            (click)="closePrintModal()"
+            class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors">
+            Cancelar
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </div> 

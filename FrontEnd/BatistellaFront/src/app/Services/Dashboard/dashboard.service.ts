@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { SalesSummary, DashboardFilters } from '../../Models/dashboard';
+import { SalesSummary, DashboardFilters, PaymentSummary, ProductsSummary, CustomersSummary } from '../../Models/dashboard';
 import { AuthService } from '../Auth/auth.service';
 
 @Injectable({
@@ -27,6 +27,54 @@ export class DashboardService {
       .set('to', filters.to);
 
     return this.http.get<SalesSummary>(`${this.baseUrl}/sales-summary`, { 
+      headers, 
+      params 
+    });
+  }
+
+  /**
+   * Obtiene el resumen de medios de pago para un período específico
+   */
+  getPaymentSummary(filters: DashboardFilters): Observable<PaymentSummary> {
+    const headers = this.getAuthHeaders();
+    
+    let params = new HttpParams()
+      .set('from', filters.from)
+      .set('to', filters.to);
+
+    return this.http.get<PaymentSummary>(`${this.baseUrl}/payments-summary`, { 
+      headers, 
+      params 
+    });
+  }
+
+  /**
+   * Obtiene el resumen de productos más vendidos para un período específico
+   */
+  getProductsSummary(filters: DashboardFilters): Observable<ProductsSummary> {
+    const headers = this.getAuthHeaders();
+    
+    let params = new HttpParams()
+      .set('from', filters.from)
+      .set('to', filters.to);
+
+    return this.http.get<ProductsSummary>(`${this.baseUrl}/top-products`, { 
+      headers, 
+      params 
+    });
+  }
+
+  /**
+   * Obtiene el resumen de clientes más frecuentes para un período específico
+   */
+  getCustomersSummary(filters: DashboardFilters): Observable<CustomersSummary> {
+    const headers = this.getAuthHeaders();
+    
+    let params = new HttpParams()
+      .set('from', filters.from)
+      .set('to', filters.to);
+
+    return this.http.get<CustomersSummary>(`${this.baseUrl}/top-customers`, { 
       headers, 
       params 
     });

@@ -211,6 +211,24 @@ public class PagoServiceImpl implements PagoService {
         return null;
     }
 
+    @Override
+    public List<PagoResponseDTO> todosLosPagos(){
+        List<Pago> pagos = pagoRepository.findAll();
+        return pagos.stream()
+                .map(pago -> PagoResponseDTO.builder()
+                        .id(pago.getId())
+                        .codigoPedido(pago.getCodigoPedido())
+                        .monto(pago.getMonto())
+                        .metodo(pago.getMetodo())
+                        .fechaPago(pago.getFechaPago())
+                        .estado(pago.getEstado())
+                        .mercadoPagoPreferenceId(pago.getMercadoPagoPreferenceId())
+                        .build())
+                .toList();
+
+
+    }
+
 
     @Override
     public Pago registrarPagoManual(String codigoPedido, BigDecimal monto, String metodo) {

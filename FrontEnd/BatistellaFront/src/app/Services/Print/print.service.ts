@@ -546,7 +546,10 @@ export class PrintService {
    * @param numero Número a formatear
    * @returns Número formateado con separador de miles
    */
-  private formatearNumero(numero: number): string {
+  private formatearNumero(numero: number | undefined | null): string {
+    if (numero === undefined || numero === null || isNaN(numero)) {
+      return '0';
+    }
     return numero.toLocaleString('es-AR');
   }
 
@@ -582,5 +585,302 @@ export class PrintService {
     }
     
     return `${indicador}${porcentaje}%`;
+  }
+
+  /**
+   * Genera un PDF con el reporte del dashboard de administración
+   * @param data Datos del dashboard
+   * @param secciones Secciones seleccionadas para incluir
+   * @param filtros Filtros aplicados
+   */
+  generarPDFDashboard(data: any, secciones: any, filtros: any): void {
+    const doc = new jsPDF();
+    const fechaActual = new Date().toLocaleDateString('es-AR', {
+      year: 'numeric',
+      month: 'long', 
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    
+    // Título principal
+    doc.setFontSize(20);
+    doc.setTextColor(16, 185, 129); // Color emerald-600
+    doc.text('🏪 Dashboard de Administración', doc.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
+    
+    // Información del reporte
+    doc.setFontSize(10);
+    doc.setTextColor(0);
+    doc.text(`Reporte generado el ${fechaActual}`, doc.internal.pageSize.getWidth() / 2, 30, { align: 'center' });
+    
+    // Período de los filtros
+    let periodoTexto = 'Período: ';
+    if (filtros.fechaDesde && filtros.fechaHasta) {
+      periodoTexto += `${filtros.fechaDesde} - ${filtros.fechaHasta}`;
+    } else {
+      periodoTexto += 'Todos los datos';
+    }
+    doc.text(periodoTexto, doc.internal.pageSize.getWidth() / 2, 38, { align: 'center' });
+    
+    let yPosition = 50;
+    
+    // Sección de Ventas
+    if (secciones.ventas && data.salesSummary) {
+      yPosition = this.agregarSeccionVentas(doc, data.salesSummary, yPosition);
+    }
+    
+    // Sección de Pagos  
+    if (secciones.pagos && data.paymentSummary) {
+      yPosition = this.agregarSeccionPagos(doc, data.paymentSummary, yPosition);
+    }
+    
+    // Sección de Productos
+    if (secciones.productos && data.productsSummary) {
+      yPosition = this.agregarSeccionProductos(doc, data.productsSummary, yPosition);
+    }
+    
+    // Sección de Clientes
+    if (secciones.clientes && data.customersSummary) {
+      yPosition = this.agregarSeccionClientes(doc, data.customersSummary, yPosition);
+    }
+    
+    // Abrir el PDF en una nueva ventana/pestaña para impresión
+    doc.output('dataurlnewwindow');
+  }
+
+  private agregarSeccionVentas(doc: jsPDF, salesSummary: any, yPosition: number): number {
+    // Verificar si necesitamos nueva página
+    if (yPosition > 200) {
+      doc.addPage();
+      yPosition = 20;
+    }
+    
+    // Título de la sección
+    doc.setFontSize(16);
+    doc.setTextColor(16, 185, 129); // Color emerald-600
+    doc.text('📊 Resumen de Ventas', 15, yPosition);
+    yPosition += 10;
+    
+    // Tabla de KPIs de ventas
+    const ventasData = [
+      ['Total de Pedidos', this.formatearNumero(salesSummary?.totalOrders || 0)],
+      ['Ingresos Totales', `$${this.formatearNumero(salesSummary?.totalRevenue || 0)}`],
+      ['Promedio por Pedido', `$${this.formatearNumero(salesSummary?.averagePerOrder || 0)}`],
+      ['Día con Más Ventas', salesSummary?.bestSellingDay || 'N/A']
+    ];
+    
+    autoTable(doc, {
+      head: [['Métrica', 'Valor']],
+      body: ventasData,
+      startY: yPosition,
+      styles: { fontSize: 10, cellPadding: 4 },
+      headStyles: { fillColor: [240, 253, 244], textColor: [4, 120, 87] },
+      columnStyles: { 0: { cellWidth: 80 }, 1: { cellWidth: 80, halign: 'right' } }
+    });
+    
+    return (doc as any).lastAutoTable.finalY + 15;
+  }
+
+  private agregarSeccionPagos(doc: jsPDF, paymentSummary: any, yPosition: number): number {
+    // Verificar si necesitamos nueva página
+    if (yPosition > 200) {
+      doc.addPage();
+      yPosition = 20;
+    }
+    
+    // Título de la sección
+    doc.setFontSize(16);
+    doc.setTextColor(245, 158, 11); // Color amber-600
+    doc.text('💳 Medios de Pago', 15, yPosition);
+    yPosition += 10;
+    
+    // Tabla de KPIs de pagos
+    const pagosData = [
+      ['Total de Pagos', this.formatearNumero(paymentSummary?.totalPagos || 0)],
+      ['Monto Total Pagado', `$${this.formatearNumero(paymentSummary?.totalMontoPagado || 0)}`],
+      ['Medio Más Usado', `${paymentSummary?.medioPagoMasUsado?.metodo || 'N/A'} (${paymentSummary?.medioPagoMasUsado?.cantidad || 0})`]
+    ];
+    
+    autoTable(doc, {
+      head: [['Métrica', 'Valor']],
+      body: pagosData,
+      startY: yPosition,
+      styles: { fontSize: 10, cellPadding: 4 },
+      headStyles: { fillColor: [254, 243, 199], textColor: [180, 83, 9] },
+      columnStyles: { 0: { cellWidth: 80 }, 1: { cellWidth: 80, halign: 'right' } }
+    });
+    
+    yPosition = (doc as any).lastAutoTable.finalY + 10;
+    
+    // Tabla detallada de medios de pago
+    if (paymentSummary?.resumenPorMetodo && paymentSummary.resumenPorMetodo.length > 0) {
+      doc.text('Detalle por Medio de Pago:', 15, yPosition);
+      yPosition += 5;
+      
+      const metodosData = paymentSummary.resumenPorMetodo.map((metodo: any) => [
+        metodo?.metodo || 'N/A',
+        this.formatearNumero(metodo?.cantidad || 0),
+        `${(metodo?.porcentaje || 0).toFixed(1)}%`,
+        `$${this.formatearNumero(metodo?.monto || 0)}`
+      ]);
+      
+      autoTable(doc, {
+        head: [['Método', 'Cantidad', 'Porcentaje', 'Monto']],
+        body: metodosData,
+        startY: yPosition,
+        styles: { fontSize: 9, cellPadding: 3 },
+        headStyles: { fillColor: [254, 243, 199], textColor: [180, 83, 9] }
+      });
+      
+      yPosition = (doc as any).lastAutoTable.finalY;
+    }
+    
+    return yPosition + 15;
+  }
+
+  private agregarSeccionProductos(doc: jsPDF, productsSummary: any, yPosition: number): number {
+    // Verificar si necesitamos nueva página
+    if (yPosition > 200) {
+      doc.addPage();
+      yPosition = 20;
+    }
+    
+    // Título de la sección
+    doc.setFontSize(16);
+    doc.setTextColor(244, 63, 94); // Color rose-600
+    doc.text('🏆 Productos Más Vendidos', 15, yPosition);
+    yPosition += 10;
+    
+    // Tabla de KPIs de productos
+    const productosData = [
+      ['Productos Únicos Vendidos', this.formatearNumero(productsSummary?.totalProductosUnicos || 0)],
+      ['Unidades Totales Vendidas', this.formatearNumero(productsSummary?.totalUnidadesVendidas || 0)],
+      ['Ingresos por Productos', `$${this.formatearNumero(productsSummary?.totalIngresosPorProductos || 0)}`]
+    ];
+    
+    autoTable(doc, {
+      head: [['Métrica', 'Valor']],
+      body: productosData,
+      startY: yPosition,
+      styles: { fontSize: 10, cellPadding: 4 },
+      headStyles: { fillColor: [255, 241, 242], textColor: [190, 18, 60] },
+      columnStyles: { 0: { cellWidth: 80 }, 1: { cellWidth: 80, halign: 'right' } }
+    });
+    
+    yPosition = (doc as any).lastAutoTable.finalY + 10;
+    
+    // Top 10 productos más vendidos
+    if (productsSummary?.topProductos && productsSummary.topProductos.length > 0) {
+      doc.text('Top 10 Productos Más Vendidos:', 15, yPosition);
+      yPosition += 5;
+      
+      const topProductosData = productsSummary.topProductos.slice(0, 10).map((producto: any, index: number) => {
+        let medalla = '';
+        if (index === 0) medalla = '🥇';
+        else if (index === 1) medalla = '🥈';  
+        else if (index === 2) medalla = '🥉';
+        else medalla = `${index + 1}°`;
+        
+        return [
+          medalla,
+          producto?.nombreProducto || 'N/A',
+          this.formatearNumero(producto?.cantidadVendida || 0),
+          `$${this.formatearNumero(producto?.ingresoTotal || 0)}`
+        ];
+      });
+      
+      autoTable(doc, {
+        head: [['Pos.', 'Producto', 'Vendidos', 'Ingresos']],
+        body: topProductosData,
+        startY: yPosition,
+        styles: { fontSize: 9, cellPadding: 3 },
+        headStyles: { fillColor: [255, 241, 242], textColor: [190, 18, 60] },
+        columnStyles: { 
+          0: { cellWidth: 20, halign: 'center' },
+          1: { cellWidth: 'auto' },
+          2: { cellWidth: 30, halign: 'center' },
+          3: { cellWidth: 35, halign: 'right' }
+        }
+      });
+      
+      yPosition = (doc as any).lastAutoTable.finalY;
+    }
+    
+    return yPosition + 15;
+  }
+
+  private agregarSeccionClientes(doc: jsPDF, customersSummary: any, yPosition: number): number {
+    // Verificar si necesitamos nueva página
+    if (yPosition > 200) {
+      doc.addPage();
+      yPosition = 20;
+    }
+    
+    // Título de la sección
+    doc.setFontSize(16);
+    doc.setTextColor(59, 130, 246); // Color blue-600
+    doc.text('👤 Clientes Más Frecuentes', 15, yPosition);
+    yPosition += 10;
+    
+    // Tabla de KPIs de clientes
+    const clientesData = [
+      ['Total de Clientes Únicos', this.formatearNumero(customersSummary?.totalClientesUnicos || 0)],
+      ['Promedio de Pedidos por Cliente', (customersSummary?.promedioPedidosPorCliente || 0).toFixed(1)],
+      ['Cliente con Más Pedidos', `${customersSummary?.clienteConMasPedidos?.nombreCompleto || 'N/A'} (${customersSummary?.clienteConMasPedidos?.cantidadPedidos || 0})`],
+      ['Ticket Promedio', `$${this.formatearNumero(customersSummary?.ticketPromedio || 0)}`],
+      ['Cliente con Mayor Gasto', `${customersSummary?.clienteConMayorGasto?.nombreCompleto || 'N/A'} ($${this.formatearNumero(customersSummary?.clienteConMayorGasto?.montoTotal || 0)})`]
+    ];
+    
+    autoTable(doc, {
+      head: [['Métrica', 'Valor']],
+      body: clientesData,
+      startY: yPosition,
+      styles: { fontSize: 10, cellPadding: 4 },
+      headStyles: { fillColor: [239, 246, 255], textColor: [29, 78, 216] },
+      columnStyles: { 0: { cellWidth: 100 }, 1: { cellWidth: 60, halign: 'right' } }
+    });
+    
+    yPosition = (doc as any).lastAutoTable.finalY + 10;
+    
+    // Top 10 clientes más frecuentes
+    if (customersSummary?.topClientes && customersSummary.topClientes.length > 0) {
+      doc.text('Top 10 Clientes Más Frecuentes:', 15, yPosition);
+      yPosition += 5;
+      
+      const topClientesData = customersSummary.topClientes.slice(0, 10).map((cliente: any, index: number) => {
+        let medalla = '';
+        if (index === 0) medalla = '🥇';
+        else if (index === 1) medalla = '🥈';  
+        else if (index === 2) medalla = '🥉';
+        else medalla = `${index + 1}°`;
+        
+        return [
+          medalla,
+          cliente?.nombreCompleto || 'N/A',
+          this.formatearNumero(cliente?.cantidadPedidos || 0),
+          this.formatearNumero(cliente?.cantidadProductosComprados || 0),
+          `$${this.formatearNumero(cliente?.montoTotal || 0)}`
+        ];
+      });
+      
+      autoTable(doc, {
+        head: [['Pos.', 'Cliente', 'Pedidos', 'Productos', 'Total $']],
+        body: topClientesData,
+        startY: yPosition,
+        styles: { fontSize: 9, cellPadding: 3 },
+        headStyles: { fillColor: [239, 246, 255], textColor: [29, 78, 216] },
+        columnStyles: { 
+          0: { cellWidth: 20, halign: 'center' },
+          1: { cellWidth: 'auto' },
+          2: { cellWidth: 25, halign: 'center' },
+          3: { cellWidth: 25, halign: 'center' },
+          4: { cellWidth: 30, halign: 'right' }
+        }
+      });
+      
+      yPosition = (doc as any).lastAutoTable.finalY;
+    }
+    
+    return yPosition + 15;
   }
 } 
