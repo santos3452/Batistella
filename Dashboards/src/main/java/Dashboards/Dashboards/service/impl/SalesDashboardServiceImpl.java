@@ -146,7 +146,7 @@ public class SalesDashboardServiceImpl implements SalesDashboardService {
 
     private List<ChartDataDto> generarDatosGrafico(List<PedidoDto> pedidos) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm:ss");
-        DateTimeFormatter labelFormatter = DateTimeFormatter.ofPattern("dd-MMM");
+        DateTimeFormatter labelFormatter = DateTimeFormatter.ofPattern("dd-MMM-yy");
 
         // Agrupar pedidos por fecha para calcular tanto el valor total como la cantidad
         Map<LocalDate, List<PedidoDto>> pedidosPorDia = pedidos.stream()
