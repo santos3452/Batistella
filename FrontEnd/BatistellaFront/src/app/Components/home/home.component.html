@@ -24,8 +24,10 @@
   </a>
 </div>
 
+
+
 <div *ngIf="productGroups.length > 0">
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+  <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
     <ng-container *ngFor="let group of pagedProductGroups; let i = index">
       <app-product-card 
         [productGroup]="group" 
@@ -48,25 +50,38 @@
       
       <!-- Números de página -->
       <div class="flex space-x-1">
-        <ng-container *ngFor="let pageNum of [].constructor(totalPages > 5 ? 5 : totalPages); let i = index">
-          <button 
-            *ngIf="showPageNumber(i + 1)"
-            (click)="goToPage(getPageNumberToShow(i))" 
-            [class.bg-teal-600]="page === getPageNumberToShow(i)"
-            [class.text-white]="page === getPageNumberToShow(i)"
-            [class.bg-gray-200]="page !== getPageNumberToShow(i)"
-            class="px-3 py-1 rounded hover:bg-gray-300"
-          >
-            {{ getPageNumberToShow(i) }}
-          </button>
-        </ng-container>
-        
-        <!-- Indicador de más páginas -->
-        <span *ngIf="totalPages > 5 && page < totalPages - 2" class="self-center">...</span>
-        
-        <!-- Última página siempre visible si hay más de 5 -->
+        <!-- Primera página -->
         <button 
-          *ngIf="totalPages > 5 && page < totalPages - 1"
+          *ngIf="totalPages > 5 && page > 3"
+          (click)="goToPage(1)" 
+          class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300"
+        >
+          1
+        </button>
+        
+        <!-- Puntos suspensivos del inicio -->
+        <span *ngIf="totalPages > 5 && page > 4" class="self-center">...</span>
+        
+        <!-- Páginas visibles -->
+        <button 
+          *ngFor="let pageNum of getVisiblePages()"
+          (click)="goToPage(pageNum)" 
+          [class.bg-teal-600]="page === pageNum"
+          [class.text-white]="page === pageNum"
+          [class.bg-gray-200]="page !== pageNum"
+          [class.hover:bg-teal-700]="page === pageNum"
+          [class.hover:bg-gray-300]="page !== pageNum"
+          class="px-3 py-1 rounded transition-colors"
+        >
+          {{ pageNum }}
+        </button>
+        
+        <!-- Puntos suspensivos del final -->
+        <span *ngIf="totalPages > 5 && page < totalPages - 3" class="self-center">...</span>
+        
+        <!-- Última página -->
+        <button 
+          *ngIf="totalPages > 5 && page < totalPages - 2"
           (click)="goToPage(totalPages)" 
           class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300"
         >

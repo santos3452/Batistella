@@ -1,0 +1,95 @@
+/* Estilos para la página "Sobre Nosotros" */
+
+/* Animaciones suaves */
+.group:hover {
+  transform: translateY(-5px);
+}
+
+/* Efectos de hover para los iconos de valores */
+.group:hover .w-16 {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Mejora la legibilidad del texto */
+p {
+  text-align: justify;
+  line-height: 1.7;
+}
+
+/* Animación de entrada */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Aplicar animación a las secciones */
+.bg-white,
+.bg-gradient-to-r {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+/* Efectos de gradiente más suaves */
+.bg-gradient-to-r {
+  background: linear-gradient(135deg, #10b981 0%, #2563eb 100%);
+}
+
+/* Mejora los botones */
+.hover\:bg-emerald-700:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);
+}
+
+/* Estilos para dispositivos móviles */
+@media (max-width: 768px) {
+  .text-4xl {
+    font-size: 2.5rem;
+  }
+  
+  .text-3xl {
+    font-size: 2rem;
+  }
+  
+  .text-2xl {
+    font-size: 1.5rem;
+  }
+  
+  .px-8 {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+  
+  .py-12 {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+  }
+}
+
+/* Mejora la accesibilidad */
+a:focus,
+button:focus {
+  outline: 2px solid #10b981;
+  outline-offset: 2px;
+}
+
+/* Efectos de hover para las tarjetas */
+.rounded-xl:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  transition: all 0.3s ease;
+}
+
+/* Gradiente sutil para la línea separadora */
+.bg-emerald-600 {
+  background: linear-gradient(90deg, #10b981, #059669);
+}
+
+/* Efectos de parallax suave para el fondo */
+.min-h-screen {
+  background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+}

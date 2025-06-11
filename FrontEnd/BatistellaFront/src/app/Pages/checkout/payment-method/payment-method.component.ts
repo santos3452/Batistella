@@ -282,7 +282,11 @@ export class PaymentMethodComponent implements OnInit {
       message += `*Notas:* ${this.orderSummary.deliveryNotes}\n\n`;
     }
     
-    message += `Hola, quisiera confirmar este pedido para pagar por transferencia. El pedido ya fue registrado en el sistema. ¡Gracias!`;
+    // Obtener el usuario actual y personalizar el mensaje final
+    const currentUser = this.authService.currentUser;
+    const nombreUsuario = currentUser ? (currentUser.nombre || currentUser.email || 'Usuario') : 'Usuario';
+    
+    message += `Hola, mi nombre es ${nombreUsuario}, me gustaria poder hacer el pago correspondiente. Gracias!`;
     
     // Codificar el mensaje para la URL
     const encodedMessage = encodeURIComponent(message);

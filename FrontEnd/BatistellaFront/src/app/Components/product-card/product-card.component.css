@@ -25,3 +25,18 @@
   box-shadow: 0 15px 20px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
   z-index: 10;
 }
+
+/* Responsive font sizes for mobile */
+@media (max-width: 1024px) {
+  .product-card .text-lg {
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .product-card .text-lg {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+}

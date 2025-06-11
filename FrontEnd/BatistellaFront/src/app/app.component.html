@@ -3,8 +3,8 @@
 </div>
 
 <div *ngIf="!isAuthRoute" class="min-h-screen bg-gray-50 flex flex-col relative overflow-hidden">
-  <!-- Fondo animado con iconos de animales -->
-  <div class="absolute inset-0 bottom-auto z-0 overflow-hidden" style="height: calc(100% - 300px);">
+  <!-- Fondo animado con iconos de animales - Solo en desktop -->
+  <div *ngIf="!isMobile" class="absolute inset-0 bottom-auto z-0 overflow-hidden" style="height: calc(100% - 300px);">
     <div *ngFor="let i of emojiIndices" 
          class="animal-icon absolute" 
          [ngStyle]="{
@@ -81,17 +81,17 @@
           <h3 class="text-lg font-medium mb-4">Enlaces rápidos</h3>
           <ul class="space-y-2">
             <li>
-              <a href="/" class="text-gray-400 hover:text-white transition-colors">
+              <a routerLink="/" (click)="scrollToTop()" class="text-gray-400 hover:text-white transition-colors">
                 Inicio
               </a>
             </li>
             <li>
-              <a href="/" class="text-gray-400 hover:text-white transition-colors">
-                Productos
+              <a routerLink="/marcas" (click)="scrollToTop()" class="text-gray-400 hover:text-white transition-colors">
+                Marcas
               </a>
             </li>
             <li>
-              <a href="/about" class="text-gray-400 hover:text-white transition-colors">
+              <a routerLink="/about" (click)="scrollToTop()" class="text-gray-400 hover:text-white transition-colors">
                 Sobre nosotros
               </a>
             </li>

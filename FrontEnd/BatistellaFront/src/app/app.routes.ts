@@ -11,6 +11,8 @@ import { ProductDetailComponent } from './Components/product-detail/product-deta
 import { MisPedidosComponent } from './Components/mis-pedidos/mis-pedidos.component';
 import { FaqComponent } from './Components/faq/faq.component';
 import { TermsComponent } from './Components/terms/terms.component';
+import { AboutComponent } from './Components/about/about.component';
+import { MarcasComponent } from './Components/marcas/marcas.component';
 import { AuthGuard } from './Services/Auth/auth.guard';
 import { AdminGuard } from './Services/Auth/admin.guard';
 import { OrderSummaryComponent } from './Pages/checkout/order-summary/order-summary.component';
@@ -33,6 +35,8 @@ export const routes: Routes = [
   { path: 'mis-pedidos', component: MisPedidosComponent, canActivate: [AuthGuard] },
   { path: 'faq', component: FaqComponent },
   { path: 'terms', component: TermsComponent },
+  { path: 'about', component: AboutComponent },
+  { path: 'marcas', component: MarcasComponent },
   { 
     path: 'admin', 
     component: AdminPanelComponent, 

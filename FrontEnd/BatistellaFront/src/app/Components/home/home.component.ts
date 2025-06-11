@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, ParamMap, RouterLink } from '@angular/router';
+import { ActivatedRoute, ParamMap, RouterLink, Router } from '@angular/router';
 import { ProductCardComponent } from '../product-card/product-card.component';
 import { ProductService, Product } from '../../Services/Product/product.service';
 import { AuthService } from '../../Services/Auth/auth.service';
@@ -18,6 +18,8 @@ interface ProductGroup {
     stock: number;
   }>;
 }
+
+
 
 @Component({
   selector: 'app-home',
@@ -41,6 +43,8 @@ export class HomeComponent implements OnInit, OnDestroy {
   
   // Para usar Math en la plantilla
   Math = Math;
+
+
 
   private categoryTitles: Record<string, string> = {
     'PERROS': 'Alimentos para Perros',
@@ -68,7 +72,8 @@ export class HomeComponent implements OnInit, OnDestroy {
   constructor(
     private productService: ProductService,
     private authService: AuthService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -132,6 +137,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     } else {
       this.productService.getProductsGroupedByWeight().subscribe(groups => {
         this.productGroups = groups;
+        this.sortProductsByCategory();
         this.setupPagination();
       });
     }
@@ -151,6 +157,39 @@ export class HomeComponent implements OnInit, OnDestroy {
         group.baseProduct.categoriaGranja === this.tipoGranjaFilter
       );
     }
+  }
+
+  private sortProductsByCategory(): void {
+    // Definir el orden de prioridad por marca: Top Nutrition -> Kenl -> Otras marcas
+    const brandOrder: Record<string, number> = {
+      'TopNutrition': 1,
+      'TOPNUTRITION': 1,
+      'Top Nutrition': 1,
+      'Kenl': 2,
+      'KENL': 2
+    };
+
+    this.productGroups.sort((a, b) => {
+      const brandA = a.baseProduct.marca || 'UNKNOWN';
+      const brandB = b.baseProduct.marca || 'UNKNOWN';
+      
+      const orderA = brandOrder[brandA] || 999;
+      const orderB = brandOrder[brandB] || 999;
+      
+      // Si tienen la misma prioridad de marca, ordenar alfabéticamente por marca y luego por nombre
+      if (orderA === orderB) {
+        // Primero ordenar por marca
+        if (brandA !== brandB) {
+          return brandA.localeCompare(brandB);
+        }
+        // Si es la misma marca, ordenar por nombre del producto
+        const nameA = a.baseProduct.fullName || a.baseProduct.nombre || '';
+        const nameB = b.baseProduct.fullName || b.baseProduct.nombre || '';
+        return nameA.localeCompare(nameB);
+      }
+      
+      return orderA - orderB;
+    });
   }
 
   private setupPagination(): void {
@@ -179,40 +218,40 @@ export class HomeComponent implements OnInit, OnDestroy {
     }
   }
   
-  // Determina si un número de página debe mostrarse basado en la página actual
-  showPageNumber(pageNum: number): boolean {
+  // Obtiene las páginas visibles para mostrar en la paginación
+  getVisiblePages(): number[] {
+    const pages: number[] = [];
+    
     // Si hay 5 o menos páginas, mostrar todas
-    if (this.totalPages <= 5) return true;
+    if (this.totalPages <= 5) {
+      for (let i = 1; i <= this.totalPages; i++) {
+        pages.push(i);
+      }
+      return pages;
+    }
     
-    // Siempre mostrar la primera página
-    if (pageNum === 1) return true;
+    // Lógica para más de 5 páginas
+    if (this.page <= 3) {
+      // Al inicio: mostrar 1, 2, 3, 4, 5
+      for (let i = 1; i <= Math.min(5, this.totalPages); i++) {
+        pages.push(i);
+      }
+    } else if (this.page >= this.totalPages - 2) {
+      // Al final: mostrar las últimas 5 páginas
+      for (let i = Math.max(1, this.totalPages - 4); i <= this.totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // En el medio: mostrar página actual y 2 a cada lado
+      for (let i = this.page - 2; i <= this.page + 2; i++) {
+        if (i >= 1 && i <= this.totalPages) {
+          pages.push(i);
+        }
+      }
+    }
     
-    // Para páginas cercanas a la actual
-    if (pageNum >= this.page - 1 && pageNum <= this.page + 1) return true;
-    
-    // No mostrar otras páginas
-    return false;
+    return pages;
   }
 
-  // Obtiene el número de página que se debe mostrar en cada posición
-  getPageNumberToShow(index: number): number {
-    // Si hay 5 o menos páginas, mostrar secuencialmente
-    if (this.totalPages <= 5) return index + 1;
-    
-    // Para la primera posición siempre mostrar página 1
-    if (index === 0) return 1;
-    
-    // Si estamos en las primeras páginas
-    if (this.page <= 3) {
-      return index + 1;
-    }
-    
-    // Si estamos cerca del final
-    if (this.page >= this.totalPages - 2) {
-      return this.totalPages - 4 + index;
-    }
-    
-    // En medio del rango
-    return this.page - 2 + index;
-  }
+
 }

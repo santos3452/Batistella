@@ -193,7 +193,7 @@
               <span *ngIf="!pedido.estadoPago" class="text-sm text-gray-500">-</span>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-              ${{ pedido.total.toLocaleString('es-AR') }}
+              <span class="font-bold">${{ pedido.total.toLocaleString('es-AR') }}</span>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
               <div class="flex justify-end space-x-2">
@@ -314,7 +314,7 @@
 
 <!-- Modal de Detalles del Pedido -->
 <div *ngIf="showDetailsModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center">
-  <div class="relative mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white">
+  <div class="relative mx-auto p-5 border w-full max-w-4xl shadow-lg rounded-md bg-white">
     <div class="flex justify-between items-center border-b pb-3">
       <h3 class="text-xl font-semibold text-gray-900">Detalles del Pedido</h3>
       <button (click)="closeDetailsModal()" class="text-gray-400 hover:text-gray-500">

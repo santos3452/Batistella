@@ -30,7 +30,7 @@
   </div>
 
   <!-- Grid de productos -->
-  <div *ngIf="!isLoading && !noResults" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+  <div *ngIf="!isLoading && !noResults" class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
     <app-product-card 
       *ngFor="let product of products; let i = index" 
       [product]="product"

@@ -49,18 +49,49 @@ export class RegisterComponent {
     private userService: UserService
   ) {}
 
+  // Método para verificar si el formulario es válido
+  isFormValid(): boolean {
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
+    return this.user.nombre.trim() !== '' &&
+           this.user.apellido.trim() !== '' &&
+           this.user.email.trim() !== '' &&
+           emailPattern.test(this.user.email) &&
+           this.user.password.length >= 6 &&
+           this.user.confirmPassword !== '' &&
+           this.user.password === this.user.confirmPassword;
+  }
+
   onSubmit() {
     this.formSubmitted = true;
     this.errorMessage = '';
     this.successMessage = '';
+    this.passwordError = '';
+    
+    // Validar que todos los campos requeridos estén completos
+    if (!this.user.nombre || !this.user.apellido || !this.user.email || !this.user.password || !this.user.confirmPassword) {
+      this.errorMessage = 'Por favor, completa todos los campos requeridos';
+      return;
+    }
+    
+    // Validar formato de email
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(this.user.email)) {
+      this.errorMessage = 'Por favor, ingresa un correo electrónico válido';
+      return;
+    }
+    
+    // Validar longitud mínima de contraseña
+    if (this.user.password.length < 6) {
+      this.passwordError = 'La contraseña debe tener al menos 6 caracteres';
+      return;
+    }
     
     // Validar que las contraseñas coincidan
     if (this.user.password !== this.user.confirmPassword) {
       this.passwordError = 'Las contraseñas no coinciden';
       return;
     }
-    
-    this.passwordError = '';
     
     // Asignar el rol según el tipo de usuario
     this.user.rol = this.user.tipoUsuario === 'EMPRESA' ? 'ROLE_EMPRESA' : 'ROLE_CLIENTE';

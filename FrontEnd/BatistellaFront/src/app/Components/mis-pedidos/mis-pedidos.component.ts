@@ -158,8 +158,10 @@ export class MisPedidosComponent implements OnInit {
     */
   }
 
-  // Método para procesar los pedidos y obtener las imágenes de los productos
+  // Método OPTIMIZADO para procesar los pedidos y obtener las imágenes de los productos
   procesarPedidosConImagenes(pedidos: Pedido[]): void {
+    console.log('🔄 Procesando pedidos con imágenes - MÉTODO OPTIMIZADO');
+    
     // Si no hay pedidos, simplemente terminamos la carga con un array vacío
     if (!pedidos || pedidos.length === 0) {
       this.pedidos = [];
@@ -167,48 +169,29 @@ export class MisPedidosComponent implements OnInit {
       return;
     }
 
-    // Crear un Map para almacenar las URLs de imágenes de los productos
-    const imagenesProductos = new Map<number, string>();
-    
-    // Crear observables para obtener las imágenes de los productos
-    const solicitudesProductos = pedidos.flatMap(pedido => 
-      pedido.productos.map(producto => {
-        return this.productService.getProductById(producto.productoId).pipe(
-          map(product => {
-            // Almacenar la URL de la imagen en el mapa
-            imagenesProductos.set(producto.productoId, product.imageUrl);
-            
-            // Si el producto tiene kg, lo añadimos al producto del pedido
-            if (product.kg) {
-              producto.kg = parseFloat(product.kg);
-            }
-            
-            return product;
-          }),
-          catchError(err => {
-            console.error(`Error al obtener producto ${producto.productoId}:`, err);
-            return of(null);
-          })
-        );
-      })
-    );
+    // OPTIMIZACIÓN: Una sola llamada a getAllProducts en lugar de múltiples getProductById
+    this.productService.getProducts().subscribe({
+      next: (todosLosProductos) => {
+        console.log('✅ Productos cargados:', todosLosProductos.length);
+        
+        // Crear un Map para búsqueda rápida por ID
+        const productosMap = new Map<number, any>();
+        todosLosProductos.forEach(producto => {
+          if (producto.id) {
+            productosMap.set(Number(producto.id), producto);
+          }
+        });
 
-    // Si no hay solicitudes de productos, procesamos los pedidos sin imágenes
-    if (solicitudesProductos.length === 0) {
-      this.pedidos = pedidos as PedidoConImagenes[];
-      this.cargando = false;
-      return;
-    }
-
-    // Procesar todas las solicitudes en paralelo
-    forkJoin(solicitudesProductos).subscribe({
-      next: () => {
         // Transformar los pedidos para incluir URLs de imágenes
         this.pedidos = pedidos.map(pedido => {
           const productosConImagen = pedido.productos.map(producto => {
+            const productoCompleto = productosMap.get(producto.productoId);
+            
             return {
               ...producto,
-              imagenUrl: imagenesProductos.get(producto.productoId) || this.imagenPorDefecto
+              imagenUrl: productoCompleto?.imageUrl || this.imagenPorDefecto,
+              // Si el producto tiene kg, lo añadimos al producto del pedido
+              kg: productoCompleto?.kg ? parseFloat(productoCompleto.kg) : producto.kg
             };
           });
 
@@ -217,15 +200,27 @@ export class MisPedidosComponent implements OnInit {
             productos: productosConImagen
           };
         });
+
         // Configurar la paginación después de cargar los pedidos
         this.totalPages = Math.ceil(this.pedidos.length / this.pageSize);
         this.page = 1; // Resetear a la primera página
         this.cargando = false;
+        
+        console.log('✅ Pedidos procesados exitosamente:', this.pedidos.length);
       },
       error: (err) => {
-        console.error('Error al procesar productos:', err);
+        console.error('❌ Error al obtener productos:', err);
         // En caso de error, mostramos los pedidos sin imágenes
-        this.pedidos = pedidos as PedidoConImagenes[];
+        this.pedidos = pedidos.map(pedido => ({
+          ...pedido,
+          productos: pedido.productos.map(producto => ({
+            ...producto,
+            imagenUrl: this.imagenPorDefecto
+          }))
+        })) as PedidoConImagenes[];
+        
+        this.totalPages = Math.ceil(this.pedidos.length / this.pageSize);
+        this.page = 1;
         this.cargando = false;
       }
     });
@@ -312,48 +307,41 @@ export class MisPedidosComponent implements OnInit {
     }
   }
 
-  showPageNumber(pageNum: number): boolean {
-    // Lógica para mostrar un subconjunto de números de página
-    if (this.totalPages <= 5) {
-      // Si hay 5 o menos páginas, mostrar todas
-      return true;
-    }
-    
-    // Siempre mostrar la primera página, la última, y las cercanas a la actual
-    if (pageNum === 1 || pageNum === this.totalPages || 
-        (pageNum >= this.page - 1 && pageNum <= this.page + 1)) {
-      return true;
-    }
-    
-    // Para páginas intermedias, mostrar puntos suspensivos
-    if (pageNum === 2 && this.page > 3) {
-      return false; // No mostrar el número, se mostrará puntos suspensivos
-    }
-    
-    if (pageNum === this.totalPages - 1 && this.page < this.totalPages - 2) {
-      return false; // No mostrar el número, se mostrará puntos suspensivos
-    }
-    
-    return false;
-  }
 
-  getPageNumberToShow(index: number): number {
+
+  // Obtiene las páginas visibles para mostrar en la paginación
+  getVisiblePages(): number[] {
+    const pages: number[] = [];
+    
+    // Si hay 5 o menos páginas, mostrar todas
     if (this.totalPages <= 5) {
-      return index + 1;
+      for (let i = 1; i <= this.totalPages; i++) {
+        pages.push(i);
+      }
+      return pages;
     }
     
-    // Si estamos en las primeras páginas
+    // Lógica para más de 5 páginas
     if (this.page <= 3) {
-      return index + 1;
+      // Al inicio: mostrar 1, 2, 3, 4, 5
+      for (let i = 1; i <= Math.min(5, this.totalPages); i++) {
+        pages.push(i);
+      }
+    } else if (this.page >= this.totalPages - 2) {
+      // Al final: mostrar las últimas 5 páginas
+      for (let i = Math.max(1, this.totalPages - 4); i <= this.totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // En el medio: mostrar página actual y 2 a cada lado
+      for (let i = this.page - 2; i <= this.page + 2; i++) {
+        if (i >= 1 && i <= this.totalPages) {
+          pages.push(i);
+        }
+      }
     }
     
-    // Si estamos en las últimas páginas
-    if (this.page >= this.totalPages - 2) {
-      return this.totalPages - 4 + index;
-    }
-    
-    // Si estamos en páginas intermedias, centrar alrededor de la página actual
-    return this.page - 2 + index;
+    return pages;
   }
 
   // Transformar un ProductoPedido a Product para poder agregarlo al carrito

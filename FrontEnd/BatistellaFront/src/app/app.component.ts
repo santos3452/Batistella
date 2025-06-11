@@ -106,6 +106,13 @@ export class AppComponent implements OnInit {
   closeSidebar() {
     this.sidebarOpen = false;
   }
+
+  // Método para hacer scroll hacia arriba con pequeño delay para asegurar que la navegación termine
+  scrollToTop() {
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 100);
+  }
   
   // Función para obtener una posición por cuadrícula para cada icono de animal
   getGridPosition(index: number): {x: number, y: number} {
