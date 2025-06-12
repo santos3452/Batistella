@@ -88,6 +88,13 @@
             <span class="text-gray-600">Subtotal</span>
             <span>{{ utils.formatCurrency(orderSummary.subtotal) }}</span>
           </div>
+          
+          <div *ngIf="!orderSummary.isPickupSelected" class="flex justify-between">
+            <span class="text-gray-600">Envío</span>
+            <span *ngIf="orderSummary.shippingCost === 0" class="text-green-600 font-medium">Gratis</span>
+            <span *ngIf="orderSummary.shippingCost > 0" class="text-gray-900">{{ utils.formatCurrency(orderSummary.shippingCost) }}</span>
+          </div>
+          
           <div class="flex justify-between" *ngIf="orderSummary.taxAmount > 0">
             <span class="text-gray-600">Impuestos</span>
             <span>{{ utils.formatCurrency(orderSummary.taxAmount) }}</span>

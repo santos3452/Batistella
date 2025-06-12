@@ -19,8 +19,13 @@ export class OrderSummaryComponent implements OnInit, OnDestroy {
   cartItems: CartItem[] = [];
   totalItems = 0;
   subtotal = 0;
+  shippingCost = 0;
   taxAmount = 0;
   totalAmount = 0;
+  
+  // Constantes para el envío
+  readonly FREE_SHIPPING_THRESHOLD = 20000;
+  private readonly SHIPPING_COST = 8000;
   
   currentUser: User | null = null;
   selectedAddress: any = null;
@@ -75,13 +80,17 @@ export class OrderSummaryComponent implements OnInit, OnDestroy {
         this.subscriptions.add(
           this.cartService.getTotalPriceByUserType$(user?.tipoUsuario || null).subscribe(price => {
             this.subtotal = price;
+            this.calculateShippingCost();
             // Puedes calcular impuestos si es necesario
             this.taxAmount = 0; // Por ahora sin impuestos adicionales
-            this.totalAmount = this.subtotal + this.taxAmount;
+            this.totalAmount = this.subtotal + this.shippingCost + this.taxAmount;
           })
         );
       })
     );
+    
+    // Calcular costo de envío inicial (retiro por defecto)
+    this.calculateShippingCost();
   }
   
   ngOnDestroy(): void {
@@ -92,12 +101,28 @@ export class OrderSummaryComponent implements OnInit, OnDestroy {
   selectPickup(): void {
     this.isPickupSelected = true;
     this.selectedAddress = null;
+    this.calculateShippingCost();
   }
   
   // Seleccionar una dirección específica
   selectAddress(address: Address): void {
     this.selectedAddress = address;
     this.isPickupSelected = false;
+    this.calculateShippingCost();
+  }
+  
+  // Calcular el costo de envío
+  private calculateShippingCost(): void {
+    if (this.isPickupSelected) {
+      // Sin costo si es retiro en local
+      this.shippingCost = 0;
+    } else {
+      // Envío gratis si supera el umbral, sino cobrar costo fijo
+      this.shippingCost = this.subtotal >= this.FREE_SHIPPING_THRESHOLD ? 0 : this.SHIPPING_COST;
+    }
+    
+    // Recalcular el total
+    this.totalAmount = this.subtotal + this.shippingCost + this.taxAmount;
   }
   
   // Eliminar un producto del carrito
@@ -145,6 +170,7 @@ export class OrderSummaryComponent implements OnInit, OnDestroy {
     localStorage.setItem('orderSummary', JSON.stringify({
       items: this.cartItems,
       subtotal: this.subtotal,
+      shippingCost: this.shippingCost,
       taxAmount: this.taxAmount,
       totalAmount: this.totalAmount,
       address: this.selectedAddress,

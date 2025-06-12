@@ -67,6 +67,19 @@ button:hover:not(:disabled) {
   .text-lg {
     font-size: 1.125rem;
   }
+
+  /* Estilos específicos para las pestañas en móvil */
+  nav[aria-label="Tabs"] {
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: #d1d5db transparent;
+  }
+
+  /* Asegurar que las pestañas no se contraigan */
+  nav[aria-label="Tabs"] button {
+    flex-shrink: 0;
+    min-width: max-content;
+  }
 }
 
 /* Estilos mejorados para las tarjetas de estadísticas */
@@ -123,5 +136,41 @@ button:hover:not(:disabled) {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* Estilos para el scroll horizontal de las pestañas */
+nav[aria-label="Tabs"] {
+  /* Scroll suave en webkit (Safari, Chrome) */
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Personalización del scrollbar para webkit */
+nav[aria-label="Tabs"]::-webkit-scrollbar {
+  height: 6px;
+}
+
+nav[aria-label="Tabs"]::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+nav[aria-label="Tabs"]::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+nav[aria-label="Tabs"]::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Para dispositivos móviles, hacer el scrollbar más visible */
+@media (max-width: 767px) {
+  nav[aria-label="Tabs"]::-webkit-scrollbar {
+    height: 8px;
+  }
+  
+  nav[aria-label="Tabs"]::-webkit-scrollbar-thumb {
+    background: #6b7280;
+    border-radius: 4px;
   }
 } 

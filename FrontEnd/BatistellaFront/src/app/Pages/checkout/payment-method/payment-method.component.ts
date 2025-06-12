@@ -12,6 +12,7 @@ import { environment } from '../../../../environments/environment';
 interface OrderSummary {
   items: any[];
   subtotal: number;
+  shippingCost: number;
   taxAmount: number;
   totalAmount: number;
   address: any;

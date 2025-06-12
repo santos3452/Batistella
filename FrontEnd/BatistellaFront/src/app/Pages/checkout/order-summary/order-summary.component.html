@@ -169,6 +169,22 @@
             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-teal-500 focus:border-teal-500"
             placeholder="Instrucciones específicas para la entrega..."></textarea>
         </div>
+
+        <!-- Mensaje de tiempo de entrega para envíos -->
+        <div *ngIf="!isPickupSelected" class="mt-4 bg-blue-50 border-l-4 border-blue-400 p-4 rounded-md">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 3v6a2 2 0 002 2h4a2 2 0 002-2v-6m-6 0h8m-8 0V7a2 2 0 012-2h4a2 2 0 012 2v3" />
+              </svg>
+            </div>
+            <div class="ml-3">
+              <p class="text-sm text-blue-700">
+                <strong>Tiempo de entrega:</strong> Su pedido será entregado en un plazo de 2 a 5 días hábiles.
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- No logueado -->
@@ -190,6 +206,19 @@
             <span class="text-gray-600">Subtotal</span>
             <span>{{ utils.formatCurrency(subtotal) }}</span>
           </div>
+          
+          <!-- Costo de envío - Solo mostrar cuando NO es retiro en local -->
+          <div *ngIf="!isPickupSelected" class="flex justify-between">
+            <span class="text-gray-600">Envío</span>
+            <span *ngIf="shippingCost === 0" class="text-green-600 font-medium">Gratis</span>
+            <span *ngIf="shippingCost > 0" class="text-gray-900">{{ utils.formatCurrency(shippingCost) }}</span>
+          </div>
+          
+          <!-- Mensaje informativo sobre envío gratis -->
+          <div *ngIf="!isPickupSelected && shippingCost > 0" class="text-xs text-blue-600 bg-blue-50 p-2 rounded">
+            💡 Agregá {{ utils.formatCurrency(FREE_SHIPPING_THRESHOLD - subtotal) }} más para obtener envío gratis
+          </div>
+          
           <div class="flex justify-between" *ngIf="taxAmount > 0">
             <span class="text-gray-600">Impuestos</span>
             <span>{{ utils.formatCurrency(taxAmount) }}</span>
