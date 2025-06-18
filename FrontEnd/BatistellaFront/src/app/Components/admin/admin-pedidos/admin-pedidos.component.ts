@@ -154,12 +154,14 @@ export class AdminPedidosComponent implements OnInit {
     let fecha = '';
     if (this.filterFecha?.trim()) {
       // Convertir formato YYYY-MM-DD (HTML input date) a DD/MM/AAAA
-      const fechaObj = new Date(this.filterFecha);
-      if (!isNaN(fechaObj.getTime())) {
-        const dia = fechaObj.getDate().toString().padStart(2, '0');
-        const mes = (fechaObj.getMonth() + 1).toString().padStart(2, '0');
-        const anio = fechaObj.getFullYear();
+      // Usar split para evitar problemas de zona horaria
+      const fechaParts = this.filterFecha.split('-');
+      if (fechaParts.length === 3) {
+        const anio = fechaParts[0];
+        const mes = fechaParts[1];
+        const dia = fechaParts[2];
         fecha = `${dia}/${mes}/${anio}`;
+        console.log(`Añadido filtro: fecha=${fecha}`);
       } else {
         fecha = this.filterFecha.trim();
       }
@@ -628,11 +630,12 @@ export class AdminPedidosComponent implements OnInit {
     let fecha = '';
     if (this.filterFecha?.trim()) {
       // Convertir formato YYYY-MM-DD (HTML input date) a DD/MM/AAAA
-      const fechaObj = new Date(this.filterFecha);
-      if (!isNaN(fechaObj.getTime())) {
-        const dia = fechaObj.getDate().toString().padStart(2, '0');
-        const mes = (fechaObj.getMonth() + 1).toString().padStart(2, '0');
-        const anio = fechaObj.getFullYear();
+      // Usar split para evitar problemas de zona horaria
+      const fechaParts = this.filterFecha.split('-');
+      if (fechaParts.length === 3) {
+        const anio = fechaParts[0];
+        const mes = fechaParts[1];
+        const dia = fechaParts[2];
         fecha = `${dia}/${mes}/${anio}`;
       } else {
         fecha = this.filterFecha.trim();
@@ -727,11 +730,12 @@ export class AdminPedidosComponent implements OnInit {
     
     if (this.filterFecha?.trim()) {
       // Convertir formato YYYY-MM-DD (HTML input date) a DD/MM/AAAA
-      const fechaObj = new Date(this.filterFecha);
-      if (!isNaN(fechaObj.getTime())) {
-        const dia = fechaObj.getDate().toString().padStart(2, '0');
-        const mes = (fechaObj.getMonth() + 1).toString().padStart(2, '0');
-        const anio = fechaObj.getFullYear();
+      // Usar split para evitar problemas de zona horaria
+      const fechaParts = this.filterFecha.split('-');
+      if (fechaParts.length === 3) {
+        const anio = fechaParts[0];
+        const mes = fechaParts[1];
+        const dia = fechaParts[2];
         fecha = `${dia}/${mes}/${anio}`;
       } else {
         fecha = this.filterFecha.trim();
@@ -803,5 +807,65 @@ export class AdminPedidosComponent implements OnInit {
    */
   imprimirDetallePedido(pedido: Pedido): void {
     this.printService.generarPDFDetallePedido(pedido);
+  }
+
+  /**
+   * Formatea una fecha y hora en formato DD/MM/AAAA HH:mm
+   * @param fechaString Fecha en formato string del backend (formato MM/DD/YYYY)
+   * @returns Fecha formateada DD/MM/AAAA HH:mm
+   */
+  formatearFecha(fechaString: string): string {
+    if (!fechaString) return '';
+    
+    try {
+      console.log('Formateando fecha original (MM/DD/YYYY):', fechaString);
+      
+      // Si la fecha viene en formato "MM/DD/AAAA HH:mm:ss" del backend americano
+      if (fechaString.match(/^\d{2}\/\d{2}\/\d{4}/)) {
+        const partes = fechaString.split(' ');
+        const fechaParte = partes[0]; // MM/DD/AAAA
+        const horaParte = partes[1]; // HH:mm:ss o HH:mm
+        
+        // Separar MM/DD/AAAA
+        const fechaPartes = fechaParte.split('/');
+        const mesAmericano = fechaPartes[0]; // MM
+        const diaAmericano = fechaPartes[1]; // DD  
+        const anio = fechaPartes[2]; // AAAA
+        
+        // Convertir a formato argentino DD/MM/AAAA
+        const fechaArgentina = `${diaAmericano}/${mesAmericano}/${anio}`;
+        
+        if (horaParte) {
+          // Extraer solo HH:mm de HH:mm:ss
+          const horaCorta = horaParte.substring(0, 5);
+          const fechaCompleta = `${fechaArgentina} ${horaCorta}`;
+          console.log('Fecha convertida de MM/DD a DD/MM:', fechaCompleta);
+          return fechaCompleta;
+        }
+        
+        console.log('Fecha convertida de MM/DD a DD/MM:', fechaArgentina);
+        return fechaArgentina;
+      }
+      
+      // Si viene en formato ISO (2025-06-06T22:33:06) o similar
+      const fecha = new Date(fechaString);
+      if (!isNaN(fecha.getTime())) {
+        const dia = fecha.getDate().toString().padStart(2, '0');
+        const mes = (fecha.getMonth() + 1).toString().padStart(2, '0');
+        const anio = fecha.getFullYear();
+        const horas = fecha.getHours().toString().padStart(2, '0');
+        const minutos = fecha.getMinutes().toString().padStart(2, '0');
+        
+        const fechaFormateada = `${dia}/${mes}/${anio} ${horas}:${minutos}`;
+        console.log('Fecha formateada desde Date:', fechaFormateada);
+        return fechaFormateada;
+      }
+      
+      console.log('No se pudo formatear, devolviendo original:', fechaString);
+      return fechaString; // Si no se puede formatear, devolver original
+    } catch (error) {
+      console.error('Error al formatear fecha:', error);
+      return fechaString; // En caso de error, devolver original
+    }
   }
 } 

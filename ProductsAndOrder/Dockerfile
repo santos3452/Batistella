@@ -12,6 +12,11 @@ RUN mvn clean package -DskipTests
 FROM eclipse-temurin:17-jre
 WORKDIR /app
 
+# Configurar zona horaria para Argentina
+RUN apt-get update && apt-get install -y tzdata
+ENV TZ=America/Buenos_Aires
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
 # Directorio para imágenes
 # RUN mkdir -p /app/images
 # El directorio se montará como un volumen, así que no es necesario crearlo aquí
@@ -26,4 +31,4 @@ EXPOSE 8083
 ENV SPRING_PROFILES_ACTIVE=docker
 
 # Comando para ejecutar la aplicación
-ENTRYPOINT ["java", "-jar", "app.jar"] 
+ENTRYPOINT ["java", "-Duser.timezone=America/Buenos_Aires", "-jar", "app.jar"] 

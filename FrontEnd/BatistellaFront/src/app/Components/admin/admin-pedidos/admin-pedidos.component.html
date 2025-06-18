@@ -179,7 +179,7 @@
               {{ pedido.nombreCompletoUsuario }}
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-              {{ pedido.fechaPedido }}
+              {{ formatearFecha(pedido.fechaPedido) }}
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
               <span [class]="'px-2 py-1 text-xs font-medium rounded-full ' + getEstadoClass(pedido.estado)">
@@ -341,7 +341,7 @@
           </div>
           <div>
             <p class="text-sm font-medium text-gray-500">Fecha</p>
-            <p class="text-base">{{ selectedPedido.fechaPedido }}</p>
+            <p class="text-base">{{ formatearFecha(selectedPedido.fechaPedido) }}</p>
           </div>
           <div>
             <p class="text-sm font-medium text-gray-500">Estado Pedido</p>
@@ -367,7 +367,7 @@
           </div>
           <div>
             <p class="text-sm font-medium text-gray-500">Fecha de Pago</p>
-            <p class="text-base">{{ selectedPedido.fechaPago || 'No especificado' }}</p>
+            <p class="text-base">{{ selectedPedido.fechaPago ? formatearFecha(selectedPedido.fechaPago) : 'No especificado' }}</p>
           </div>
           <div class="col-span-2">
             <p class="text-sm font-medium text-gray-500">Domicilio de entrega</p>

@@ -10,6 +10,8 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
+      - TZ=America/Buenos_Aires
+      - PGTZ=America/Buenos_Aires
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./docker/postgres/init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql:ro
@@ -76,6 +78,7 @@ services:
       - APP_FRONTEND_URL=${APP_FRONTEND_URL}
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - TZ=America/Buenos_Aires
     depends_on:
       postgres:
         condition: service_healthy
@@ -106,6 +109,7 @@ services:
       - GCP_CREDENTIALS_LOCATION=${GCP_CREDENTIALS_LOCATION:-credentials/batistella-service-account.json}
       - GCP_IMAGE_URL_EXPIRATION=${GCP_IMAGE_URL_EXPIRATION:-86400}
       - GOOGLE_APPLICATION_CREDENTIALS=/app/resources/credentials/batistella-service-account.json
+      - TZ=America/Buenos_Aires
     volumes:
       - ./ProductsAndOrder/src/main/resources/credentials:/app/resources/credentials
     depends_on:
@@ -135,6 +139,7 @@ services:
       - PAYMENT_SERVICE_URL=${PAYMENT_SERVICE_URL}
       - MICROSERVICE_NOTIFICATIONS_URL=http://notifications:8085
       - MICROSERVICE_PEDIDOS_URL=http://productsandorder:8083
+      - TZ=America/Buenos_Aires
     depends_on:
       postgres:
         condition: service_healthy
@@ -158,6 +163,7 @@ services:
       - APP_BASE_URL=${APP_BASE_URL}
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - TZ=America/Buenos_Aires
     depends_on:
       postgres:
         condition: service_healthy
@@ -184,6 +190,7 @@ services:
       - MICROSERVICE_PEDIDOS_ORDERS_URL=http://productsandorder:8083
       - MICROSERVICE_PAYMENT_URL=http://payments:8084
       - NOTIFICATIONS_SERVICE_URL=http://notifications:8085
+      - TZ=America/Buenos_Aires
     depends_on:
       - usersandlogin
       - productsandorder
