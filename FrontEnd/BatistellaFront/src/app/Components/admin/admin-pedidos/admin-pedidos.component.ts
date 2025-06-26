@@ -29,6 +29,7 @@ interface Pedido {
   fechaPedido: string;
   estado: string;
   total: number;
+  costoEnvio?: number;
   productos: DetallePedido[];
   createdAt: string;
   updatedAt: string;
@@ -867,5 +868,15 @@ export class AdminPedidosComponent implements OnInit {
       console.error('Error al formatear fecha:', error);
       return fechaString; // En caso de error, devolver original
     }
+  }
+
+  // Calcular el subtotal de productos de un pedido
+  calcularSubtotalProductos(pedido: Pedido): number {
+    return pedido.productos.reduce((subtotal, producto) => subtotal + producto.subtotal, 0);
+  }
+
+  // Obtener el costo de envío de un pedido
+  obtenerCostoEnvio(pedido: Pedido): number {
+    return pedido.costoEnvio || 0;
   }
 } 

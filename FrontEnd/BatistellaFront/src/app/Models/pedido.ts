@@ -16,6 +16,7 @@ export interface Pedido {
   fechaPedido: string;
   estado: string;
   total: number;
+  costoEnvio?: number;
   productos: ProductoPedido[];
   createdAt: string;
   updatedAt: string;

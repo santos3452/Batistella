@@ -149,6 +149,7 @@ public class PedidoServiceImpl implements PedidoService {
         pedido.setFechaPedido(LocalDateTime.now());
         pedido.setEstado(EstadoPedido.PENDIENTE);
         pedido.setTotal(total);
+        pedido.setCostoEnvio(crearPedidoDTO.getCostoEnvio());
         pedido.setDomicilioDeEtrega(crearPedidoDTO.getDomicilioDeEtrega());
         
         // Generar y asignar el código de pedido único

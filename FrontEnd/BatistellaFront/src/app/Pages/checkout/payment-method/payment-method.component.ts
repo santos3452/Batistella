@@ -119,8 +119,16 @@ export class PaymentMethodComponent implements OnInit {
       // Obtener la dirección completa del pedido
       const domicilioDeEntrega = this.orderSummary.direccionCompleta || 'Retiro en el local';
       
-      // Crear el pedido en la base de datos
-      this.pedidosService.crearPedido(currentUser.id, productos, domicilioDeEntrega)
+      console.log('=== DATOS PARA CREAR PEDIDO ===');
+      console.log('Productos:', productos);
+      console.log('Domicilio:', domicilioDeEntrega);
+      console.log('Subtotal productos:', this.orderSummary.subtotal);
+      console.log('Costo envío que se enviará:', this.orderSummary.shippingCost);
+      console.log('Total calculado:', this.orderSummary.totalAmount);
+      console.log('================================');
+
+      // Crear el pedido en la base de datos incluyendo el costo de envío
+      this.pedidosService.crearPedido(currentUser.id, productos, domicilioDeEntrega, this.orderSummary.shippingCost)
         .subscribe({
           next: (response) => {
             console.log('Pedido creado correctamente:', response);
@@ -204,6 +212,16 @@ export class PaymentMethodComponent implements OnInit {
       precioUnitario: item.product.priceMinorista
     }));
 
+    // Si hay costo de envío y no es retiro en local, agregarlo como ítem adicional
+    if (this.orderSummary.shippingCost > 0 && !this.orderSummary.isPickupSelected) {
+      mercadoPagoItems.push({
+        titulo: 'Envío a domicilio',
+        descripcion: 'Costo de envío del pedido',
+        cantidad: 1,
+        precioUnitario: this.orderSummary.shippingCost
+      });
+    }
+
     const mercadoPagoRequest: MercadoPagoRequest = {
       pedidoId: pedidoId,
       codigoPedido: codigoPedido,
@@ -212,7 +230,17 @@ export class PaymentMethodComponent implements OnInit {
       items: mercadoPagoItems
     };
 
-    console.log('Enviando solicitud a MercadoPago:', mercadoPagoRequest);
+    console.log('=== RESUMEN DETALLADO MERCADOPAGO ===');
+    console.log('Subtotal productos:', this.orderSummary.subtotal);
+    console.log('Costo de envío:', this.orderSummary.shippingCost);
+    console.log('Es retiro en local:', this.orderSummary.isPickupSelected);
+    console.log('Total calculado:', this.orderSummary.totalAmount);
+    console.log('Ítems enviados a MercadoPago:');
+    mercadoPagoItems.forEach((item, index) => {
+      console.log(`  ${index + 1}. ${item.titulo} - Cantidad: ${item.cantidad} - Precio: $${item.precioUnitario}`);
+    });
+    console.log('Solicitud completa a MercadoPago:', mercadoPagoRequest);
+    console.log('==========================================');
 
     // Obtener el token de autenticación
     const token = localStorage.getItem('token');
@@ -273,7 +301,19 @@ export class PaymentMethodComponent implements OnInit {
       message += `- ${item.product.fullName} x${item.quantity}: ${this.utils.formatCurrency(item.product.priceMinorista * item.quantity)}\n`;
     });
     
-    message += `\n*Total:* ${this.utils.formatCurrency(this.orderSummary.totalAmount || 0)}\n\n`;
+    // Agregar línea del subtotal
+    message += `\n*Subtotal:* ${this.utils.formatCurrency(this.orderSummary.subtotal)}\n`;
+    
+    // Agregar costo de envío si corresponde
+    if (this.orderSummary.shippingCost > 0 && !this.orderSummary.isPickupSelected) {
+      message += `*Envío:* ${this.utils.formatCurrency(this.orderSummary.shippingCost)}\n`;
+    } else if (this.orderSummary.isPickupSelected) {
+      message += `*Envío:* Retiro en local (sin costo)\n`;
+    } else {
+      message += `*Envío:* Gratis\n`;
+    }
+    
+    message += `*Total:* ${this.utils.formatCurrency(this.orderSummary.totalAmount || 0)}\n\n`;
     message += `*Dirección de entrega:*\n`;
     
     // Usar la dirección completa que viene en el formato adecuado

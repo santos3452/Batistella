@@ -38,6 +38,9 @@ public class Pedido {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal total;
 
+    @Column(name = "costo_envio")
+    private Integer costoEnvio;
+
     @Column(name= "Domicilio", nullable = true)
     private String domicilioDeEtrega;
 

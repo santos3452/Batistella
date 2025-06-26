@@ -22,4 +22,6 @@ public class CrearPedidoDTO {
     private List<PedidoProductoDTO> productos;
 
     private String domicilioDeEtrega;
+    
+    private Integer costoEnvio;
 } 

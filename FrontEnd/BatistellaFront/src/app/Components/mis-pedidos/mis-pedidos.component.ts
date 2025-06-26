@@ -279,6 +279,16 @@ export class MisPedidosComponent implements OnInit {
     return this.pedidos.reduce((total, pedido) => total + pedido.total, 0);
   }
 
+  // Calcular el subtotal de productos de un pedido
+  calcularSubtotalProductos(pedido: PedidoConImagenes): number {
+    return pedido.productos.reduce((subtotal, producto) => subtotal + producto.subtotal, 0);
+  }
+
+  // Obtener el costo de envío de un pedido
+  obtenerCostoEnvio(pedido: PedidoConImagenes): number {
+    return pedido.costoEnvio || 0;
+  }
+
   contarPedidosPendientes(): number {
     return this.pedidos.filter(pedido => pedido.estado.toUpperCase() === 'PENDIENTE').length;
   }

@@ -21,6 +21,7 @@ public class PedidoResponseDTO {
     private LocalDateTime fechaPedido;
     private EstadoPedido estado;
     private BigDecimal total;
+    private Integer costoEnvio;
     private String domicilio;
     private List<PedidoProductoResponseDTO> productos;
     private String estadoPago;

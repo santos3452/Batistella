@@ -299,18 +299,23 @@ export class PedidosService {
   }
 
   // Crear un nuevo pedido
-  crearPedido(usuarioId: number, productos: {productoId: number, cantidad: number}[], domicilioDeEntrega: string): Observable<any> {
+  crearPedido(usuarioId: number, productos: {productoId: number, cantidad: number}[], domicilioDeEntrega: string, costoEnvio?: number): Observable<any> {
     const token = localStorage.getItem('token');
     const headers = new HttpHeaders({
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'
     });
 
-    const payload = {
+    const payload: any = {
       usuarioId,
       productos,
-      domicilioDeEtrega: domicilioDeEntrega  // Nombre exacto según el backend
+      domicilioDeEtrega: domicilioDeEntrega,  // Nombre exacto según el backend
+      costoEnvio: costoEnvio !== undefined ? costoEnvio : 0  // Siempre enviar costoEnvio, 0 si es gratis
     };
+
+    console.log('=== CREANDO PEDIDO CON COSTO DE ENVÍO ===');
+    console.log('Costo de envío enviado al backend:', payload.costoEnvio);
+    console.log('Payload completo para crear pedido:', payload);
     
     return this.http.post(
       `${environment.pedidosUrl}`, 

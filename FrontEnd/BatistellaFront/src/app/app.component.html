@@ -113,12 +113,12 @@
           <h3 class="text-lg font-medium mb-4">Información Legal</h3>
           <ul class="space-y-2">
             <li>
-              <a routerLink="/faq" class="text-gray-400 hover:text-white transition-colors">
+              <a routerLink="/faq" (click)="scrollToTop()" class="text-gray-400 hover:text-white transition-colors">
                 Preguntas Frecuentes
               </a>
             </li>
             <li>
-              <a routerLink="/terms" class="text-gray-400 hover:text-white transition-colors">
+              <a routerLink="/terms" (click)="scrollToTop()" class="text-gray-400 hover:text-white transition-colors">
                 Términos y Condiciones
               </a>
             </li>

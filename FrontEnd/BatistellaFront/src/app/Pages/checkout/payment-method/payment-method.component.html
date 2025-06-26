@@ -153,9 +153,29 @@
             </ul>
           </div>
           
-          <div class="border-t border-gray-200 pt-2 mt-2 flex justify-between">
-            <span class="font-medium text-gray-700">Total:</span>
-            <span class="font-medium">{{ utils.formatCurrency(orderSummary?.totalAmount || 0) }}</span>
+          <div class="border-t border-gray-200 pt-2 mt-2">
+            <!-- Subtotal -->
+            <div class="flex justify-between mb-1">
+              <span class="text-sm text-gray-600">Subtotal:</span>
+              <span class="text-sm">{{ utils.formatCurrency(orderSummary?.subtotal || 0) }}</span>
+            </div>
+            
+            <!-- Envío -->
+            <div *ngIf="!orderSummary?.isPickupSelected" class="flex justify-between mb-1">
+              <span class="text-sm text-gray-600">Envío:</span>
+              <span *ngIf="orderSummary?.shippingCost === 0" class="text-sm text-green-600 font-medium">Gratis</span>
+              <span *ngIf="orderSummary && orderSummary.shippingCost > 0" class="text-sm">{{ utils.formatCurrency(orderSummary.shippingCost) }}</span>
+            </div>
+            <div *ngIf="orderSummary?.isPickupSelected" class="flex justify-between mb-1">
+              <span class="text-sm text-gray-600">Envío:</span>
+              <span class="text-sm text-green-600 font-medium">Retiro en local</span>
+            </div>
+            
+            <!-- Total -->
+            <div class="flex justify-between border-t border-gray-300 pt-2 mt-2">
+              <span class="font-medium text-gray-700">Total:</span>
+              <span class="font-medium">{{ utils.formatCurrency(orderSummary?.totalAmount || 0) }}</span>
+            </div>
           </div>
           
           <div class="mt-2">
